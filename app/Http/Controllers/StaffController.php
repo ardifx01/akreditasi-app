@@ -28,7 +28,18 @@ class StaffController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'id_staff' => 'required|min:5',
+            'nama' => 'required|min:5'
+        ]);
+
+        Staff::create([
+            'id_staf' => $request->id_staff,
+            'nama_staff' => $request->nama
+        ]);
+
+        // return redirect()->route('posts.index2')->with(['success' => 'Data Berhasil Disimpan!']);
+
     }
 
     /**

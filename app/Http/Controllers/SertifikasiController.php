@@ -28,7 +28,24 @@ class SertifikasiController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'id_staff' => 'required|min:5',
+            'judul_sertifikasi' => 'required|min:5',
+            'file_dokumen' => 'required|mimes:pdf',
+            'tahun' => 'required|integer'
+        ]);
+
+        // penyimpanan file
+        $nama = strtolower(str_replace(' ', '_', $request->id_staf));
+        $fileName = $nama . '.pdf';
+        $path = $request->file('file')->storeAs('pdfs', $fileName, 'public');
+
+        Sertifikasi::create([
+            'id_staff' => $request->id_staf,
+            'judul_sertifikasi' => $request->judul_pelatihan,
+            'file_dokumen' => $path,
+            'tahun' => $request->tahun
+        ]);
     }
 
     /**
