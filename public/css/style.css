@@ -1,0 +1,134 @@
+/* Sidebar basic styling */
+.sidebar {
+    min-width: 250px;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Collapse animations and transitions */
+.collapse {
+    transition: all 0.35s ease;
+}
+
+.collapse:not(.show) {
+    display: none;
+}
+
+.collapsing {
+    height: 0;
+    overflow: hidden;
+    transition: height 0.35s ease;
+}
+
+/* Nav link styling */
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    padding: 0.8rem 1rem;
+    transition: all 0.3s ease;
+    border-radius: 5px;
+    margin-bottom: 0.2rem;
+}
+
+.nav-link:hover {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+/* Dropdown arrow styling */
+.nav-link[data-bs-toggle="collapse"] {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-link[data-bs-toggle="collapse"]::after {
+    content: "\f107";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    transition: transform 0.3s ease;
+}
+
+.nav-link[data-bs-toggle="collapse"][aria-expanded="true"]::after {
+    transform: rotate(-180deg);
+}
+
+/* Submenu styling */
+.submenu {
+    padding-left: 1.2rem;
+    margin-top: 0.2rem;
+}
+
+.sub-submenu {
+    padding-left: 1.8rem;
+}
+
+/* Collapse animation */
+.collapse.show {
+    animation: slideDown 0.35s ease forwards;
+}
+
+@keyframes slideDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Active state */
+.nav-link.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff !important;
+    font-weight: 500;
+}
+
+/* Hover effects for menu items */
+.nav-item:hover > .nav-link {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Nested menu indentation and styling */
+.submenu .nav-link,
+.sub-submenu .nav-link {
+    font-size: 0.95rem;
+    padding: 0.6rem 1rem;
+}
+
+/* Title styling */
+.sidebar h4 {
+    color: #fff;
+    padding: 1rem 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+/* Content area */
+.content {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Scrollbar styling */
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
