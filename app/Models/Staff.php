@@ -21,4 +21,10 @@ class Staff extends Model
     public function sertifikasi(){
         return $this->hasMany(Sertifikasi::class, 'id_staf');
     }
+    public function transkrip(){
+        return $this->hasMany(Transkrip::class, 'id_staf');
+    }
+    public function ijazah(){
+        return $this->hasMany(Ijazah::class, 'id_staf');
+    }
 }
