@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sertifikasi extends Model
 {
+    protected $connection = 'mysql2';
     protected $table = 'tb_sertifikasi';
     protected $primaryKey = 'id';
 
