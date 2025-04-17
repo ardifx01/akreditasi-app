@@ -29,7 +29,7 @@ class PelatihanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_staff' => 'required|min:5',
+            'id_staf' => 'required|min:5',
             'judul_pelatihan' => 'required|min:5',
             'file_dokumen' => 'required|mimes:pdf',
             'tahun' => 'required|integer'
@@ -41,7 +41,7 @@ class PelatihanController extends Controller
         $path = $request->file('file')->storeAs('pdfs', $fileName, 'public');
 
         Pelatihan::create([
-            'id_staff' => $request->id_staf,
+            'id_staf' => $request->id_staf,
             'judul_pelatihan' => $request->judul_pelatihan,
             'file_dokumen' => $path,
             'tahun' => $request->tahun

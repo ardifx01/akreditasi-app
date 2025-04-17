@@ -36,7 +36,4 @@ class VisitHistory extends Controller
         ]);
     }
 
-    public function kunjunganfak(){
-        return view('pages.kunjungan.fakultas');
-    }
 }
