@@ -12,6 +12,7 @@ class Staff extends Model
 
     protected $fillable = ['id_staf', 'nama_staff'];
 
+    // Relasi ke setiap tabel one to many
     public function skp(){
         return $this->hasMany(Skp::class, 'id_staf');
     }
@@ -20,5 +21,14 @@ class Staff extends Model
     }
     public function sertifikasi(){
         return $this->hasMany(Sertifikasi::class, 'id_staf');
+    }
+    public function transkrip(){
+        return $this->hasMany(Transkrip::class, 'id_staf');
+    }
+    public function ijazah(){
+        return $this->hasMany(Ijazah::class, 'id_staf');
+    }
+    public function mou(){
+        return $this->hasMany(Mou::class, 'id_staf');
     }
 }

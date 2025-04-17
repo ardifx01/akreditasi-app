@@ -28,7 +28,24 @@ class PelatihanController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'id_staf' => 'required|min:5',
+            'judul_pelatihan' => 'required|min:5',
+            'file_dokumen' => 'required|mimes:pdf',
+            'tahun' => 'required|integer'
+        ]);
+
+        // penyimpanan file
+        $nama = strtolower(str_replace(' ', '_', $request->id_staf));
+        $fileName = $nama . '.pdf';
+        $path = $request->file('file')->storeAs('pdfs', $fileName, 'public');
+
+        Pelatihan::create([
+            'id_staf' => $request->id_staf,
+            'judul_pelatihan' => $request->judul_pelatihan,
+            'file_dokumen' => $path,
+            'tahun' => $request->tahun
+        ]);
     }
 
     /**

@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::connection('mysql2')->create('tb_sertifikasi', function (Blueprint $table) {
+        Schema::connection('mysql2')->create('tb_ijazah', function (Blueprint $table) {
             $table->id();
             $table->string('id_staf', 20);
-            $table->string('judul_sertifikasi');
+            $table->string('judul_ijazah');
             $table->string('file_dokumen');
             $table->integer('tahun');
             $table->timestamps();
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tb_sertifikasi');
+        Schema::dropIfExists('tb_ijazah');
     }
 };

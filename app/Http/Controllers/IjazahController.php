@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Staff;
+use App\Models\Ijazah;
 use Illuminate\Http\Request;
 
-class StaffController extends Controller
+class IjazahController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -30,22 +30,28 @@ class StaffController extends Controller
     {
         $request->validate([
             'id_staf' => 'required|min:5',
-            'nama' => 'required|min:5'
+            'judul_ijazah' => 'required|min:5',
+            'file_dokumen' => 'required|mimes:pdf',
+            'tahun' => 'required|integer'
         ]);
 
-        Staff::create([
-            'id_staf' => $request->id_staff,
-            'nama_staff' => $request->nama
+        // penyimpanan file
+        $nama = strtolower(str_replace(' ', '_', $request->id_staf));
+        $fileName = $nama . '.pdf';
+        $path = $request->file('file')->storeAs('pdfs', $fileName, 'public');
+
+        Ijazah::create([
+            'id_staf' => $request->id_staf,
+            'judul_ijazah' => $request->judul_pelatihan,
+            'file_dokumen' => $path,
+            'tahun' => $request->tahun
         ]);
-
-        // return redirect()->route('posts.index2')->with(['success' => 'Data Berhasil Disimpan!']);
-
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Staff $staff)
+    public function show(Ijazah $ijazah)
     {
         //
     }
@@ -53,7 +59,7 @@ class StaffController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Staff $staff)
+    public function edit(Ijazah $ijazah)
     {
         //
     }
@@ -61,7 +67,7 @@ class StaffController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Staff $staff)
+    public function update(Request $request, Ijazah $ijazah)
     {
         //
     }
@@ -69,7 +75,7 @@ class StaffController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Staff $staff)
+    public function destroy(Ijazah $ijazah)
     {
         //
     }
