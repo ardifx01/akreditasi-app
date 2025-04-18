@@ -12,7 +12,7 @@ class StaffController extends Controller
      */
     public function index()
     {
-        $staff = Staff::all();
+        $staff = Staff::paginate(10);
         return view('pages.staff.staf', compact('staff'));
     }
 
@@ -31,15 +31,15 @@ class StaffController extends Controller
     {
         $request->validate([
             'id_staf' => 'required|min:5',
-            'nama' => 'required|min:5'
+            'nama_staff' => 'required|min:5'
         ]);
 
         Staff::create([
-            'id_staf' => $request->id_staff,
-            'nama_staff' => $request->nama
+            'id_staf' => $request->id_staf,
+            'nama_staff' => $request->nama_staff
         ]);
 
-        // return redirect()->route('posts.index2')->with(['success' => 'Data Berhasil Disimpan!']);
+        return redirect()->route('staff.index')->with(['success' => 'Data Berhasil Ditambahkan!']);
 
     }
 
@@ -64,7 +64,17 @@ class StaffController extends Controller
      */
     public function update(Request $request, Staff $staff)
     {
-        //
+        $request->validate([
+            'id_staf' => 'required|min:5',
+            'nama_staff' => 'required|string|min:3',
+        ]);
+    
+        $staff->update([
+            'id_staf' => $request->id_staf,
+            'nama_staff' => $request->nama_staff,
+        ]);
+    
+        return redirect()->back()->with('success', 'Data staff berhasil diperbarui.');
     }
 
     /**
@@ -72,6 +82,7 @@ class StaffController extends Controller
      */
     public function destroy(Staff $staff)
     {
-        //
+        $staff->delete();
+        return redirect()->route('staff.index')->with(['success' => 'Data Berhasil Dihapus!']);
     }
 }

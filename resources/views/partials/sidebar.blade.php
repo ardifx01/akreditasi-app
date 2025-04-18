@@ -36,7 +36,7 @@
                 <div class="collapse" id="sdmCollapse">
                     <ul class="nav flex-column ms-3 mt-2">
                         <li class="nav-item mb-1">
-                            <a class="nav-link rounded py-2 px-3" href="#"
+                            <a class="nav-link rounded py-2 px-3" href="{{ route('staff.index') }}"
                                 style="color: #ddd; font-size: 0.9rem; transition: all 0.3s;">
                                 <i class="fas fa-id-card me-2"></i>Master Data Staff
                             </a>
