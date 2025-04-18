@@ -13,7 +13,7 @@
             <div class="collapse" id="sdmCollapse">
                 <ul class="nav flex-column submenu">
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" href="{{ route('staff.index') }}">
                             <i class="fas fa-calendar-day me-2"></i>Master Data Staff
                         </a>
                     </li>

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\DB;
 use App\Models\Ijazah;
 use Illuminate\Http\Request;
 
@@ -29,23 +29,26 @@ class IjazahController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            // 'id_staf' => 'required|min:5|exists:mysql2.tb_staff,id_staf',
             'id_staf' => 'required|min:5',
             'judul_ijazah' => 'required|min:5',
-            'file_dokumen' => 'required|mimes:pdf',
+            'file_dokumen' => 'required|mimes:pdf|max:4096',
             'tahun' => 'required|integer'
         ]);
 
         // penyimpanan file
         $nama = strtolower(str_replace(' ', '_', $request->id_staf));
         $fileName = $nama . '.pdf';
-        $path = $request->file('file')->storeAs('pdfs', $fileName, 'public');
+        $path = $request->file('file_dokumen')->storeAs('pdfs', $fileName, 'public');
 
         Ijazah::create([
             'id_staf' => $request->id_staf,
-            'judul_ijazah' => $request->judul_pelatihan,
+            'judul_ijazah' => $request->judul_ijazah,
             'file_dokumen' => $path,
             'tahun' => $request->tahun
         ]);
+
+        return redirect()->back()->with('success', 'Ijazah berhasil ditambahkan.');
     }
 
     /**
@@ -78,5 +81,10 @@ class IjazahController extends Controller
     public function destroy(Ijazah $ijazah)
     {
         //
+    }
+
+    public function testkoneksi(){
+        $staffs = DB::connection('mysql2')->table('tb_staff')->get();
+        dd($staffs);
     }
 }
