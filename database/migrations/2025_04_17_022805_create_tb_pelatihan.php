@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::connection('mysql2')->create('tb_pelatihan', function (Blueprint $table) {
+        Schema::create('tb_pelatihan', function (Blueprint $table) {
             $table->id();
             $table->string('id_staf', 20);
             $table->string('judul_pelatihan');

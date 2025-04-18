@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Skp extends Model
 {
-    protected $connection = 'mysql2';
     protected $table = 'tb_skp';
     protected $primaryKey = 'id';
 

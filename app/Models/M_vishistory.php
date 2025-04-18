@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class M_vishistory extends Model
 {
+    protected $connection = 'mysql2';
     use HasFactory;
 
     protected $table = 'visitorhistory';

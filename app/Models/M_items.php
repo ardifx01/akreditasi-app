@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class M_items extends Model
 {
+    protected $connection = 'mysql2';
     protected $table = 'items';
     protected $primaryKey = 'itemnumber';
     public $incrementing = true;

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class M_eclassprod extends Model
 {
+    protected $connection = 'mysql2';
     use HasFactory;
     protected $table = 'local_eclass_prodi';
     protected $primaryKey = 'id';

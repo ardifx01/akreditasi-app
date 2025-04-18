@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class M_biblio extends Model
 {
+    protected $connection = 'mysql2';
     protected $table = 'biblio';
     protected $primaryKey = 'biblionumber';
     public $incrementing = true;

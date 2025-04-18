@@ -8,6 +8,7 @@ use PhpParser\Node\Expr\FuncCall;
 
 class M_viscorner extends Model
 {
+    protected $connection = 'mysql2';
     use HasFactory;
 
     protected $table = 'visitorcorner';

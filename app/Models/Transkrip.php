@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transkrip extends Model
 {
-    protected $connection = 'mysql2';
     protected $table = 'tb_transkrip';
     protected $primaryKey = 'id';
 

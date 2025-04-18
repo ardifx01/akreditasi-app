@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class M_epustaka extends Model
 {
+    protected $connection = 'mysql2';
     use HasFactory;
     protected $table = 'local_epustaka';
     protected $primaryKey = 'id';

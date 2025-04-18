@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class M_card extends Model
 {
+    protected $connection = 'mysql2';
     use HasFactory;
 
     protected $table = 'counter_newcard';

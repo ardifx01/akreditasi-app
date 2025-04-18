@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pelatihan extends Model
 {
-    protected $connection = 'mysql2';
     protected $table = 'tb_pelatihan';
     protected $primaryKey = 'id';
 

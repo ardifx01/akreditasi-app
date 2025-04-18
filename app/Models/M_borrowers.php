@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class M_borrowers extends Model
 {
+    protected $connection = 'mysql2';
     protected $table = 'borrowers';
     protected $primaryKey = 'borrowernumber';
     public $incrementing = true;

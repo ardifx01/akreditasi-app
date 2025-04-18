@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('visithistory', function (Blueprint $table) {
+        Schema::connection('mysql2')->create('visithistory', function (Blueprint $table) {
                 $table->id();
                 $table->dateTime('visittime');
                 $table->string('cardnumber', 50);
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('visithistory');
+        Schema::connection('mysql2')->dropIfExists('visithistory');
     }
 };

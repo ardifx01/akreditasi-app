@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Staff extends Model
 {
-    protected $connection = 'mysql2';
     protected $table = 'tb_staff';
     protected $primaryKey = 'id';
 
