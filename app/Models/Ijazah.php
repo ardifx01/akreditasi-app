@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ijazah extends Model
 {
-    protected $connection = 'mysql2';
+    // protected $connection = 'mysql2';
     protected $table = 'tb_ijazah';
     protected $primaryKey = 'id';
 
