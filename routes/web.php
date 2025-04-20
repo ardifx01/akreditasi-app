@@ -3,6 +3,7 @@
 use App\Http\Controllers\IjazahController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SertifikasiController;
+use App\Http\Controllers\SkpController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\TranskripController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,7 @@ Route::resources([
     'staff' => StaffController::class,
     'transkrip' => TranskripController::class,
     'sertifikasi' => SertifikasiController::class,
+    'skp' => SkpController::class,
 ]);
 
 require __DIR__ . '/auth.php';
