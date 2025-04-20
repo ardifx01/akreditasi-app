@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\IjazahController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SertifikasiController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\TranskripController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,7 @@ Route::resources([
     'ijazah' => IjazahController::class,
     'staff' => StaffController::class,
     'transkrip' => TranskripController::class,
+    'sertifikasi' => SertifikasiController::class,
 ]);
 
 require __DIR__ . '/auth.php';

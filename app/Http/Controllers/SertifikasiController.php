@@ -12,7 +12,8 @@ class SertifikasiController extends Controller
      */
     public function index()
     {
-        //
+        $sertifikasi = Sertifikasi::paginate(10);
+        return view('pages.staff.sertifikasi', compact('sertifikasi'));
     }
 
     /**
@@ -29,23 +30,25 @@ class SertifikasiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_staf' => 'required|min:5',
-            'judul_sertifikasi' => 'required|min:5',
-            'file_dokumen' => 'required|mimes:pdf',
+            'id_staf' => 'required',
+            'judul_sertifikasi' => 'required',
+            'file_dokumen' => 'mimes:pdf',
             'tahun' => 'required|integer'
         ]);
 
-        // penyimpanan file
-        $nama = strtolower(str_replace(' ', '_', $request->id_staf));
-        $fileName = $nama . '.pdf';
-        $path = $request->file('file')->storeAs('pdfs', $fileName, 'public');
+        $id = $request->input('id_staf');
+        $dokumen = $request->file('file_dokumen');
+        $nama_dok = 'sertifikasi_'.$id.'.'.$dokumen->getClientOriginalExtension();
+        $dokumen->move('dokumen/', $nama_dok);
 
         Sertifikasi::create([
             'id_staf' => $request->id_staf,
-            'judul_sertifikasi' => $request->judul_pelatihan,
-            'file_dokumen' => $path,
+            'judul_sertifikasi' => $request->judul_sertifikasi,
+            'file_dokumen' => $nama_dok,
             'tahun' => $request->tahun
         ]);
+
+        return redirect()->back()->with('success', 'Ijazah berhasil ditambahkan.');
     }
 
     /**
@@ -69,7 +72,35 @@ class SertifikasiController extends Controller
      */
     public function update(Request $request, Sertifikasi $sertifikasi)
     {
-        //
+        $request->validate([
+            'id_staf' => 'required',
+            'judul_sertifikasi' => 'required',
+            'file_dokumen' => 'nullable|mimes:pdf',
+            'tahun' => 'required|integer'
+        ]);
+
+        $nama_dok = $sertifikasi->file_dokumen;
+
+        if ($request->hasFile('file_dokumen')) {
+            $id = $request->input('id_staf');
+            $dokumen = $request->file('file_dokumen');
+            $nama_dok = 'sertifikasi_' . $id . '.' . $dokumen->getClientOriginalExtension();
+
+            $file_lama = public_path('dokumen/' . $sertifikasi->file_dokumen);
+            if (file_exists($file_lama)) {
+                unlink($file_lama);
+            }
+            $dokumen->move(public_path('dokumen'), $nama_dok);
+        }
+
+        $sertifikasi->update([
+            'id_staf' => $request->id_staf,
+            'judul_sertifikasi' => $request->judul_sertifikasi,
+            'file_dokumen' => $nama_dok,
+            'tahun' => $request->tahun
+        ]);
+
+        return redirect()->back()->with('success', 'Sertifikasi berhasil diedit.');
     }
 
     /**
@@ -77,6 +108,7 @@ class SertifikasiController extends Controller
      */
     public function destroy(Sertifikasi $sertifikasi)
     {
-        //
+        $sertifikasi->delete();
+        return redirect()->back()->with('success', 'Sertifikasi berhasil dihapus.');
     }
 }
