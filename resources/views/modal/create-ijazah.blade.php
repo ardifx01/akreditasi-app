@@ -27,7 +27,7 @@
             <!-- File Dokumen -->
             <div class="mb-3">
               <label for="file_dokumen" class="form-label">File Ijazah</label>
-              <input type="text" class="form-control" id="file_dokumen" name="file_dokumen" required>
+              <input type="file" class="form-control" id="file_dokumen" name="file_dokumen" value="{{ old('file_dokumen') }}" required>
             </div>
   
             <!-- Tahun -->

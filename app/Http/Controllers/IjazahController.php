@@ -32,38 +32,23 @@ class IjazahController extends Controller
         $request->validate([
             'id_staf' => 'required',
             'judul_ijazah' => 'required',
-            'file_dokumen' => 'required',
+            'file_dokumen' => 'mimes:pdf',
             'tahun' => 'required|integer'
         ]);
+
+        $id = $request->input('id_staf');
+        $dokumen = $request->file('file_dokumen');
+        $nama_dok = 'ijazah_'.$id.'.'.$dokumen->getClientOriginalExtension();
+        $dokumen->move('dokumen/', $nama_dok);
+
         Ijazah::create([
             'id_staf' => $request->id_staf,
             'judul_ijazah' => $request->judul_ijazah,
-            'file_dokumen' => $request->file_dokumen,
+            'file_dokumen' => $nama_dok,
             'tahun' => $request->tahun
         ]);
+
         return redirect()->back()->with('success', 'Ijazah berhasil ditambahkan.');
-        // $request->validate([
-        //     // 'id_staf' => 'required|min:5|exists:mysql2.tb_staff,id_staf',
-        //     'id_staf' => 'required|min:5',
-        //     'judul_ijazah' => 'required|min:5',
-        //     'file_dokumen' => 'required|min:5',
-        //     'tahun' => 'required|max:4'
-        // ]);
-
-        // // penyimpanan file
-        // // $nama = strtolower(str_replace(' ', '_', $request->id_staf));
-        // // $fileName = $nama . '.pdf';
-        // // $path = $request->file('file_dokumen')->storeAs('pdfs', $fileName, 'public');
-
-        // Ijazah::create([
-        //     'id_staf' => $request->id_staf,
-        //     'judul_ijazah' => $request->judul_ijazah,
-        //     'file_dokumen' => $request->file_dokumen,
-        //     'tahun' => $request->tahun
-        // ]);
-
-        // return redirect()->back()->with('success', 'Ijazah berhasil ditambahkan.');
-        // dd($request->all());
     }
 
     /**
@@ -95,7 +80,8 @@ class IjazahController extends Controller
      */
     public function destroy(Ijazah $ijazah)
     {
-        //
+        $ijazah->delete();
+        return redirect()->back()->with('success', 'Ijazah berhasil dihapus.');
     }
 
     public function testkoneksi(){
