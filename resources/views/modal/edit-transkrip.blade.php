@@ -1,4 +1,4 @@
-<div class="modal fade" id="editStaff{{ $item->id }}" tabindex="-1" aria-labelledby="editStaffModalLabel" aria-hidden="true">
+<div class="modal fade" id="editTranskrip{{ $item->id }}" tabindex="-1" aria-labelledby="editStaffModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <!-- Modal Header -->
@@ -7,7 +7,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <!-- Form -->
-            <form action="{{ route('staff.update', $item->id) }}" method="POST" enctype="multipart/form-data" id="formStaff">
+            <form action="{{ route('transkrip.update', $item->id) }}" method="POST" enctype="multipart/form-data" id="formStaff">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">
@@ -18,8 +18,18 @@
                     </div>
                     <!-- Nama Staff -->
                     <div class="mb-3">
-                        <label for="nama_staff" class="form-label">Nama Staff</label>
-                        <input type="text" class="form-control" id="nama_staff" name="nama_staff" value="{{ $item->nama_staff }}" required>
+                        <label for="judul_transkrip" class="form-label">Nama Transkrip</label>
+                        <input type="text" class="form-control" id="judul_transkrip" name="judul_transkrip" value="{{ $item->judul_transkrip }}" required>
+                    </div>
+                    <!-- File Dokumen -->
+                    <div class="mb-3">
+                        <label for="file_dokumen" class="form-label">File Transkrip</label>
+                        <input type="file" class="form-control" id="file_dokumen" name="file_dokumen" value="{{ $item->file_dokumen }}">
+                    </div>
+                    <!-- Tahun -->
+                    <div class="mb-3">
+                        <label for="tahun" class="form-label">Tahun</label>
+                        <input type="text" class="form-control" id="tahun" name="tahun" value="{{ $item->tahun }}" required>
                     </div>
                 </div>
                 <!-- Modal Footer -->

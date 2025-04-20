@@ -72,7 +72,35 @@ class IjazahController extends Controller
      */
     public function update(Request $request, Ijazah $ijazah)
     {
-        //
+        $request->validate([
+            'id_staf' => 'required',
+            'judul_ijazah' => 'required',
+            'file_dokumen' => 'nullable|mimes:pdf',
+            'tahun' => 'required|integer'
+        ]);
+
+        $nama_dok = $ijazah->file_dokumen;
+
+        if ($request->hasFile('file_dokumen')) {
+            $id = $request->input('id_staf');
+            $dokumen = $request->file('file_dokumen');
+            $nama_dok = 'ijazah_' . $id . '.' . $dokumen->getClientOriginalExtension();
+
+            $file_lama = public_path('dokumen/' . $ijazah->file_dokumen);
+            if (file_exists($file_lama)) {
+                unlink($file_lama);
+            }
+            $dokumen->move(public_path('dokumen'), $nama_dok);
+        }
+
+        $ijazah->update([
+            'id_staf' => $request->id_staf,
+            'judul_ijazah' => $request->judul_ijazah,
+            'file_dokumen' => $nama_dok,
+            'tahun' => $request->tahun
+        ]);
+
+        return redirect()->back()->with('success', 'Transkrip berhasil diedit.');
     }
 
     /**

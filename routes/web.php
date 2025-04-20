@@ -3,6 +3,7 @@
 use App\Http\Controllers\IjazahController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\TranskripController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VisitHistory;
 use App\Models\Staff;
@@ -23,7 +24,8 @@ Route::middleware('auth')->group(function () {
 
 Route::resources([
     'ijazah' => IjazahController::class,
-    'staff' => StaffController::class
+    'staff' => StaffController::class,
+    'transkrip' => TranskripController::class,
 ]);
 
 require __DIR__ . '/auth.php';

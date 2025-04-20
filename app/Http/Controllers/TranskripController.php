@@ -12,7 +12,8 @@ class TranskripController extends Controller
      */
     public function index()
     {
-        //
+        $transkrip = Transkrip::paginate(10);
+        return view('pages.staff.transkrip', compact('transkrip'));
     }
 
     /**
@@ -29,23 +30,25 @@ class TranskripController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_staf' => 'required|min:5',
-            'judul_transkrip' => 'required|min:5',
-            'file_dokumen' => 'required|mimes:pdf',
+            'id_staf' => 'required',
+            'judul_transkrip' => 'required',
+            'file_dokumen' => 'mimes:pdf',
             'tahun' => 'required|integer'
         ]);
 
-        // penyimpanan file
-        $nama = strtolower(str_replace(' ', '_', $request->id_staf));
-        $fileName = $nama . '.pdf';
-        $path = $request->file('file')->storeAs('pdfs', $fileName, 'public');
+        $id = $request->input('id_staf');
+        $dokumen = $request->file('file_dokumen');
+        $nama_dok = 'transkrip_'.$id.'.'.$dokumen->getClientOriginalExtension();
+        $dokumen->move('dokumen/', $nama_dok);
 
         Transkrip::create([
             'id_staf' => $request->id_staf,
-            'judul_skp' => $request->judul_pelatihan,
-            'file_dokumen' => $path,
+            'judul_transkrip' => $request->judul_transkrip,
+            'file_dokumen' => $nama_dok,
             'tahun' => $request->tahun
         ]);
+
+        return redirect()->back()->with('success', 'Ijazah berhasil ditambahkan.');
     }
 
     /**
@@ -69,14 +72,44 @@ class TranskripController extends Controller
      */
     public function update(Request $request, Transkrip $transkrip)
     {
-        //
+        $request->validate([
+            'id_staf' => 'required',
+            'judul_transkrip' => 'required',
+            'file_dokumen' => 'nullable|mimes:pdf',
+            'tahun' => 'required|integer'
+        ]);
+
+        $nama_dok = $transkrip->file_dokumen;
+
+        if ($request->hasFile('file_dokumen')) {
+            $id = $request->input('id_staf');
+            $dokumen = $request->file('file_dokumen');
+            $nama_dok = 'transkrip_' . $id . '.' . $dokumen->getClientOriginalExtension();
+
+            $file_lama = public_path('dokumen/' . $transkrip->file_dokumen);
+            if (file_exists($file_lama)) {
+                unlink($file_lama);
+            }
+            $dokumen->move(public_path('dokumen'), $nama_dok);
+        }
+
+        $transkrip->update([
+            'id_staf' => $request->id_staf,
+            'judul_transkrip' => $request->judul_transkrip,
+            'file_dokumen' => $nama_dok,
+            'tahun' => $request->tahun
+        ]);
+
+        return redirect()->back()->with('success', 'Transkrip berhasil diedit.');
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Transkrip $transkrip)
     {
-        //
+        $transkrip->delete();
+        return redirect()->back()->with('success', 'Ijazah berhasil dihapus.');
     }
 }

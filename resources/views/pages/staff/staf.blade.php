@@ -31,7 +31,7 @@
                     @can('admin-action')
                     <td>
                         {{-- <a href="{{ route('staff.edit', $item->id) }}" class="btn btn-primary">Edit</a> --}}
-                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ $item->id }}">Edit
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editStaff{{ $item->id }}">Edit
                         </button>
                         <form action="{{ route('staff.destroy', $item->id) }}" method="POST" style="display:inline;">
                             @csrf
