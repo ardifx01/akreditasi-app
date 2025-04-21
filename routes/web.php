@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\IjazahController;
+use App\Http\Controllers\PelatihanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SertifikasiController;
 use App\Http\Controllers\SkpController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\TranskripController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VisitHistory;
+use App\Models\Pelatihan;
 use App\Models\Staff;
 
 Route::get('/', function () {
@@ -30,6 +32,7 @@ Route::resources([
     'transkrip' => TranskripController::class,
     'sertifikasi' => SertifikasiController::class,
     'skp' => SkpController::class,
+    'pelatihan' => PelatihanController::class,
 ]);
 
 require __DIR__ . '/auth.php';

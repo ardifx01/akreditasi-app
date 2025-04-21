@@ -107,9 +107,15 @@ class TranskripController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Transkrip $transkrip)
+    public function destroy($id)
     {
+        // saat data dihapus maka file yang ada di folder 'public/dokumen' juga terhapus sesuai dengan id yang dihapus
+        $transkrip = Transkrip::findOrFail($id);
+        $file_lama = public_path('dokumen/' . $transkrip->file_dokumen);
+        if (file_exists($file_lama)) {
+            unlink($file_lama);
+        }
         $transkrip->delete();
-        return redirect()->back()->with('success', 'Ijazah berhasil dihapus.');
+        return redirect()->back()->with('success', 'transkrip berhasil dihapus.');
     }
 }

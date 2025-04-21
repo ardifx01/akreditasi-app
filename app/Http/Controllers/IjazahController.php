@@ -106,8 +106,13 @@ class IjazahController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Ijazah $ijazah)
-    {
+    public function destroy($id){
+        // saat data dihapus maka file yang ada di folder 'public/dokumen' juga terhapus sesuai dengan id yang dihapus
+        $ijazah = Ijazah::findOrFail($id);
+        $file_lama = public_path('dokumen/' . $ijazah->file_dokumen);
+        if (file_exists($file_lama)) {
+            unlink($file_lama);
+        }
         $ijazah->delete();
         return redirect()->back()->with('success', 'Ijazah berhasil dihapus.');
     }

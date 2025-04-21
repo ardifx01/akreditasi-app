@@ -54,7 +54,7 @@
                             </a>
                         </li>
                         <li class="nav-item mb-1">
-                            <a class="nav-link rounded py-2 px-3" href="#"
+                            <a class="nav-link rounded py-2 px-3" href="{{ route('pelatihan.index') }}"
                                 style="color: #ddd; font-size: 0.9rem; transition: all 0.3s;">
                                 <i class="fas fa-chalkboard-teacher me-2"></i>Data Pelatihan
                             </a>
