@@ -24,11 +24,17 @@
           </thead>
           <tbody>
               @foreach ($sertifikasi as $no => $item)
+              @include('modal.view-pdf')
                   <tr>
                       <td>{{ $no + 1 }}</td>
                       <td>{{ $item->id_staf }}</td>
                       <td>{{ $item->judul_sertifikasi }}</td>
-                      <td>{{ $item->file_dokumen }}</td>
+                      <td>
+                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#view-pdf-{{ $item->id }}">
+                            <i class="fas fa-eye"></i>
+                            View Dokumen Sertifikasi
+                        </button>
+                    </td>
                       <td>{{ $item->tahun }}</td>
                       @can('admin-action')
                       <td>

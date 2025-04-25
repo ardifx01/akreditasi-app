@@ -32,7 +32,7 @@
                       <td>
                         <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#view-pdf-{{ $item->id }}">
                             <i class="fas fa-eye"></i>
-                            View Dokumen
+                            View Dokumen Ijazah
                         </button>
                     </td>
                       {{-- <td>{{ $item->file_dokumen }}</td> --}}
