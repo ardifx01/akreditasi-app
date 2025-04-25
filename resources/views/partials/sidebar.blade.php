@@ -71,6 +71,12 @@
                                 <i class="fas fa-certificate me-2"></i>Data Sertifikasi
                             </a>
                         </li>
+                        <li class="nav-item mb-1">
+                            <a class="nav-link rounded py-2 px-3" href="{{ route('mou.index') }}"
+                                style="color: #ddd; font-size: 0.9rem; transition: all 0.3s;">
+                                <i class="fas fa-certificate me-2"></i>Data MoU
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </li>

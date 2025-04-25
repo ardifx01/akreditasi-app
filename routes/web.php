@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\IjazahController;
+use App\Http\Controllers\MouController;
 use App\Http\Controllers\PelatihanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SertifikasiController;
@@ -33,6 +34,7 @@ Route::resources([
     'sertifikasi' => SertifikasiController::class,
     'skp' => SkpController::class,
     'pelatihan' => PelatihanController::class,
+    'mou' => MouController::class,
 ]);
 
 require __DIR__ . '/auth.php';

@@ -12,7 +12,8 @@ class MouController extends Controller
      */
     public function index()
     {
-        //
+        $mou = Mou::paginate(10);
+        return view('pages.staff.mou', compact('mou'));
     }
 
     /**
@@ -29,23 +30,23 @@ class MouController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_staf' => 'required|min:5',
-            'judul_mou' => 'required|min:5',
-            'file_dokumen' => 'required|mimes:pdf',
+            'judul_mou' => 'required',
+            'file_dokumen' => 'mimes:pdf',
             'tahun' => 'required|integer'
         ]);
 
-        // penyimpanan file
-        $nama = strtolower(str_replace(' ', '_', $request->id_staf));
-        $fileName = $nama . '.pdf';
-        $path = $request->file('file')->storeAs('pdfs', $fileName, 'public');
+        $id = $request->input('judul_mou');
+        $dokumen = $request->file('file_dokumen');
+        $nama_dok = 'mou_'.$id.'.'.$dokumen->getClientOriginalExtension();
+        $dokumen->move('dokumen/', $nama_dok);
 
         Mou::create([
-            'id_staf' => $request->id_staf,
-            'judul_mou' => $request->judul_pelatihan,
-            'file_dokumen' => $path,
+            'judul_mou' => $request->judul_mou,
+            'file_dokumen' => $nama_dok,
             'tahun' => $request->tahun
         ]);
+
+        return redirect()->back()->with('success', 'Data Mou berhasil ditambahkan.');
     }
 
     /**
@@ -69,14 +70,46 @@ class MouController extends Controller
      */
     public function update(Request $request, Mou $mou)
     {
-        //
+        $request->validate([
+            'judul_mou' => 'required',
+            'file_dokumen' => 'nullable|mimes:pdf',
+            'tahun' => 'required|integer'
+        ]);
+
+        $nama_dok = $mou->file_dokumen;
+
+        if ($request->hasFile('file_dokumen')) {
+            $id = $request->input('judul_mou');
+            $dokumen = $request->file('file_dokumen');
+            $nama_dok = 'mou_' . $id . '.' . $dokumen->getClientOriginalExtension();
+
+            $file_lama = public_path('dokumen/' . $mou->file_dokumen);
+            if (file_exists($file_lama)) {
+                unlink($file_lama);
+            }
+            $dokumen->move(public_path('dokumen'), $nama_dok);
+        }
+
+        $mou->update([
+            'judul_mou' => $request->judul_mou,
+            'file_dokumen' => $nama_dok,
+            'tahun' => $request->tahun
+        ]);
+
+        return redirect()->back()->with('success', 'mou berhasil diedit.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Mou $mou)
+    public function destroy($id)
     {
-        //
+        $mou = Mou::findOrFail($id);
+        $file_lama = public_path('dokumen/' . $mou->file_dokumen);
+        if (file_exists($file_lama)) {
+            unlink($file_lama);
+        }
+        $mou->delete();
+        return redirect()->back()->with('success', 'mou berhasil dihapus.');
     }
 }
