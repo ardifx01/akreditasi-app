@@ -3,7 +3,7 @@
         <div class="modal-content">
             <!-- Modal Header -->
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="editStaffModalLabel">Edit Data Ijazah</h5>
+                <h5 class="modal-title" id="editStaffModalLabel">Edit Data Ijazah {{ $item->id_staf }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <!-- Form -->
@@ -13,8 +13,16 @@
                 <div class="modal-body">
                     <!-- ID Staf -->
                     <div class="mb-3">
-                        <label for="id_staf" class="form-label">ID Staf</label>
-                        <input type="text" class="form-control" id="id_staf" name="id_staf" value="{{ $item->id_staf }}" required>
+                        <label for="id_staf" class="form-label">Pilih Staff</label>
+                        <select name="id_staf" id="id_staf" class="form-select" required>
+                        <option value="">-- Pilih Staff --</option>
+                        @foreach ($staffs as $staf)
+                            <option value="{{ $staf->id_staf }}"
+                            {{ (isset($dokumenIjazah) && $dokumenIjazah->id_staf == $staf->id_staf) ? 'selected' : '' }}>
+                            {{ $staf->nama_staff }} - {{ $staf->id_staf }}
+                            </option>
+                        @endforeach
+                        </select>
                     </div>
                     <!-- Nama Staff -->
                     <div class="mb-3">

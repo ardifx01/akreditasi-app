@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sertifikasi;
+use App\Models\Staff;
 use Illuminate\Http\Request;
 
 class SertifikasiController extends Controller
@@ -13,7 +14,8 @@ class SertifikasiController extends Controller
     public function index()
     {
         $sertifikasi = Sertifikasi::paginate(10);
-        return view('pages.staff.sertifikasi', compact('sertifikasi'));
+        $staffs = Staff::all();
+        return view('pages.staff.sertifikasi', compact('sertifikasi', 'staffs'));
     }
 
     /**

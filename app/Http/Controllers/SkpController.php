@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Skp;
+use App\Models\Staff;
 use Illuminate\Http\Request;
 
 class SkpController extends Controller
@@ -13,7 +14,8 @@ class SkpController extends Controller
     public function index()
     {
         $skp = Skp::paginate(10);
-        return view('pages.staff.skp', compact('skp'));
+        $staffs = Staff::all();
+        return view('pages.staff.skp', compact('skp','staffs'));
     }
 
     /**

@@ -12,8 +12,13 @@
           <div class="modal-body">
             <!-- ID Staf -->
             <div class="mb-3">
-              <label for="id_staf" class="form-label">ID Staf</label>
-              <input type="text" class="form-control" id="id_staf" name="id_staf" required>
+              <label for="id_staf" class="form-label">Pilih Staff</label>
+              <select name="id_staf" id="id_staf" class="form-select" required>
+                <option value="">-- Pilih Staff --</option>
+                @foreach ($staffs as $staf)
+                  <option value="{{ $staf->id_staf }}">{{ $staf->nama_staff }} - {{ $staf->id_staf }}</option>
+                @endforeach
+              </select>
             </div>
             <!-- Nama Ijazah -->
             <div class="mb-3">

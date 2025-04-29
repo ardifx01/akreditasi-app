@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use App\Models\Ijazah;
+use App\Models\Staff;
 use Illuminate\Http\Request;
 
 class IjazahController extends Controller
@@ -13,7 +14,8 @@ class IjazahController extends Controller
     public function index()
     {
         $ijazah = Ijazah::paginate(10);
-        return view('pages.staff.ijazah', compact('ijazah'));
+        $staffs = Staff::all();
+        return view('pages.staff.ijazah', compact('ijazah', 'staffs'));
     }
 
     /**

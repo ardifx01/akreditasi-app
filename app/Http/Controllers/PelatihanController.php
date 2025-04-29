@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pelatihan;
+use App\Models\Staff;
 use Illuminate\Http\Request;
 
 class PelatihanController extends Controller
@@ -13,7 +14,8 @@ class PelatihanController extends Controller
     public function index()
     {
         $pelatihan = Pelatihan::paginate(10);
-        return view('pages.staff.pelatihan', compact('pelatihan'));
+        $staffs = Staff::all();
+        return view('pages.staff.pelatihan', compact('pelatihan', 'staffs'));
     }
 
     /**

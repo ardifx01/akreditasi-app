@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transkrip;
+use App\Models\Staff;
 use Illuminate\Http\Request;
 
 class TranskripController extends Controller
@@ -13,7 +14,8 @@ class TranskripController extends Controller
     public function index()
     {
         $transkrip = Transkrip::paginate(10);
-        return view('pages.staff.transkrip', compact('transkrip'));
+        $staffs = Staff::all();
+        return view('pages.staff.transkrip', compact('transkrip','staffs'));
     }
 
     /**
