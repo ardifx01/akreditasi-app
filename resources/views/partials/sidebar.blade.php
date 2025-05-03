@@ -144,12 +144,14 @@
             </li>
 
             <li class="nav-item mb-2">
-                <a class="nav-link d-flex align-items-center rounded py-2 px-3 {{ request()->is('/') ? 'active' : '' }}"
-                    href="#" style="color: #fff; transition: all 0.3s;">
-                    <i class="fas fa-walking me-3"></i>
-                    <span>Data Peminjaman</span>
+                <a class="nav-link d-flex align-items-center rounded py-2 px-3"
+                    href="{{ route('kunjungan.prodi') }}" style="color: #fff; transition: all 0.3s;">
+                    <i class="fas fa-home me-3"></i>
+                    <span>Data Kunjungan</span>
                     <i class="fas fa-chevron-right ms-auto opacity-50" style="font-size: 12px;"></i>
                 </a>
+            </li>
+
             </li>
             <li class="nav-item mb-2">
                 <a class="nav-link d-flex align-items-center rounded py-2 px-3 {{ request()->is('/') ? 'active' : '' }}"
@@ -159,10 +161,6 @@
                     <i class="fas fa-chevron-right ms-auto opacity-50" style="font-size: 12px;"></i>
                 </a>
             </li>
-
-
-
-
         </ul>
     </div>
 

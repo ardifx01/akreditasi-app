@@ -29,6 +29,11 @@ class M_vishistory extends Model
         return $this->belongsTo(M_borrowers::class, 'cardnumber', 'cardnumber');
     }
 
+    public function programStudi(){
+        return $this->belongsTo(M_Auv::class, 'cardnumber', 'authorised_value')
+            ->whereRaw("LEFT(cardnumber, 4) = authorised_value");
+    }
+
     protected $dates = ['created_at', 'updated_at', 'visittime'];
 
 }

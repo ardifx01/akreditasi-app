@@ -37,6 +37,9 @@ Route::resources([
     'mou' => MouController::class,
 ]);
 
+Route::get('/kunjungan/prodi', [VisitHistory::class, 'kunjunganProdi'])->name('kunjungan.prodi');
+
+
 require __DIR__ . '/auth.php';
 
 // test koneksi ke database staff

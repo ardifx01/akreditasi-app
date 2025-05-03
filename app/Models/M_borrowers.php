@@ -95,6 +95,11 @@ class M_borrowers extends Model
         return $this->hasMany(M_borrowers::class, 'cardnumber', 'cardnumber');
     }
 
+    public function programStudi(){
+        return $this->belongsTo(M_Auv::class, 'cardnumber', 'authorised_value')
+            ->whereRaw("LEFT(cardnumber, 4) = authorised_value");
+    }
+
     // // Relasi ke tabel kategori
     // public function category(): BelongsTo
     // {
