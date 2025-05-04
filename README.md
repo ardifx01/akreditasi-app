@@ -19,6 +19,9 @@ docker-compose up -d
 # Untuk production
 docker-compose -f docker-compose.prod.yml up -d
 
+# run migrate 
+docker-compose exec app1 php artisan migrate
+
 Dengan perubahan ini, konfigurasi production Anda sekarang dapat berjalan tanpa memerlukan sertifikat SSL. Ketika siap untuk mengimplementasikan SSL, Cukup menghapus tanda komentar pada bagian yang relevan.
 Cara aktivasi kembali SSL di masa depan:
 
