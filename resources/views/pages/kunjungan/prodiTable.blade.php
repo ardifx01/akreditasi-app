@@ -5,7 +5,7 @@
     <h4>Laporan Kunjungan Prodi</h4>
 
     {{-- Form Filter --}}
-    <form method="GET" action="{{ route('kunjungan.prodi') }}" class="row g-3 mb-4">
+    <form method="GET" action="{{ route('kunjungan.prodiTable') }}" class="row g-3 mb-4">
         <div class="col-md-4">
             <label for="prodi" class="form-label">Pilih Prodi</label>
             <select name="prodi" id="prodi" class="form-select">
@@ -29,14 +29,6 @@
             <button type="submit" class="btn btn-primary w-100">Filter</button>
         </div>
     </form>
-
-    {{-- Chart --}}
-    <div class="card mb-4">
-        <div class="card-body">
-            <button id="saveChart" class="btn btn-sm btn-success">Save Pdf</button>
-            <canvas id="chartKunjungan" height="100"></canvas>
-        </div>
-    </div>
 
     {{-- Tabel --}}
     <button id="downloadTabel" class="btn btn-success mt-3 mb-2">Save Tabel</button>
@@ -72,53 +64,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const chart = document.getElementById('chartKunjungan').getContext('2d');
-
-    const dataChart = new Chart(chart, {
-        type: 'bar',
-        data: {
-            labels: {!! json_encode($data->pluck('tahun_bulan')->map(fn($v) => \Carbon\Carbon::createFromFormat('Ym', $v)->format('M Y'))) !!},
-            datasets: [{
-                label: 'Jumlah Kunjungan',
-                data: {!! json_encode($data->pluck('jumlah_kunjungan')) !!},
-                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.7,
-                fill: false
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-</script>
-<script>
-    document.getElementById("saveChart").addEventListener("click", function () {
-        const chartCanvas = document.getElementById("chartKunjungan");
-        // Buat canvas baru
-        const newCanvas = document.createElement("canvas");
-        newCanvas.width = chartCanvas.width;
-        newCanvas.height = chartCanvas.height;
-
-        const context = newCanvas.getContext("2d");
-        // Tambahkan latar belakang putih
-        context.fillStyle = "#ffffff"; // ubah sesuai kebutuhan
-        context.fillRect(0, 0, newCanvas.width, newCanvas.height);
-        // Gambar chart asli di atas background
-        context.drawImage(chartCanvas, 0, 0);
-        // Konversi ke URL dan unduh
-        const imageURL = newCanvas.toDataURL("image/png");
-
-        const downloadLink = document.createElement("a");
-        downloadLink.href = imageURL;
-        downloadLink.download = "chart_kunjungan.png";
-        downloadLink.click();
-    });
-</script>
 <script>
     document.getElementById("downloadTabel").addEventListener("click", function () {
         const element = document.getElementById("tabelLaporan");

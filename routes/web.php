@@ -37,7 +37,8 @@ Route::resources([
     'mou' => MouController::class,
 ]);
 
-Route::get('/kunjungan/prodi', [VisitHistory::class, 'kunjunganProdi'])->name('kunjungan.prodi');
+Route::get('/kunjungan/prodiChart', [VisitHistory::class, 'kunjunganProdiChart'])->name('kunjungan.prodiChart');
+Route::get('/kunjungan/prodiTable', [VisitHistory::class, 'kunjunganProdiTable'])->name('kunjungan.prodiTable');
 
 
 require __DIR__ . '/auth.php';

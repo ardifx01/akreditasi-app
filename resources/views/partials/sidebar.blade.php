@@ -80,6 +80,7 @@
                     </ul>
                 </div>
             </li>
+
             <li class="nav-item mb-2">
                 <a class="nav-link d-flex align-items-center rounded py-2 px-3" data-bs-toggle="collapse"
                     href="#daftarPustakaCollapse" style="color: #fff; transition: all 0.3s;">
@@ -144,12 +145,27 @@
             </li>
 
             <li class="nav-item mb-2">
-                <a class="nav-link d-flex align-items-center rounded py-2 px-3"
-                    href="{{ route('kunjungan.prodi') }}" style="color: #fff; transition: all 0.3s;">
-                    <i class="fas fa-home me-3"></i>
+                <a class="nav-link d-flex align-items-center rounded py-2 px-3" data-bs-toggle="collapse"
+                    href="#kunjunganCollapse" style="color: #fff; transition: all 0.3s;">
+                    <i class="fas fa-users me-3"></i>
                     <span>Data Kunjungan</span>
-                    <i class="fas fa-chevron-right ms-auto opacity-50" style="font-size: 12px;"></i>
                 </a>
+                <div class="collapse" id="kunjunganCollapse">
+                    <ul class="nav flex-column ms-3 mt-2">
+                        <li class="nav-item mb-1">
+                            <a class="nav-link rounded py-2 px-3" href="{{ route('kunjungan.prodiChart') }}"
+                                style="color: #ddd; font-size: 0.9rem; transition: all 0.3s;">
+                                <i class="fas fa-chart-bar me-2"></i>Chart
+                            </a>
+                        </li>
+                        <li class="nav-item mb-1">
+                            <a class="nav-link rounded py-2 px-3" href="{{ route('kunjungan.prodiTable') }}"
+                                style="color: #ddd; font-size: 0.9rem; transition: all 0.3s;">
+                                <i class="fas fa-table me-2"></i>Table
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
 
             </li>
