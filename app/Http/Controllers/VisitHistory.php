@@ -15,11 +15,11 @@ class VisitHistory extends Controller
     {
 
         // mengambil data kode prodi dan nama prodi
-        $listProdi = M_eprodi::all();
+        $listProdi = M_eprodi::pluck('nama', 'kode')->toArray();
 
         // mengambil data kunjungan prodi
         $kodeProdi = [$request->input('prodi', 'D400')];
-        $thnDari = $request->input('tahun_awal', now()->year - 5);
+        $thnDari = $request->input('tahun_awal', now()->year - 2);
         $thnSampai = $request->input('tahun_akhir', now()->year);
         $namaProdi = M_eprodi::where('kode', $kodeProdi)->value('nama');
         $data = M_vishistory::selectRaw('
@@ -40,8 +40,7 @@ class VisitHistory extends Controller
         ->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visitorhistory.visittime)'), 'av.authorised_value', 'le.nama')
         ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visitorhistory.visittime)'), 'asc')
         ->orderBy('av.authorised_value', 'asc')
-        ->orderBy('le.nama', 'asc')
-        ->paginate(10);
+        ->orderBy('le.nama', 'asc');
 
         return view('pages.kunjungan.prodiChart', compact('data', 'listProdi', 'namaProdi'));
     }
@@ -52,8 +51,8 @@ class VisitHistory extends Controller
         $listProdi = M_eprodi::all();
 
         // mengambil data kunjungan prodi
-        $kodeProdi = [$request->input('prodi', 'D400')];
-        $thnDari = $request->input('tahun_awal', now()->year - 5);
+        $kodeProdi = [$request->input('prodi')];
+        $thnDari = $request->input('tahun_awal', now()->year - 2);
         $thnSampai = $request->input('tahun_akhir', now()->year);
         $namaProdi = M_eprodi::where('kode', $kodeProdi)->value('nama');
         $data = M_vishistory::selectRaw('
@@ -76,6 +75,7 @@ class VisitHistory extends Controller
         ->orderBy('av.authorised_value', 'asc')
         ->orderBy('le.nama', 'asc')
         ->paginate(10);
+        $data = $data->appends($request->all());
 
         return view('pages.kunjungan.prodiTable', compact('data', 'listProdi', 'namaProdi'));
     }

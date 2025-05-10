@@ -28,4 +28,8 @@ class M_biblio extends Model
     protected $dates = ['datecreated'];
     const CREATED_AT = 'datecreated';
     const UPDATED_AT = 'timestamp';
+
+    public function metadata() {
+        return $this->hasOne(M_bibliometa::class, 'biblionumber', 'biblionumber');
+    }
 }

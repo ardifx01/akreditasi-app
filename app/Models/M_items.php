@@ -63,4 +63,8 @@ class M_items extends Model
         return $this->belongsTo(M_biblio::class, 'biblionumber', 'biblionumber');
     }
 
+    public function biblioitem() {
+        return $this->belongsTo(M_biblioitems::class, 'biblionumber', 'biblionumber');
+    }
+
 }

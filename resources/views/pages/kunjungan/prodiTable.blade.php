@@ -19,7 +19,7 @@
         </div>
         <div class="col-md-2">
             <label for="tahun_awal" class="form-label">Tahun Awal</label>
-            <input type="number" name="tahun_awal" id="tahun_awal" class="form-control" value="{{ request('tahun_awal', now()->year - 5) }}">
+            <input type="number" name="tahun_awal" id="tahun_awal" class="form-control" value="{{ request('tahun_awal', now()->year - 2) }}">
         </div>
         <div class="col-md-2">
             <label for="tahun_akhir" class="form-label">Tahun Akhir</label>
@@ -56,8 +56,6 @@
             </tbody>
         </table>
     </div>
-    
-
     <div class="mt-3">
         {{ $data->links() }}
     </div>

@@ -10,16 +10,16 @@
             <label for="prodi" class="form-label">Pilih Prodi</label>
             <select name="prodi" id="prodi" class="form-select">
                 <option value="">-- Semua Prodi --</option>
-                @foreach ($listProdi as $prodi)
-                    <option value="{{ $prodi->kode}}">
-                        ({{ $prodi->kode }}) -- {{ $prodi->nama }}
+                @foreach ($listProdi as $kode => $nama)
+                    <option value="{{ $kode }}">
+                        ({{ $kode }}) -- {{ $nama }}
                     </option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-2">
             <label for="tahun_awal" class="form-label">Tahun Awal</label>
-            <input type="number" name="tahun_awal" id="tahun_awal" class="form-control" value="{{ request('tahun_awal', now()->year - 5) }}">
+            <input type="number" name="tahun_awal" id="tahun_awal" class="form-control" value="{{ request('tahun_awal', now()->year - 2) }}">
         </div>
         <div class="col-md-2">
             <label for="tahun_akhir" class="form-label">Tahun Akhir</label>
@@ -36,9 +36,6 @@
             <button id="saveChart" class="btn btn-sm btn-success">Save Pdf</button>
             <canvas id="chartKunjungan" height="100"></canvas>
         </div>
-    </div>
-    <div class="mt-3">
-        {{ $data->links() }}
     </div>
 </div>
 

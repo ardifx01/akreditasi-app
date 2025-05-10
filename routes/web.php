@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SertifikasiController;
 use App\Http\Controllers\SkpController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\StatistikKoleksi;
 use App\Http\Controllers\TranskripController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VisitHistory;
@@ -39,6 +40,7 @@ Route::resources([
 
 Route::get('/kunjungan/prodiChart', [VisitHistory::class, 'kunjunganProdiChart'])->name('kunjungan.prodiChart');
 Route::get('/kunjungan/prodiTable', [VisitHistory::class, 'kunjunganProdiTable'])->name('kunjungan.prodiTable');
+Route::get('/koleksi/prosiding', [StatistikKoleksi::class, 'prosiding'])->name('koleksi.prosiding');
 
 
 require __DIR__ . '/auth.php';

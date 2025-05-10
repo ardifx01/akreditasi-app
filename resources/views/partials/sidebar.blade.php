@@ -116,7 +116,7 @@
                                     <li class="nav-item">
                                         <a class="nav-link rounded py-1 px-3" href="#"
                                             style="color: #ccc; font-size: 0.85rem; transition: all 0.3s;">
-                                            <i class="fas fa-journal-whills me-2"></i>E-Journal
+                                            <i class="fas fa-journal-whills me-2"></i>Journal
                                         </a>
                                     </li>
                                     <li class="nav-item">
@@ -128,13 +128,31 @@
                                     <li class="nav-item">
                                         <a class="nav-link rounded py-1 px-3" href="#"
                                             style="color: #ccc; font-size: 0.85rem; transition: all 0.3s;">
-                                            <i class="fas fa-book me-2"></i>Buku Fisik
+                                            <i class="fas fa-book me-2"></i>Text Book
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link rounded py-1 px-3" href="{{ route('koleksi.prosiding') }}"
+                                            style="color: #ccc; font-size: 0.85rem; transition: all 0.3s;">
+                                            <i class="fas fa-newspaper me-2"></i>Prosiding
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link rounded py-1 px-3" href="#"
                                             style="color: #ccc; font-size: 0.85rem; transition: all 0.3s;">
-                                            <i class="fas fa-newspaper me-2"></i>Repository
+                                            <i class="fas fa-calendar-week me-2"></i>Periodical 
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link rounded py-1 px-3" href="#"
+                                            style="color: #ccc; font-size: 0.85rem; transition: all 0.3s;">
+                                            <i class="fas fa-newspaper me-2"></i>References
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link rounded py-1 px-3" href="#"
+                                            style="color: #ccc; font-size: 0.85rem; transition: all 0.3s;">
+                                            <i class="fas fa-file-audio me-2"></i>Audio/Visual
                                         </a>
                                     </li>
                                 </ul>
