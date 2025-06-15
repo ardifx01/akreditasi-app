@@ -20,6 +20,14 @@
                         <label for="nama_staff" class="form-label">Nama Staff</label>
                         <input type="text" class="form-control" id="nama_staff" name="nama_staff" required>
                     </div>
+                    <div class="mb-3">
+                        <label for="posisi_staff" class="form-label">Posisi Staff</label>
+                        <select name="posisi" id="posisi" required>
+                            <option value="Pustakawan">Pustakawan</option>
+                            <option value="Staff IT">Staff IT</option>
+                            <option value="Teknik Pustakawan">Teknik Pustakawan</option>
+                        </select>
+                    </div>
                 </div>
                 <!-- Modal Footer -->
                 <div class="modal-footer">

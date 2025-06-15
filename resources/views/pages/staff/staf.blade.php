@@ -19,6 +19,7 @@
                 <th>ID</th>
                 <th>UNI ID</th>
                 <th>Nama</th>
+                <th>Posisi</th>
                 <th>Aksi</th>
             </tr>
         </thead>
@@ -28,6 +29,7 @@
                     <td>{{ $no + 1 }}</td>
                     <td>{{ $item->id_staf }}</td>
                     <td>{{ $item->nama_staff }}</td>
+                    <td>{{ $item->posisi }}</td>
                     @can('admin-action')
                     <td>
                         {{-- <a href="{{ route('staff.edit', $item->id) }}" class="btn btn-primary">Edit</a> --}}

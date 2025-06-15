@@ -31,12 +31,14 @@ class StaffController extends Controller
     {
         $request->validate([
             'id_staf' => 'required|min:5',
-            'nama_staff' => 'required|min:5'
+            'nama_staff' => 'required|min:5',
+            'posisi' => 'required|min:5'
         ]);
 
         Staff::create([
             'id_staf' => $request->id_staf,
-            'nama_staff' => $request->nama_staff
+            'nama_staff' => $request->nama_staff,
+            'posisi' => $request->posisi
         ]);
 
         return redirect()->route('staff.index')->with(['success' => 'Data Berhasil Ditambahkan!']);
@@ -67,11 +69,13 @@ class StaffController extends Controller
         $request->validate([
             'id_staf' => 'required|min:5',
             'nama_staff' => 'required|string|min:3',
+            'posisi' => 'required|min:5'
         ]);
     
         $staff->update([
             'id_staf' => $request->id_staf,
             'nama_staff' => $request->nama_staff,
+            'posisi' => $request->posisi
         ]);
     
         return redirect()->back()->with('success', 'Data staff berhasil diperbarui.');

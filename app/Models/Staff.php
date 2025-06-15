@@ -9,7 +9,7 @@ class Staff extends Model
     protected $table = 'tb_staff';
     protected $primaryKey = 'id';
 
-    protected $fillable = ['id_staf', 'nama_staff'];
+    protected $fillable = ['id_staf', 'nama_staff', 'posisi'];
 
     // Relasi ke setiap tabel one to many
     public function skp(){

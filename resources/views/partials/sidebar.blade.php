@@ -85,7 +85,7 @@
                 <a class="nav-link d-flex align-items-center rounded py-2 px-3" data-bs-toggle="collapse"
                     href="#daftarPustakaCollapse" style="color: #fff; transition: all 0.3s;">
                     <i class="fas fa-book me-3"></i>
-                    <span>Daftar Pustaka</span>
+                    <span>Daftar Koleksi</span>
                 </a>
                 <div class="collapse" id="daftarPustakaCollapse">
                     <ul class="nav flex-column ms-3 mt-2">
@@ -199,14 +199,14 @@
     </div>
 
 </div>
-{{-- <!-- Footer -->
+<!-- Footer -->
 <div class="sidebar-footer position-absolute bottom-0 start-0 end-0 p-3" style="background-color: rgba(0,0,0,0.2);">
     <form method="POST" action="{{ route('logout') }}" id="logout-form">
         @csrf
         <a class="d-flex align-items-center text-decoration-none" href="javascript:void(0)"
             onclick="event.preventDefault(); document.getElementById('logout-form').submit();" style="color: #fff;">
             <i class="fas fa-sign-out-alt me-2"></i>
-            <span>Logout</span>
+            <span>Logout</span> 
         </a>
     </form>
-</div> --}}
+</div>
