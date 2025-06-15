@@ -114,7 +114,7 @@
                             <div class="collapse" id="jenisKoleksiCollapse">
                                 <ul class="nav flex-column ms-3 mt-1">
                                     <li class="nav-item">
-                                        <a class="nav-link rounded py-1 px-3" href="#"
+                                        <a class="nav-link rounded py-1 px-3" href="{{ route('koleksi.jurnal') }}"
                                             style="color: #ccc; font-size: 0.85rem; transition: all 0.3s;">
                                             <i class="fas fa-journal-whills me-2"></i>Journal
                                         </a>

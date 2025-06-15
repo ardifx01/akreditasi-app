@@ -40,4 +40,41 @@ class StatistikKoleksi extends Controller
 
         return view('pages.dapus.prosiding', compact('data', 'prodi', 'listprodi', 'namaProdi'));
     }
+
+    public function jurnal(Request $request)
+    {
+        $listprodi = M_eprodi::all();
+        $prodi = $request->input('prodi', 'L200');
+        $cnClasses = CnClassHelper::getCnClassByProdi($prodi);
+        $namaProdi = $listprodi[$prodi] ?? 'Semua Prodi';
+
+        
+        $tahunTerakhir = $request->input('tahun', 5);
+
+        $data = M_items::selectRaw("
+            bi.cn_class as Kelas,
+            CONCAT(EXTRACTVALUE(bm.metadata,'//datafield[@tag=\"245\"]/subfield[@code=\"a\"]'),' ',EXTRACTVALUE(bm.metadata,'//datafield[@tag=\"245\"]/subfield[@code=\"b\"]')) as Judul,
+            bi.publishercode AS Penerbit,
+            items.enumchron AS Nomor,
+            COUNT(DISTINCT items.itemnumber) AS Issue,
+            SUM(items.copynumber) AS Eksemplar,
+            i1.description as Jenis,
+            items.homebranch as Lokasi
+        ")
+        ->join('biblioitems as bi', 'items.biblionumber', '=', 'bi.biblionumber')
+        ->join('biblio as b', 'b.biblionumber', '=', 'bi.biblionumber')
+        ->join('biblio_metadata as bm', 'b.biblionumber', '=', 'bm.biblionumber')
+        ->join('itemtypes as i1', 'i1.itemtype', '=', 'items.itype')
+        ->where('items.itemlost', 0)
+        ->where('items.withdrawn', 0)
+        ->whereIn('items.itype', ['JR', 'JRA', 'EJ', 'JRT'])
+        ->whereIn('bi.cn_class', $cnClasses)
+        ->whereRaw('RIGHT(items.enumchron, 4) >= YEAR(CURDATE()) - ?', [$tahunTerakhir])
+        ->groupBy('Judul', 'Penerbit', 'Nomor', 'Kelas', 'Jenis', 'Lokasi')
+        ->paginate(10);
+
+        $data = $data->appends($request->all());
+
+        return view('pages.dapus.jurnal', compact('data', 'prodi', 'listprodi', 'namaProdi', 'tahunTerakhir'));
+    }
 }
