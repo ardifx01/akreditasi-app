@@ -48,7 +48,7 @@
                                 <td>{{ $row->Issue }}</td>
                                 <td>{{ $row->Eksemplar }}</td>
                                 <td>{{ $row->Lokasi }}</td>
-                                <td>{{ $row->Link }}</td>
+                                <td><a href="{{ $row->Link }}">{{ $row->Link }}</a></td>
                             </tr>
                         @empty
                             <tr>
