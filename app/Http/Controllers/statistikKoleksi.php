@@ -141,4 +141,33 @@ class StatistikKoleksi extends Controller
         return view('pages.dapus.textbook', compact('data', 'prodi', 'listprodi', 'namaProdi'));
     }
 
+    public function periodikal(Request $request)
+    {
+        $listprodi = M_eprodi::all();
+        $prodi = $request->input('prodi', 'L200');
+        $cnClass = CnClassHelper::getCnClassByProdi($prodi);
+        $namaProdi = $listprodi[$prodi] ?? 'Semua Prodi';
+
+        $periodicalTypes = ['JR', 'JRA', 'MJA', 'MJI', 'MJIP', 'MJP'];
+
+        $data = M_items::select('i.itype AS Jenis', 'bi.cn_class as Kelas', 'b.title AS Judul', 'i.enumchron AS Nomor')
+            ->selectRaw('COUNT(i.itemnumber) AS Issue')
+            ->selectRaw('SUM(i.copynumber) AS Eksemplar')
+            ->addSelect('i.homebranch as Lokasi')
+            ->from('items as i')
+            ->join('biblioitems as bi', 'i.biblionumber', '=', 'bi.biblionumber')
+            ->join('biblio as b', 'i.biblionumber', '=', 'b.biblionumber')
+            ->where('i.itemlost', 0)
+            ->where('i.withdrawn', 0)
+            ->whereIn('i.itype', $periodicalTypes)
+            ->whereIn('bi.cn_class', $cnClass)
+            ->groupBy('Jenis', 'Judul', 'Nomor', 'Kelas', 'Lokasi')
+            ->paginate(10);
+
+        $data = $data->appends($request->all());
+
+        return view('pages.dapus.periodikal', compact('data', 'prodi', 'listprodi', 'namaProdi'));
+    }
+
+
 }
