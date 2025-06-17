@@ -108,4 +108,37 @@ class StatistikKoleksi extends Controller
 
         return view('pages.dapus.ebook', compact('data', 'prodi', 'listprodi', 'namaProdi'));
     }
+
+    public function textbook(Request $request)
+    {
+        $listprodi = M_eprodi::all();
+        $prodi = $request->input('prodi', 'L200');
+        $cnClasses = CnClassHelper::getCnClassByProdi($prodi);
+        $namaProdi = $listprodi[$prodi] ?? 'Semua Prodi';
+
+        $data = M_items::selectRaw("
+            CONCAT(EXTRACTVALUE(bm.metadata,'//datafield[@tag=\"245\"]/subfield[@code=\"a\"]'),' ',EXTRACTVALUE(bm.metadata,'//datafield[@tag=\"245\"]/subfield[@code=\"b\"]')) as Judul,
+            b.author as Pengarang,
+            bi.place AS Kota_Terbit,
+            bi.publishercode AS Penerbit,
+            bi.publicationyear AS Tahun_Terbit,
+            COUNT(items.itemnumber) AS Eksemplar,
+            items.homebranch as Lokasi
+        ")
+        ->join('biblioitems as bi', 'items.biblionumber', '=', 'bi.biblionumber')
+        ->join('biblio as b', 'b.biblionumber', '=', 'bi.biblionumber')
+        ->join('biblio_metadata as bm', 'b.biblionumber', '=', 'bm.biblionumber')
+        ->where('items.itemlost', 0)
+        ->where('items.withdrawn', 0)
+        ->whereRaw('LEFT(items.itype, 3) = "BKS"')
+        ->whereRaw('LEFT(items.ccode, 1) <> "R"')
+        ->whereIn('bi.cn_class', $cnClasses)
+        ->groupBy('Judul', 'Pengarang', 'Kota_Terbit', 'Penerbit', 'Tahun_Terbit', 'Lokasi')
+        ->paginate(10);
+
+        $data = $data->appends($request->all());
+
+        return view('pages.dapus.textbook', compact('data', 'prodi', 'listprodi', 'namaProdi'));
+    }
+
 }
