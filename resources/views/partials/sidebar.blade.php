@@ -120,7 +120,7 @@
                                         </a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link rounded py-1 px-3" href="#"
+                                        <a class="nav-link rounded py-1 px-3" href="{{ route('koleksi.ebook') }}"
                                             style="color: #ccc; font-size: 0.85rem; transition: all 0.3s;">
                                             <i class="fas fa-tablet-alt me-2"></i>E-Book
                                         </a>
