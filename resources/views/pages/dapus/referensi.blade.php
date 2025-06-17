@@ -2,10 +2,10 @@
 
 @section('content')
 <div class="container">
-    <h4>Statistik Koleksi Prosiding - {{ $namaProdi }}</h4>
+    <h4>Statistik Koleksi Referensi - {{ $namaProdi }}</h4>
 
     {{-- Form Filter --}}
-    <form method="GET" action="{{ route('koleksi.prosiding') }}" class="row g-3 mb-4">
+    <form method="GET" action="{{ route('koleksi.referensi') }}" class="row g-3 mb-4">
         <div class="col-md-4">
             <label for="prodi" class="form-label">Pilih Prodi</label>
             <select name="prodi" id="prodi" class="form-select">
@@ -27,28 +27,24 @@
                     <thead>
                         <tr>
                             <th>Judul</th>
-                            <th>Kelas</th>
+                            <th>Pengarang</th>
                             <th>Penerbit</th>
+                            <th>Kota Terbit</th>
                             <th>Tahun Terbit</th>
-                            <th>Nomor</th>
-                            <th>Issue</th>
-                            <th>Eksemplar</th>
+                            <th>Kelas</th>
                             <th>Lokasi</th>
-                            <th>Link</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($data as $row)
                             <tr>
                                 <td>{{ $row->Judul }}</td>
-                                <td>{{ $row->Kelas }}</td>
+                                <td>{{ $row->Pengarang }}</td>
                                 <td>{{ $row->Penerbit }}</td>
-                                <td>{{ $row->TahunTerbit }}</td>
-                                <td>{{ $row->Nomor }}</td>
-                                <td>{{ $row->Issue }}</td>
-                                <td>{{ $row->Eksemplar }}</td>
+                                <td>{{ $row->Kota_Terbit }}</td>
+                                <td>{{ $row->Tahun_Terbit }}</td>
+                                <td>{{ $row->Kelas }}</td>
                                 <td>{{ $row->Lokasi }}</td>
-                                <td>{{ $row->Link }}</td>
                             </tr>
                         @empty
                             <tr>

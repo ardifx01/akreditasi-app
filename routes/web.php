@@ -45,6 +45,7 @@ Route::get('/koleksi/jurnal', [StatistikKoleksi::class, 'jurnal'])->name('koleks
 Route::get('/koleksi/ebook', [StatistikKoleksi::class, 'ebook'])->name('koleksi.ebook');
 Route::get('/koleksi/textbook', [StatistikKoleksi::class, 'textbook'])->name('koleksi.textbook');
 Route::get('/koleksi/periodikal', [StatistikKoleksi::class, 'periodikal'])->name('koleksi.periodikal');
+Route::get('/koleksi/referensi', [StatistikKoleksi::class, 'referensi'])->name('koleksi.referensi');
 
 
 require __DIR__ . '/auth.php';

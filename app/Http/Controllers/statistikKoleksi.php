@@ -24,6 +24,7 @@ class StatistikKoleksi extends Controller
         bi.publishercode AS Penerbit,
         bi.publicationyear AS TahunTerbit,
         items.enumchron AS Nomor,
+        CONCAT('https://search.lib.ums.ac.id/cgi-bin/koha/opac-detail.pl?biblionumber=', b.biblionumber) AS Link,
         COUNT(DISTINCT items.itemnumber) AS Issue,
         SUM(items.copynumber) AS Eksemplar,
         items.homebranch as Lokasi")
@@ -34,7 +35,7 @@ class StatistikKoleksi extends Controller
         ->where('items.itemlost', 0)
         ->where('items.withdrawn', 0)
         ->whereRaw('LEFT(items.itype,2) = "PR"')
-        ->groupBy('Judul', 'Penerbit', 'Nomor', 'Kelas', 'TahunTerbit', 'Lokasi', 'Judul_b', 'Judul_c')
+        ->groupBy('Judul', 'Penerbit', 'Nomor', 'Kelas', 'TahunTerbit', 'Lokasi', 'Judul_b', 'Judul_c', 'Link')
         ->paginate(10);
         $data = $data->appends($request->all());
 
@@ -168,6 +169,41 @@ class StatistikKoleksi extends Controller
 
         return view('pages.dapus.periodikal', compact('data', 'prodi', 'listprodi', 'namaProdi'));
     }
+
+    public function referensi(Request $request)
+    {
+        $listprodi = M_eprodi::all();
+        $prodi = $request->input('prodi', 'L200');
+        $cnClass = CnClassHelper::getCnClassByProdi($prodi);
+        $namaProdi = $listprodi[$prodi] ?? 'Semua Prodi';
+
+        $data = M_items::selectRaw("
+            bi.cn_class as Kelas,
+            CONCAT(EXTRACTVALUE(bm.metadata,'//datafield[@tag=\"245\"]/subfield[@code=\"a\"]'),' ',EXTRACTVALUE(bm.metadata,'//datafield[@tag=\"245\"]/subfield[@code=\"b\"]')) as Judul,
+            b.author as Pengarang,
+            bi.place AS Kota_Terbit,
+            bi.publishercode AS Penerbit,
+            bi.publicationyear AS Tahun_Terbit,
+            COUNT(i.itemnumber) AS Eksemplar,
+            i.homebranch as Lokasi
+        ")
+        ->from('items as i')
+        ->join('biblioitems as bi', 'i.biblionumber', '=', 'bi.biblionumber')
+        ->join('biblio as b', 'i.biblionumber', '=', 'b.biblionumber')
+        ->join('biblio_metadata as bm', 'b.biblionumber', '=', 'bm.biblionumber')
+        ->where('i.itemlost', 0)
+        ->where('i.withdrawn', 0)
+        ->whereRaw('LEFT(i.itype,3) = "BKS"')
+        ->whereRaw('LEFT(i.ccode,1) = "R"')
+        ->whereIn('bi.cn_class', $cnClass)
+        ->groupBy('Judul', 'Pengarang', 'Kota_Terbit', 'Penerbit', 'Tahun_Terbit', 'Kelas', 'Lokasi')
+        ->paginate(10);
+
+        $data = $data->appends($request->all());
+
+        return view('pages.dapus.referensi', compact('data', 'prodi', 'listprodi', 'namaProdi'));
+    }
+
 
 
 }
