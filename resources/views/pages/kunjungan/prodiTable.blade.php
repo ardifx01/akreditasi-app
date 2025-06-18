@@ -10,9 +10,9 @@
             <label for="prodi" class="form-label">Pilih Prodi</label>
             <select name="prodi" id="prodi" class="form-select">
                 <option value="">-- Semua Prodi --</option>
-                @foreach ($listProdi as $prodi)
-                    <option value="{{ $prodi->kode}}">
-                        ({{ $prodi->kode }}) -- {{ $prodi->nama }}
+                @foreach ($listProdi as $itemProdi)
+                    <option value="{{ $itemProdi->kode }}" {{ request('prodi') == $itemProdi->kode ? 'selected' : '' }}>
+                        ({{ $itemProdi->kode }}) -- {{ $itemProdi->nama }}
                     </option>
                 @endforeach
             </select>
@@ -30,10 +30,12 @@
         </div>
     </form>
 
-    {{-- Tabel --}}
-    <button id="downloadTabel" class="btn btn-success mt-3 mb-2">Save Tabel</button>
+    {{-- Tombol Download --}}
+    <button id="downloadPng" class="btn btn-success mt-3 mb-2 me-2">Save Tabel (PNG)</button>
+    <button id="downloadExcel" class="btn btn-warning mt-3 mb-2">Save Tabel (Excel)</button>
+
     <div class="table-responsive" id="tabelLaporan">
-        <table class="table table-bordered table-striped ">
+        <table class="table table-bordered table-striped" id="myTable">
             <thead>
                 <tr>
                     <th>No</th>
@@ -61,14 +63,17 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{-- Membutuhkan library html2canvas untuk fitur PNG --}}
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script> {{-- Chart.js mungkin tidak diperlukan untuk fungsionalitas ini --}}
 <script>
-    document.getElementById("downloadTabel").addEventListener("click", function () {
+    // Script untuk Save Tabel (PNG)
+    document.getElementById("downloadPng").addEventListener("click", function () {
         const element = document.getElementById("tabelLaporan");
 
         html2canvas(element, {
-            backgroundColor: "#ffffff", // putih agar tidak transparan
-            useCORS: true // penting jika ada elemen gambar/logo dari CDN
+            backgroundColor: "#ffffff",
+            useCORS: true
         }).then(canvas => {
             const link = document.createElement("a");
             link.download = "laporan_kunjungan.png";
@@ -76,7 +81,53 @@
             link.click();
         });
     });
+
+    // Script untuk Save Tabel (Excel - CSV)
+    document.getElementById("downloadExcel").addEventListener("click", function () {
+        const table = document.getElementById("myTable");
+        let csv = [];
+        const delimiter = ';';
+
+        // Ambil header tabel
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => {
+            let text = th.innerText.trim();
+            text = text.replace(/"/g, '""');
+            if (text.includes(delimiter) || text.includes('"') || text.includes('\n')) {
+                text = `"${text}"`;
+            }
+            return text;
+        });
+        csv.push(headers.join(delimiter));
+
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const rowData = Array.from(row.querySelectorAll('td')).map(td => {
+                let text = td.innerText.trim();
+                text = text.replace(/"/g, '""');
+                if (text.includes(delimiter) || text.includes('"') || text.includes('\n')) {
+                    text = `"${text}"`;
+                }
+                return text;
+            });
+            csv.push(rowData.join(delimiter));
+        });
+
+        const csvString = csv.join('\n');
+
+        const BOM = "\uFEFF";
+        const blob = new Blob([BOM + csvString], { type: 'text/csv;charset=utf-8;' }); 
+
+        const link = document.createElement("a");
+        const fileName = "laporan_kunjungan_prodi.csv";
+
+        if (navigator.msSaveBlob) { 
+            navigator.msSaveBlob(blob, fileName);
+        } else {
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+    });
 </script>
-
 @endsection
-

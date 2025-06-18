@@ -23,7 +23,8 @@
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover table-striped">
+                <button id="downloadExcel" class="btn btn-warning mt-3 mb-2">Save Tabel (Excel)</button>
+                <table class="table table-bordered table-hover table-striped" id="myTable">
                     <thead>
                         <tr>
                             <th>Judul</th>
@@ -64,4 +65,53 @@
         </div>
     </div>
 </div>
+<script>
+    // Script untuk Save Tabel (Excel - CSV)
+    document.getElementById("downloadExcel").addEventListener("click", function () {
+        const table = document.getElementById("myTable");
+        let csv = [];
+        const delimiter = ';';
+
+        // Ambil header tabel
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => {
+            let text = th.innerText.trim();
+            text = text.replace(/"/g, '""');
+            if (text.includes(delimiter) || text.includes('"') || text.includes('\n')) {
+                text = `"${text}"`;
+            }
+            return text;
+        });
+        csv.push(headers.join(delimiter));
+
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const rowData = Array.from(row.querySelectorAll('td')).map(td => {
+                let text = td.innerText.trim();
+                text = text.replace(/"/g, '""');
+                if (text.includes(delimiter) || text.includes('"') || text.includes('\n')) {
+                    text = `"${text}"`;
+                }
+                return text;
+            });
+            csv.push(rowData.join(delimiter));
+        });
+
+        const csvString = csv.join('\n');
+
+        const BOM = "\uFEFF";
+        const blob = new Blob([BOM + csvString], { type: 'text/csv;charset=utf-8;' }); 
+
+        const link = document.createElement("a");
+        const fileName = "prosiding.csv";
+
+        if (navigator.msSaveBlob) { 
+            navigator.msSaveBlob(blob, fileName);
+        } else {
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+    });
+</script>
 @endsection
