@@ -149,12 +149,12 @@
                                             <i class="fas fa-newspaper me-2"></i>References
                                         </a>
                                     </li>
-                                    <li class="nav-item">
+                                    {{-- <li class="nav-item">
                                         <a class="nav-link rounded py-1 px-3" href="#"
                                             style="color: #ccc; font-size: 0.85rem; transition: all 0.3s;">
                                             <i class="fas fa-file-audio me-2"></i>Audio/Visual
                                         </a>
-                                    </li>
+                                    </li> --}}
                                 </ul>
                             </div>
                         </li>
