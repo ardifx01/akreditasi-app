@@ -204,6 +204,33 @@ class StatistikKoleksi extends Controller
         return view('pages.dapus.referensi', compact('data', 'prodi', 'listprodi', 'namaProdi'));
     }
 
+    public function koleksiPerprodi(Request $request)
+    {
+        $listprodi = M_eprodi::all();
+        $prodi = $request->input('prodi', 'L200');
+        $cnClasses = CnClassHelper::getCnClassByProdi($prodi);
+        $namaProdi = $listprodi[$prodi] ?? 'Semua Prodi';
+        $startDate = $request->input('start_date', now()->subYear()->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+
+        $data = M_items::select('t.description AS Jenis', 'i.ccode AS Koleksi')
+            ->selectRaw('COUNT(DISTINCT i.biblionumber) AS Judul')
+            ->selectRaw('COUNT(i.itemnumber) AS Eksemplar')
+            ->from('items as i')
+            ->join('biblioitems as bi', 'i.biblionumber', '=', 'bi.biblionumber')
+            ->join('itemtypes as t', 'i.itype', '=', 't.itemtype')
+            ->where('i.itemlost', 0)
+            ->whereBetween('i.replacementpricedate', [$startDate, $endDate])
+            ->whereIn('bi.cn_class', $cnClasses)
+            ->groupBy('Jenis', 'Koleksi')
+            ->orderBy('Jenis', 'asc')
+            ->orderBy('Koleksi', 'asc')
+            ->get();
+
+        // Mengirimkan data dan parameter filter ke view
+        return view('pages.dapus.prodi', compact('namaProdi', 'listprodi', 'data', 'startDate', 'endDate'));
+    }
+
 
 
 }
