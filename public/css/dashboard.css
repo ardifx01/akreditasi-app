@@ -1,0 +1,37 @@
+/* HERO SECTION */
+.hero-section {
+    background-image: url("/img/home.jpg");
+    background-size: cover;
+    background-position: center;
+    color: white; /* Warna teks agar terlihat di atas background gelap */
+    text-align: center;
+    min-height: 750px;
+    padding: 50px 0; /* Atur tinggi section */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-content {
+    max-width: 850px;
+    padding: 20px;
+    background-color: rgba(
+        0,
+        0,
+        0,
+        0.5
+    ); /* Tambahkan overlay gelap agar teks lebih mudah dibaca */
+    border-radius: 10px;
+}
+
+.hero-content h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.hero-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+/* HERO SECTION */

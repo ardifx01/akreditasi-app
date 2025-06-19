@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\IjazahController;
 use App\Http\Controllers\MouController;
 use App\Http\Controllers\PelatihanController;
@@ -14,9 +15,7 @@ use App\Http\Controllers\VisitHistory;
 use App\Models\Pelatihan;
 use App\Models\Staff;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [DashboardController::class, 'totalStatistik'])->name('welcome');
 
 Route::get('/dashboard', function () {
     return view('dashboard');

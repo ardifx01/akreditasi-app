@@ -6,8 +6,13 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function totalJurnal()
+    public function totalStatistik()
     {
-        return view('welcome');
+        $totalJurnal = 100;
+        $totalBuku = 100;
+        $totalEksemplar = 100;
+        $anggotaAktif = 100;
+        $totalKunjungan = 100;
+        return view('welcome', compact('totalJurnal', 'totalBuku', 'totalEksemplar', 'anggotaAktif', 'totalKunjungan'));
     }
 }
