@@ -30,7 +30,7 @@
                       <td>{{ $item->id_staf }}</td>
                       <td>{{ $item->judul_sertifikasi }}</td>
                       <td>
-                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#view-pdf-{{ $item->id }}">
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#view-pdf-{{ $item->id }}">
                             <i class="fas fa-eye"></i>
                             View Dokumen Sertifikasi
                         </button>
@@ -39,7 +39,7 @@
                       @can('admin-action')
                       <td>
                           {{-- <a href="{{ route('staff.edit', $item->id) }}" class="btn btn-primary">Edit</a> --}}
-                          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editSertifikasi{{ $item->id }}">Edit
+                          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editSertifikasi{{ $item->id }}">Edit
                           </button>
                           <form action="{{ route('sertifikasi.destroy', $item->id) }}" method="POST" style="display:inline;">
                               @csrf

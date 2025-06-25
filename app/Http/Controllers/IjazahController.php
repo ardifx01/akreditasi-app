@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\DB;
 use App\Models\Ijazah;
 use App\Models\Staff;
@@ -40,7 +41,7 @@ class IjazahController extends Controller
 
         $id = $request->input('id_staf');
         $dokumen = $request->file('file_dokumen');
-        $nama_dok = 'ijazah_'.$id.'.'.$dokumen->getClientOriginalExtension();
+        $nama_dok = 'ijazah_' . $id . '.' . $dokumen->getClientOriginalExtension();
         $dokumen->move('dokumen/', $nama_dok);
 
         Ijazah::create([
@@ -108,7 +109,8 @@ class IjazahController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id){
+    public function destroy($id)
+    {
         // saat data dihapus maka file yang ada di folder 'public/dokumen' juga terhapus sesuai dengan id yang dihapus
         $ijazah = Ijazah::findOrFail($id);
         $file_lama = public_path('dokumen/' . $ijazah->file_dokumen);
@@ -119,8 +121,9 @@ class IjazahController extends Controller
         return redirect()->back()->with('success', 'Ijazah berhasil dihapus.');
     }
 
-    public function testkoneksi(){
-        $staffs = DB::connection('mysql2')->table('tb_staff')->get();
+    public function testkoneksi()
+    {
+        $staffs = DB::connection('mysql')->table('tb_staff')->get();
         dd($staffs);
     }
 }

@@ -16,7 +16,7 @@ class M_viscorner extends Model
     public $incrementing = true;
     protected $keyType = 'int';
     public $timestamps = true;
-    
+
     protected $fillable = [
         'visittime',
         'cardnumber',

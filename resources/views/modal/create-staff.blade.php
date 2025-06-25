@@ -12,7 +12,7 @@
                 <div class="modal-body">
                     <!-- ID Staf -->
                     <div class="mb-3">
-                        <label for="id_staf" class="form-label">ID Staf</label>
+                        <label for="id_staf" class="form-label">UNI ID Staff</label>
                         <input type="text" class="form-control" id="id_staf" name="id_staf" required>
                     </div>
                     <!-- Nama Staff -->
@@ -31,7 +31,8 @@
                 </div>
                 <!-- Modal Footer -->
                 <div class="modal-footer">
-                    <button type="reset" class="btn btn-secondary" onclick="document.getElementById('addStaffModal').querySelector('.btn-close').click()">Clear</button>
+                    <button type="reset" class="btn btn-secondary"
+                        onclick="document.getElementById('addStaffModal').querySelector('.btn-close').click()">Clear</button>
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </div>
             </form>

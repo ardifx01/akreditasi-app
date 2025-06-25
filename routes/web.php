@@ -15,11 +15,13 @@ use App\Http\Controllers\VisitHistory;
 use App\Models\Pelatihan;
 use App\Models\Staff;
 
-Route::get('/', [DashboardController::class, 'totalStatistik'])->name('welcome');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/', [DashboardController::class, 'totalStatistik'])->name('dashboard');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -27,15 +29,17 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::resources([
-    'ijazah' => IjazahController::class,
-    'staff' => StaffController::class,
-    'transkrip' => TranskripController::class,
-    'sertifikasi' => SertifikasiController::class,
-    'skp' => SkpController::class,
-    'pelatihan' => PelatihanController::class,
-    'mou' => MouController::class,
-]);
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resources([
+        'ijazah' => IjazahController::class,
+        'staff' => StaffController::class,
+        'transkrip' => TranskripController::class,
+        'sertifikasi' => SertifikasiController::class,
+        'skp' => SkpController::class,
+        'pelatihan' => PelatihanController::class,
+        'mou' => MouController::class,
+    ]);
+});
 
 Route::get('/kunjungan/prodiChart', [VisitHistory::class, 'kunjunganProdiChart'])->name('kunjungan.prodiChart');
 Route::get('/kunjungan/prodiTable', [VisitHistory::class, 'kunjunganProdiTable'])->name('kunjungan.prodiTable');

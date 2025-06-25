@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class M_Auv extends Model
 {
     use HasFactory;
-
+    protected $connection = 'mysql2';
     protected $table = 'authorised_values';
 
     protected $fillable = [
@@ -35,5 +35,4 @@ class M_Auv extends Model
         return $this->hasMany(M_vishistory::class, 'cardnumber', 'authorised_value')
             ->whereRaw("LEFT(cardnumber, 4) = authorised_values.authorised_value");
     }
-
 }
