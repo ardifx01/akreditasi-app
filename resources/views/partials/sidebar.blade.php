@@ -205,7 +205,7 @@
                             <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('kunjungan.prodiChart') ? 'active' : '' }}"
                                 href="{{ route('kunjungan.prodiChart') }}"
                                 style="color: #ddd; font-size: 0.9rem; transition: all 0.3s;">
-                                <i class="fas fa-chart-bar me-2"></i>Chart
+                                <i class="fas fa-chart-bar me-2"></i>Grafik
                             </a>
                         </li>
                         <li class="nav-item mb-1">
@@ -222,6 +222,12 @@
                                 <i class="fas fa-table me-2"></i>Perhari
                             </a>
                         </li>
+                        <li class="nav-item mb-1">
+                            <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('kunjungan.cekKehadiran') ? 'active' : '' }}"
+                                href="{{ route('kunjungan.cekKehadiran') }}"
+                                style="color: #ddd; font-size: 0.9rem; transition: all 0.3s;">
+                                <i class="fas fa-calendar-alt me-2"></i>Cek Kehadiran
+                            </a>
                     </ul>
                 </div>
             </li>

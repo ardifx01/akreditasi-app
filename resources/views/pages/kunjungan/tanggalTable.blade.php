@@ -61,7 +61,6 @@
     {{-- Script untuk Save Tabel (PNG) dan (Excel) --}}
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
-        // Script untuk Save Tabel (PNG)
         document.getElementById("downloadPng").addEventListener("click", function() {
             const element = document.getElementById("tabelLaporan");
             html2canvas(element, {
@@ -69,7 +68,7 @@
                 useCORS: true
             }).then(canvas => {
                 const link = document.createElement("a");
-                link.download = "laporan_kunjungan_harian.png"; // Nama file diubah
+                link.download = "laporan_kunjungan_harian.png";
                 link.href = canvas.toDataURL("image/png");
                 link.click();
             });
@@ -81,7 +80,7 @@
             let csv = [];
             const delimiter = ';';
 
-            // Ambil header tabel
+
             const headers = Array.from(table.querySelectorAll('thead th')).map(th => {
                 let text = th.innerText.trim();
                 text = text.replace(/"/g, '""');
@@ -113,7 +112,7 @@
             });
 
             const link = document.createElement("a");
-            const fileName = "laporan_kunjungan_harian.csv"; // Nama file diubah
+            const fileName = "laporan_kunjungan_harian.csv";
 
             if (navigator.msSaveBlob) {
                 navigator.msSaveBlob(blob, fileName);

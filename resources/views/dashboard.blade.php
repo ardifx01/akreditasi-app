@@ -218,12 +218,11 @@
             // Inisialisasi DataTables
             $(document).ready(function() {
                 $('#bukuTerlarisTable').DataTable({
-                    dom: 'Bfrtip', // Menentukan posisi elemen kontrol: Buttons, filter, table, info, paginate
+                    dom: 'Bfrtip', 
                     buttons: [
-                        // Aktifkan tombol export dan column visibility
+
                     ],
                     searching: false
-                    // Contoh data diambil langsung dari HTML, jika Anda memiliki data dari server, gunakan opsi `ajax`
                 });
             });
 

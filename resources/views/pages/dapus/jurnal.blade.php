@@ -106,7 +106,6 @@
                     let csv = [];
                     const delimiter = ';';
 
-                    // Get table headers
                     const headers = Array.from(table.querySelectorAll('thead th')).map(th => {
                         let text = th.innerText.trim();
                         text = text.replace(/"/g, '""');

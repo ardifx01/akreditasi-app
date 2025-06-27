@@ -98,10 +98,10 @@
     {{-- Script untuk Save Tabel (Excel - CSV) --}}
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const downloadExcelButton = document.getElementById("downloadExcelTextbook"); // Sesuaikan ID
+            const downloadExcelButton = document.getElementById("downloadExcelTextbook");
             if (downloadExcelButton) {
                 downloadExcelButton.addEventListener("click", function() {
-                    const table = document.getElementById("myTableTextbook"); // Sesuaikan ID tabel
+                    const table = document.getElementById("myTableTextbook");
                     if (!table) {
                         console.error("Table 'myTableTextbook' not found.");
                         return;
@@ -109,7 +109,7 @@
                     let csv = [];
                     const delimiter = ';';
 
-                    // Ambil header tabel
+                    
                     const headers = Array.from(table.querySelectorAll('thead th')).map(th => {
                         let text = th.innerText.trim();
                         text = text.replace(/"/g, '""');
@@ -142,7 +142,7 @@
                     });
 
                     const link = document.createElement("a");
-                    const fileName = "textbook_data.csv"; // Ganti nama file agar lebih spesifik
+                    const fileName = "textbook_data.csv";
 
                     if (navigator.msSaveBlob) {
                         navigator.msSaveBlob(blob, fileName);

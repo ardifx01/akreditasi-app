@@ -100,10 +100,10 @@
     {{-- Script untuk Save Tabel (Excel - CSV) --}}
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const downloadExcelButton = document.getElementById("downloadExcelProsiding"); // Sesuaikan ID
+            const downloadExcelButton = document.getElementById("downloadExcelProsiding");
             if (downloadExcelButton) {
                 downloadExcelButton.addEventListener("click", function() {
-                    const table = document.getElementById("myTableProsiding"); // Sesuaikan ID tabel
+                    const table = document.getElementById("myTableProsiding");
                     if (!table) {
                         console.error("Table 'myTableProsiding' not found.");
                         return;
@@ -111,7 +111,7 @@
                     let csv = [];
                     const delimiter = ';';
 
-                    // Ambil header tabel
+
                     const headers = Array.from(table.querySelectorAll('thead th')).map(th => {
                         let text = th.innerText.trim();
                         text = text.replace(/"/g, '""');
@@ -126,9 +126,9 @@
                     rows.forEach(row => {
                         const rowData = Array.from(row.querySelectorAll('td')).map(td => {
                             let text = td.innerText.trim();
-                            // Untuk kolom Link, kita hanya ambil teksnya, bukan elemen <a>
+
                             if (td.querySelector('a')) {
-                                text = td.querySelector('a').href; // Ambil href dari link
+                                text = td.querySelector('a').href;
                             } else {
                                 text = td.innerText.trim();
                             }
@@ -150,7 +150,7 @@
                     });
 
                     const link = document.createElement("a");
-                    const fileName = "prosiding_data.csv"; // Ganti nama file agar lebih spesifik
+                    const fileName = "prosiding_data.csv"; 
 
                     if (navigator.msSaveBlob) {
                         navigator.msSaveBlob(blob, fileName);

@@ -10,43 +10,62 @@ use Illuminate\Http\Request;
 
 class VisitHistory extends Controller
 {
-
     public function kunjunganProdiChart(Request $request)
     {
-
         $listProdi = M_eprodi::pluck('nama', 'kode')->toArray();
+        $prodi = $request->input('prodi');
+        $thnDari = $request->input('tahun_awal');
+        $thnSampai = $request->input('tahun_akhir');
 
-        // mengambil data kunjungan prodi
-        $kodeProdi = [$request->input('prodi', 'D400')];
-        $thnDari = $request->input('tahun_awal', now()->year - 2);
-        $thnSampai = $request->input('tahun_akhir', now()->year);
-        $namaProdi = M_eprodi::where('kode', $kodeProdi)->value('nama');
-        $data = M_vishistory::selectRaw('
-            EXTRACT(YEAR_MONTH FROM visittime) as tahun_bulan,
-            av.authorised_value as kode_prodi,
-            le.nama as nama_prodi,
-            COUNT(visitorhistory.id) as jumlah_kunjungan
-        ')
-            ->leftJoin('borrowers as b', 'visitorhistory.cardnumber', '=', 'b.cardnumber')
-            ->leftJoin('borrower_attributes as ba', 'ba.borrowernumber', '=', 'b.borrowernumber')
-            ->leftJoin('authorised_values as av', function ($join) {
-                $join->on('ba.code', '=', 'av.category')
-                    ->on('ba.attribute', '=', 'av.authorised_value');
-            })
-            ->leftJoin('local_eprodi as le', 'le.kode', '=', 'av.authorised_value')
-            ->whereBetween(DB::raw('YEAR(visitorhistory.visittime)'), [$thnDari, $thnSampai])
-            ->whereIn('av.authorised_value', $kodeProdi)
-            ->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visitorhistory.visittime)'), 'av.authorised_value', 'le.nama')
-            ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visitorhistory.visittime)'), 'asc')
-            ->orderBy('av.authorised_value', 'asc')
-            ->orderBy('le.nama', 'asc');
+        $data = collect();
+        $namaProdi = 'Pilih Program Studi';
 
-        return view('pages.kunjungan.prodiChart', compact('data', 'listProdi', 'namaProdi'));
+        if ($prodi && $thnDari && $thnSampai) {
+            $kodeProdiUntukFilter = ($prodi === 'all') ? array_keys($listProdi) : [$prodi];
+
+            if ($prodi === 'all') {
+                $namaProdi = 'Semua Prodi';
+            } else {
+                $namaProdi = $listProdi[$prodi] ?? 'Tidak Ditemukan';
+            }
+
+            $query = M_vishistory::selectRaw('
+                EXTRACT(YEAR_MONTH FROM visitorhistory.visittime) as tahun_bulan,
+                av.authorised_value as kode_prodi,
+                le.nama as nama_prodi,
+                COUNT(visitorhistory.id) as jumlah_kunjungan
+            ')
+                ->leftJoin('borrowers as b', 'visitorhistory.cardnumber', '=', 'b.cardnumber')
+                ->leftJoin('borrower_attributes as ba', 'ba.borrowernumber', '=', 'b.borrowernumber')
+                ->leftJoin('authorised_values as av', function ($join) {
+                    $join->on('ba.code', '=', 'av.category')
+                        ->on('ba.attribute', '=', 'av.authorised_value');
+                })
+                ->leftJoin('local_eprodi as le', 'le.kode', '=', 'av.authorised_value')
+                ->whereBetween(DB::raw('YEAR(visitorhistory.visittime)'), [(int)$thnDari, (int)$thnSampai]);
+
+            if ($prodi !== 'all') {
+                $query->whereIn('av.authorised_value', $kodeProdiUntukFilter);
+            }
+
+            $data = $query->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visitorhistory.visittime)'), 'av.authorised_value', 'le.nama')
+                ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visitorhistory.visittime)'), 'asc')
+                ->orderBy('av.authorised_value', 'asc')
+                ->orderBy('le.nama', 'asc')
+                ->paginate(12)
+                ->withQueryString();
+        }
+
+        $selectedProdi = $request->input('prodi', '');
+        $selectedTahunAwal = $request->input('tahun_awal', now()->year - 2);
+        $selectedTahunAkhir = $request->input('tahun_akhir', now()->year);
+
+        return view('pages.kunjungan.prodiChart', compact('data', 'listProdi', 'namaProdi', 'selectedProdi', 'selectedTahunAwal', 'selectedTahunAkhir'));
     }
 
     //  Data Mapping prodi
     private $prodiMapping = [
-        'L200' => 'Teknik Informatika', // Contoh
+        'L200' => 'Teknik Informatika',
         'D100' => 'Teknik Sipil',
         'D400' => 'Teknik Elektro',
         'A210'    => 'Pend. Akuntansi',
@@ -134,16 +153,15 @@ class VisitHistory extends Controller
             ->where('visittime', '>=', $tanggalAwal . ' 00:00:00')
             ->where('visittime', '<=', $tanggalAkhir . ' 23:59:59');
 
-        // Menambahkan filter prodi (atau jenis user Dosen/Tendik)
+
         if (!empty($kodeProdiFilter)) {
-            if (strtoupper($kodeProdiFilter) === 'DOSEN_TENDIK') { // Jika filter adalah Dosen/Tendik
+            if (strtoupper($kodeProdiFilter) === 'DOSEN_TENDIK') {
                 $query->whereRaw('LENGTH(cardnumber) <= 6');
-            } else { // Jika filter adalah kode prodi
+            } else {
                 $query->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
             }
         }
 
-        // Mengelompokkan hasil berdasarkan tanggal dan kode identifikasi
         $data = $query->groupBy(
             DB::raw('DATE(visittime)'),
             DB::raw('CASE WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK" ELSE SUBSTR(cardnumber, 1, 4) END')
@@ -153,10 +171,10 @@ class VisitHistory extends Controller
             ->orderBy(DB::raw('CASE WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK" ELSE SUBSTR(cardnumber, 1, 4) END'), 'asc')
             ->paginate(10);
 
-        // Transformasi untuk menambahkan nama_prodi atau label Dosen/Tendik
+
         $data->getCollection()->transform(function ($item) {
-            $item->nama_prodi = ''; // Default
-            $item->kode_prodi = $item->kode_identifikasi; // Set kode_prodi untuk tampilan
+            $item->nama_prodi = '';
+            $item->kode_prodi = $item->kode_identifikasi;
 
             if (strtoupper($item->kode_identifikasi) === 'DOSEN_TENDIK') {
                 $item->nama_prodi = 'Dosen / Tenaga Kependidikan';
@@ -173,13 +191,12 @@ class VisitHistory extends Controller
 
 
 
-
     public function kunjunganTanggalTable(Request $request)
     {
         $tanggalAwal = $request->input('tanggal_awal', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $tanggalAkhir = $request->input('tanggal_akhir', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
-        // Query untuk total kunjungan per hari (tanpa memecah per prodi)
+
         $query = M_vishistory::selectRaw('
                 DATE(visittime) as tanggal_kunjungan,
                 COUNT(id) as jumlah_kunjungan_harian
@@ -187,17 +204,46 @@ class VisitHistory extends Controller
             ->where('visittime', '>=', $tanggalAwal . ' 00:00:00')
             ->where('visittime', '<=', $tanggalAkhir . ' 23:59:59');
 
-        // Group by hanya berdasarkan tanggal kunjungan
+
         $data = $query->groupBy(DB::raw('DATE(visittime)'))
-            // Urutkan berdasarkan tanggal
             ->orderBy(DB::raw('DATE(visittime)'), 'asc')
             ->paginate(10);
 
-        // Tidak perlu transformasi prodi karena kita tidak menampilkan detail prodi per baris
 
         $data->appends($request->only(['tanggal_awal', 'tanggal_akhir']));
 
-        // Kembalikan ke view Blade yang baru
         return view('pages.kunjungan.tanggalTable', compact('data'));
+    }
+
+    public function cekKehadiran(Request $request)
+    {
+        $cardnumber = $request->input('cardnumber');
+
+        $dataKunjungan = collect();
+        $borrowerInfo = null;
+        $pesan = 'Silakan masukkan Nomor Kartu Anggota (Cardnumber) untuk melihat laporan kunjungan.';
+        if ($cardnumber) {
+            $borrowerInfo = M_vishistory::where('cardnumber', $cardnumber)->first();
+
+            if ($borrowerInfo) {
+                $dataKunjungan = M_vishistory::selectRaw('
+                        EXTRACT(YEAR_MONTH FROM visittime) as tahun_bulan,
+                        COUNT(id) as jumlah_kunjungan
+                    ')
+                    ->where('cardnumber', $cardnumber)
+                    ->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'))
+                    ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'), 'asc')
+                    ->get();
+                if ($dataKunjungan->isEmpty()) {
+                    $pesan = 'Tidak ada data kunjungan ditemukan untuk Nomor Kartu Anggota: ' . $cardnumber . ' (' . $borrowerInfo->firstname . ').';
+                } else {
+                    $pesan = null;
+                }
+            } else {
+                $pesan = 'Nomor Kartu Anggota (Cardnumber) tidak ditemukan.';
+            }
+        }
+
+        return view('pages.kunjungan.cekKehadiran', compact('dataKunjungan', 'borrowerInfo', 'pesan', 'cardnumber'));
     }
 }

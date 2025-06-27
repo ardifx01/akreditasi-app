@@ -112,7 +112,7 @@
                     let csv = [];
                     const delimiter = ';';
 
-                    // Ambil header tabel
+
                     const headers = Array.from(table.querySelectorAll('thead th')).map(th => {
                         let text = th.innerText.trim();
                         text = text.replace(/"/g, '""');

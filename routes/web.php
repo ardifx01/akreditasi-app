@@ -54,7 +54,7 @@ Route::get('/koleksi/periodikal', [StatistikKoleksi::class, 'periodikal'])->name
 Route::get('/koleksi/referensi', [StatistikKoleksi::class, 'referensi'])->name('koleksi.referensi');
 Route::get('/koleksi/prodi', [StatistikKoleksi::class, 'koleksiPerprodi'])->name('koleksi.prodi');
 
-
+Route::get('/kunjungan/cek-kehadiran', [VisitHistory::class, 'cekKehadiran'])->name('kunjungan.cekKehadiran');
 require __DIR__ . '/auth.php';
 
 // test koneksi ke database staff

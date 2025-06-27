@@ -79,7 +79,7 @@
     {{-- Script untuk Save Tabel (PNG) dan (Excel) --}}
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
-        // ... (Script download PNG dan Excel sama seperti sebelumnya) ...
+        
         document.getElementById("downloadPng").addEventListener("click", function() {
             const element = document.getElementById("tabelLaporan");
             html2canvas(element, {

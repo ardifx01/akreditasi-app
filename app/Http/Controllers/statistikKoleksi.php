@@ -277,15 +277,13 @@ class StatistikKoleksi extends Controller
     public function koleksiPerprodi(Request $request)
     {
         $listprodi = M_eprodi::all();
-        $prodi = $request->input('prodi'); // Hapus default 'L200'
+        $prodi = $request->input('prodi');
 
-        // Ubah filter tanggal menjadi filter tahun, default 'all' jika tidak ada
         $tahunTerakhir = $request->input('tahun', 'all');
 
-        $data = collect(); // Default: data kosong
-        $namaProdi = 'Pilih Program Studi'; // Default: teks untuk dropdown
+        $data = collect();
+        $namaProdi = 'Pilih Program Studi';
 
-        // Hanya jika 'prodi' dipilih, lakukan query
         if ($prodi) {
             $prodiMapping = $listprodi->pluck('nama', 'kode')->toArray();
             $cnClasses = CnClassHelper::getCnClassByProdi($prodi);
@@ -298,11 +296,10 @@ class StatistikKoleksi extends Controller
                 ->join('biblioitems as bi', 'i.biblionumber', '=', 'bi.biblionumber')
                 ->join('itemtypes as t', 'i.itype', '=', 't.itemtype')
                 ->where('i.itemlost', 0)
-                ->where('i.withdrawn', 0) // Menambahkan filter withdrawn seperti koleksi lain
+                ->where('i.withdrawn', 0)
                 ->whereIn('bi.cn_class', $cnClasses);
 
-            // Tambahkan kondisi filter tahun jika bukan 'all'
-            // Gunakan publicationyear dari biblioitems atau sumber tahun yang relevan untuk koleksi umum
+
             if ($tahunTerakhir !== 'all') {
                 $query->whereRaw('bi.publicationyear >= YEAR(CURDATE()) - ?', [$tahunTerakhir]);
             }
@@ -310,7 +307,7 @@ class StatistikKoleksi extends Controller
             $data = $query->groupBy('Jenis', 'Koleksi')
                 ->orderBy('Jenis', 'asc')
                 ->orderBy('Koleksi', 'asc')
-                ->get(); // Tetap get() karena tidak ada pagination di query asli Anda
+                ->get(); 
         }
 
         return view('pages.dapus.prodi', compact('namaProdi', 'listprodi', 'data', 'prodi', 'tahunTerakhir'));
