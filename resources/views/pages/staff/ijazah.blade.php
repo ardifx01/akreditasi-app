@@ -1,62 +1,121 @@
 @extends('layouts.app')
 
-@section('title', 'Ijazah')
+@section('title', 'Data Ijazah')
+
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css">
+    <style>
+        /* Optional: Adjust spacing for search form */
+        .search-form-container {
+            margin-bottom: 1.5rem;
+        }
+    </style>
+@endpush
 
 @section('content')
-    @can('admin-action')
-        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#ijazahModal">
-            <i class="fas fa-plus me-2"></i> Tambah Data Ijazah
-        </button>
+    <div class="container mt-4"> {{-- Added mt-4 for top margin from navbar --}}
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
 
-        @include('modal.create-ijazah')
-    @endcan
-    <div class="mt-4">
-        <table class="table table-striped table-hover">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>ID Staff</th>
-                    <th>Nama Ijazah</th>
-                    <th>Nama File</th>
-                    <th>Tahun</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($ijazah as $no => $item)
-                    @include('modal.view-pdf')
-                    <tr>
-                        <td>{{ $no + 1 }}</td>
-                        <td>{{ $item->id_staf }}</td>
-                        <td>{{ $item->judul_ijazah }}</td>
-                        <td>
-                            <button class="btn btn-success" data-bs-toggle="modal"
-                                data-bs-target="#view-pdf-{{ $item->id }}">
-                                <i class="fas fa-eye"></i>
-                                View Dokumen Ijazah
-                            </button>
-                        </td>
-                        {{-- <td>{{ $item->file_dokumen }}</td> --}}
-                        <td>{{ $item->tahun }}</td>
-                        @can('admin-action')
-                            <td>
-                                {{-- <a href="{{ route('staff.edit', $item->id) }}" class="btn btn-primary">Edit</a> --}}
-                                <button class="btn  btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#editIjazah{{ $item->id }}">Edit
-                                </button>
-                                <form action="{{ route('ijazah.destroy', $item->id) }}" method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger"
-                                        onclick="return confirm('Apakah Anda yakin ingin menghapus?')">Delete</button>
-                                </form>
-                            </td>
-                            @include('modal.edit-ijazah')
-                        @endcan
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-        {{ $ijazah->links() }}
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        <h1 class="mb-4">Data Ijazah</h1>
+
+        {{-- Action buttons and Search form --}}
+        <div class="d-flex justify-content-between align-items-center mb-3 search-form-container">
+            @can('admin-action')
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#ijazahModal">
+                    <i class="fas fa-plus me-2"></i> Tambah Data Ijazah
+                </button>
+                {{-- Include the create modal --}}
+                @include('modal.create-ijazah')
+            @endcan
+
+            {{-- Search Input Form --}}
+            <form action="{{ route('ijazah.index') }}" method="GET" class="d-flex ms-auto"> {{-- ms-auto pushes it to the right --}}
+                <input type="text" name="search" class="form-control me-2" placeholder="Cari ID, Judul Ijazah, Tahun..."
+                    value="{{ request('search') }}">
+                <button type="submit" class="btn btn-primary">Cari</button>
+                @if (request('search'))
+                    <a href="{{ route('ijazah.index') }}" class="btn btn-secondary ms-2">Reset</a>
+                @endif
+            </form>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover text-center" id="data-table-ijazah"> {{-- Added ID for DataTables --}}
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>ID Staff</th>
+                                <th>Nama Ijazah</th>
+                                <th>File Ijazah</th> {{-- Changed from Nama File to File Ijazah --}}
+                                <th>Tahun</th>
+                                @can('admin-action')
+                                    <th>Aksi</th>
+                                @endcan
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($ijazah as $no => $item)
+                                <tr>
+                                    <td>{{ $no + $ijazah->firstItem() }}</td> {{-- Corrected for pagination index --}}
+                                    <td>{{ $item->id_staf }}</td>
+                                    <td>{{ $item->judul_ijazah }}</td>
+                                    <td>
+                                        <button class="btn btn-success btn-sm" data-bs-toggle="modal"
+                                            data-bs-target="#view-pdf-{{ $item->id }}">
+                                            <i class="fas fa-eye me-1"></i> View Dokumen
+                                        </button>
+                                    </td>
+                                    <td>{{ $item->tahun }}</td>
+                                    @can('admin-action')
+                                        <td>
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                                data-bs-target="#editIjazah{{ $item->id }}">Edit
+                                            </button>
+                                            <form action="{{ route('ijazah.destroy', $item->id) }}" method="POST"
+                                                style="display:inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Apakah Anda yakin ingin menghapus?')">Delete</button>
+                                            </form>
+                                        </td>
+                                    @endcan
+                                </tr>
+                                {{-- Include the view-pdf and edit-ijazah modals for each item --}}
+                                @include('modal.view-pdf', ['item' => $item]) {{-- Pass $item to view-pdf modal --}}
+                                @include('modal.edit-ijazah', ['ijazah' => $item]) {{-- Pass $item as $ijazah to edit-ijazah modal --}}
+                            @empty
+                                <tr>
+                                    <td colspan="{{ Auth::user()->can('admin-action') ? '6' : '5' }}" class="text-center">
+                                        Tidak ada data ijazah ditemukan.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $ijazah->links() }} {{-- Laravel Pagination Links --}}
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
+

@@ -11,11 +11,18 @@ class TranskripController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $transkrip = Transkrip::paginate(10);
+        $query = Transkrip::query();
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where('id_staf', 'like', '%' . $searchTerm . '%')
+                ->orWhere('judul_transkrip', 'like', '%' . $searchTerm . '%')
+                ->orWhere('tahun', 'like', '%' . $searchTerm . '%');
+        }
+        $transkrip = $query->paginate(10);
         $staffs = Staff::all();
-        return view('pages.staff.transkrip', compact('transkrip','staffs'));
+        return view('pages.staff.transkrip', compact('transkrip', 'staffs'));
     }
 
     /**
@@ -40,7 +47,7 @@ class TranskripController extends Controller
 
         $id = $request->input('id_staf');
         $dokumen = $request->file('file_dokumen');
-        $nama_dok = 'transkrip_'.$id.'.'.$dokumen->getClientOriginalExtension();
+        $nama_dok = 'transkrip_' . $id . '.' . $dokumen->getClientOriginalExtension();
         $dokumen->move('dokumen/', $nama_dok);
 
         Transkrip::create([

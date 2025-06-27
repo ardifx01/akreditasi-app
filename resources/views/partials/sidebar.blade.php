@@ -1,12 +1,12 @@
-<div class="sidebar shadow-lg p-0 overflow-hidden bg-dark collapsed" id="sidebar">
-    <!-- Header/Logo Area -->
+<div class="sidebar shadow-lg p-0 position-fixed h-100 overflow-hidden bg-dark collapsed" id="sidebar">
     <div class="sidebar-header d-flex align-items-center justify-content-between p-3"
         style="background-color: rgba(0,0,0,0);">
-        <!-- Logo -->
         <img src="{{ asset('img/logo.png') }}" alt="Logo" class="img-fluid mt-5" style="width: 220px; height: auto;">
+        <button id="closeSidebarBtn" class="btn btn-sm btn-light d-lg-none position-absolute top-0 end-0 m-3 z-3">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 
-    <!-- Navigation Menu -->
     <div class="px-3 pb-3 mt-5">
         <ul class="nav flex-column">
             <li class="nav-item mb-2">
@@ -212,7 +212,14 @@
                             <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('kunjungan.prodiTable') ? 'active' : '' }}"
                                 href="{{ route('kunjungan.prodiTable') }}"
                                 style="color: #ddd; font-size: 0.9rem; transition: all 0.3s;">
-                                <i class="fas fa-table me-2"></i>Table
+                                <i class="fas fa-table me-2"></i>Civitas
+                            </a>
+                        </li>
+                        <li class="nav-item mb-1">
+                            <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('kunjungan.tanggalTable') ? 'active' : '' }}"
+                                href="{{ route('kunjungan.tanggalTable') }}"
+                                style="color: #ddd; font-size: 0.9rem; transition: all 0.3s;">
+                                <i class="fas fa-table me-2"></i>Perhari
                             </a>
                         </li>
                     </ul>

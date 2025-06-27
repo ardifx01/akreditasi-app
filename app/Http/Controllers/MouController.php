@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mou;
+use App\Models\Staff;
 use Illuminate\Http\Request;
 
 class MouController extends Controller
@@ -10,10 +11,20 @@ class MouController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $mou = Mou::paginate(10);
-        return view('pages.staff.mou', compact('mou'));
+        $query = Mou::query();
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where('judul_mou', 'like', '%' . $searchTerm . '%')
+                ->orWhere('tahun', 'like', '%' . $searchTerm . '%');
+        }
+
+        $mou = $query->paginate(10);
+        $staffs = Staff::all();
+
+        return view('pages.staff.mou', compact('mou', 'staffs')); // Tambahkan 'staffs' ke compact
+
     }
 
     /**
@@ -37,7 +48,7 @@ class MouController extends Controller
 
         $id = $request->input('judul_mou');
         $dokumen = $request->file('file_dokumen');
-        $nama_dok = 'mou_'.$id.'.'.$dokumen->getClientOriginalExtension();
+        $nama_dok = 'mou_' . $id . '.' . $dokumen->getClientOriginalExtension();
         $dokumen->move('dokumen/', $nama_dok);
 
         Mou::create([

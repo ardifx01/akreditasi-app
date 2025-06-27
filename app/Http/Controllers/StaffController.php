@@ -10,9 +10,20 @@ class StaffController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $staff = Staff::paginate(10);
+        $query = Staff::query();
+
+        // Fitur Search
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where('id_staf', 'like', '%' . $searchTerm . '%')
+                ->orWhere('nama_staff', 'like', '%' . $searchTerm . '%')
+                ->orWhere('posisi', 'like', '%' . $searchTerm . '%');
+        }
+
+        $staff = $query->paginate(10);
+
         return view('pages.staff.staf', compact('staff'));
     }
 
@@ -42,7 +53,6 @@ class StaffController extends Controller
         ]);
 
         return redirect()->route('staff.index')->with(['success' => 'Data Berhasil Ditambahkan!']);
-
     }
 
     /**
@@ -71,13 +81,13 @@ class StaffController extends Controller
             'nama_staff' => 'required|string|min:3',
             'posisi' => 'required|min:5'
         ]);
-    
+
         $staff->update([
             'id_staf' => $request->id_staf,
             'nama_staff' => $request->nama_staff,
             'posisi' => $request->posisi
         ]);
-    
+
         return redirect()->back()->with('success', 'Data staff berhasil diperbarui.');
     }
 

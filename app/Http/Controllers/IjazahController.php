@@ -6,15 +6,24 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Ijazah;
 use App\Models\Staff;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class IjazahController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $ijazah = Ijazah::paginate(10);
+        $query = Ijazah::query();
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where('id_staf', 'like', '%' . $searchTerm . '%')
+                ->orWhere('judul_ijazah', 'like', '%' . $searchTerm . '%')
+                ->orWhere('tahun', 'like', '%' . $searchTerm . '%');
+        }
+
+        $ijazah = $query->paginate(10);
         $staffs = Staff::all();
         return view('pages.staff.ijazah', compact('ijazah', 'staffs'));
     }

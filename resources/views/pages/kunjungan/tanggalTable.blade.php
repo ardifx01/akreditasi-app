@@ -1,34 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Laporan Kunjungan Prodi')
+@section('title', 'Laporan Kunjungan Harian') {{-- Judul diubah --}}
 @section('content')
     <div class="container">
-        <h4>Laporan Kunjungan</h4>
+        <h4>Laporan Kunjungan Harian</h4> {{-- Judul diubah --}}
 
-        {{-- Form Filter --}}
-        <form method="GET" action="{{ route('kunjungan.prodiTable') }}" class="row g-3 mb-4">
-            <div class="col-md-4">
-                <label for="prodi" class="form-label">Pilih Prodi/Tipe User</label> {{-- Label diubah --}}
-                <select name="prodi" id="prodi" class="form-select">
-                    <option value="">-- Semua Prodi & Dosen/Tendik --</option> {{-- Opsi diubah --}}
-                    <option value="DOSEN_TENDIK" {{ request('prodi') == 'DOSEN_TENDIK' ? 'selected' : '' }}>
-                        -- Dosen / Tenaga Kependidikan --
-                    </option>
-                    {{-- Opsi prodi lainnya dari database --}}
-                    @foreach ($listProdi as $kode => $nama)
-                        <option value="{{ $kode }}" {{ request('prodi') == $kode ? 'selected' : '' }}>
-                            ({{ $kode }})
-                            -- {{ $nama }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-3">
+        {{-- Form Filter Tanggal Saja --}}
+        <form method="GET" action="{{ route('kunjungan.tanggalTable') }}" class="row g-3 mb-4">
+            <div class="col-md-5">
                 <label for="tanggal_awal" class="form-label">Tanggal Awal</label>
                 <input type="date" name="tanggal_awal" id="tanggal_awal" class="form-control"
                     value="{{ request('tanggal_awal', \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d')) }}">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-5">
                 <label for="tanggal_akhir" class="form-label">Tanggal Akhir</label>
                 <input type="date" name="tanggal_akhir" id="tanggal_akhir" class="form-control"
                     value="{{ request('tanggal_akhir', \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d')) }}">
@@ -48,9 +32,7 @@
                     <tr>
                         <th>No</th>
                         <th>Tanggal Kunjungan</th>
-                        <th>Kode Identifikasi</th> {{-- Nama kolom diubah untuk lebih generik --}}
-                        <th>Tipe User / Nama Prodi</th> {{-- Nama kolom diubah untuk lebih generik --}}
-                        <th>Jumlah Kunjungan</th>
+                        <th>Total Kunjungan Harian</th> {{-- Nama kolom diubah --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -58,13 +40,12 @@
                         <tr>
                             <td>{{ $loop->iteration + ($data->currentPage() - 1) * $data->perPage() }}</td>
                             <td>{{ \Carbon\Carbon::parse($row->tanggal_kunjungan)->format('d F Y') }}</td>
-                            <td>{{ $row->kode_prodi }}</td> {{-- Ini akan menampilkan DOSEN_TENDIK atau kode prodi --}}
-                            <td>{{ $row->nama_prodi }}</td> {{-- Ini akan menampilkan "Dosen / Tenaga Kependidikan" atau nama prodi --}}
-                            <td>{{ $row->jumlah_kunjungan }}</td>
+                            <td>{{ $row->jumlah_kunjungan_harian }}</td> {{-- Akses alias baru --}}
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center">Tidak ada data kunjungan ditemukan untuk filter ini.</td>
+                            <td colspan="3" class="text-center">Tidak ada data kunjungan ditemukan untuk filter ini.</td>
+                            {{-- colspan diubah --}}
                         </tr>
                     @endforelse
                 </tbody>
@@ -72,14 +53,15 @@
         </div>
         <div class="mt-3">
             {{ $data->links() }}
-            <p class="mt-3">Total Kunjungan: {{ $data->sum('jumlah_kunjungan') }}</p>
+            <p class="mt-3">Total Keseluruhan Kunjungan: {{ $data->sum('jumlah_kunjungan_harian') }}</p>
+            {{-- Sum diubah --}}
         </div>
     </div>
 
     {{-- Script untuk Save Tabel (PNG) dan (Excel) --}}
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
-        // ... (Script download PNG dan Excel sama seperti sebelumnya) ...
+        // Script untuk Save Tabel (PNG)
         document.getElementById("downloadPng").addEventListener("click", function() {
             const element = document.getElementById("tabelLaporan");
             html2canvas(element, {
@@ -87,17 +69,19 @@
                 useCORS: true
             }).then(canvas => {
                 const link = document.createElement("a");
-                link.download = "laporan_kunjungan_prodi_dosen.png";
+                link.download = "laporan_kunjungan_harian.png"; // Nama file diubah
                 link.href = canvas.toDataURL("image/png");
                 link.click();
             });
         });
 
+        // Script untuk Save Tabel (Excel - CSV)
         document.getElementById("downloadExcel").addEventListener("click", function() {
             const table = document.getElementById("myTable");
             let csv = [];
             const delimiter = ';';
 
+            // Ambil header tabel
             const headers = Array.from(table.querySelectorAll('thead th')).map(th => {
                 let text = th.innerText.trim();
                 text = text.replace(/"/g, '""');
@@ -129,7 +113,7 @@
             });
 
             const link = document.createElement("a");
-            const fileName = "laporan_kunjungan_prodi_dosen.csv";
+            const fileName = "laporan_kunjungan_harian.csv"; // Nama file diubah
 
             if (navigator.msSaveBlob) {
                 navigator.msSaveBlob(blob, fileName);

@@ -12,7 +12,7 @@
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
                                 <small class="text-muted">Total Jurnal</small>
-                                <h4 class="card-title mt-2 mb-0">{{ $totalJurnal }}</h4>
+                                <h4 class="card-title mt-2 mb-0"></h4>
                             </div>
                             <div class="text-end mt-3">
                                 <i class="fas fa-book fa-2x text-primary"></i>
@@ -26,7 +26,7 @@
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
                                 <small class="text-muted">Total Judul Buku</small>
-                                <h4 class="card-title mt-2 mb-0">{{ $totalBuku }}</h4>
+                                <h4 class="card-title mt-2 mb-0"></h4>
                             </div>
                             <div class="text-end mt-3">
                                 <i class="fas fa-book-open fa-2x text-success"></i>
@@ -40,7 +40,7 @@
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
                                 <small class="text-muted">Total Eksemplar</small>
-                                <h4 class="card-title mt-2 mb-0">{{ $totalEksemplar }}</h4>
+                                <h4 class="card-title mt-2 mb-0"></h4>
                             </div>
                             <div class="text-end mt-3">
                                 <i class="fas fa-copy fa-2x text-info"></i>
@@ -54,7 +54,7 @@
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
                                 <small class="text-muted">Anggota Aktif</small>
-                                <h4 class="card-title mt-2 mb-0">{{ $anggotaAktif }}</h4>
+                                <h4 class="card-title mt-2 mb-0"></h4>
                             </div>
                             <div class="text-end mt-3">
                                 <i class="fa-solid fa-person fa-3x" style="color: #FFD43B;"></i>
@@ -71,7 +71,7 @@
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
                                 <small class="text-muted">Total Kunjungan : <?php echo date('l, d F Y'); ?></small>
-                                <h4 class="card-title mt-2 mb-0">{{ $totalKunjungan }}</h4>
+                                <h4 class="card-title mt-2 mb-0"></h4>
                             </div>
                             <div class="text-end mt-3">
                                 <i class="fa-solid fa-door-open fa-2x text-primary"></i>
@@ -205,7 +205,6 @@
         </script>
         <script src="https://kit.fontawesome.com/f96c87efe8.js" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.js"></script>
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
         <script type="text/javascript" src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
         <script type="text/javascript" src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>

@@ -11,11 +11,18 @@ class SkpController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $skp = Skp::paginate(10);
+        $query = Skp::query();
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where('id_staf', 'like', '%' . $searchTerm . '%')
+                ->orWhere('judul_skp', 'like', '%' . $searchTerm . '%')
+                ->orWhere('tahun', 'like', '%' . $searchTerm . '%');
+        }
+        $skp = $query->paginate(10);
         $staffs = Staff::all();
-        return view('pages.staff.skp', compact('skp','staffs'));
+        return view('pages.staff.skp', compact('skp', 'staffs'));
     }
 
     /**
@@ -40,7 +47,7 @@ class SkpController extends Controller
 
         $id = $request->input('id_staf');
         $dokumen = $request->file('file_dokumen');
-        $nama_dok = 'skp_'.$id.'.'.$dokumen->getClientOriginalExtension();
+        $nama_dok = 'skp_' . $id . '.' . $dokumen->getClientOriginalExtension();
         $dokumen->move('dokumen/', $nama_dok);
 
         Skp::create([

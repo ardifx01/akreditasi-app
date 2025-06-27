@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@section('title', 'Laporan Kunjungan Prodi')
 <div class="container">
     <h4>Laporan Kunjungan Prodi -- {{ $namaProdi }} --</h4>
 
@@ -12,18 +13,21 @@
                 <option value="">-- Semua Prodi --</option>
                 @foreach ($listProdi as $kode => $nama)
                     <option value="{{ $kode }}">
-                        ({{ $kode }}) -- {{ $nama }}
+                        ({{ $kode }})
+                        -- {{ $nama }}
                     </option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-2">
             <label for="tahun_awal" class="form-label">Tahun Awal</label>
-            <input type="number" name="tahun_awal" id="tahun_awal" class="form-control" value="{{ request('tahun_awal', now()->year - 2) }}">
+            <input type="number" name="tahun_awal" id="tahun_awal" class="form-control"
+                value="{{ request('tahun_awal', now()->year - 2) }}">
         </div>
         <div class="col-md-2">
             <label for="tahun_akhir" class="form-label">Tahun Akhir</label>
-            <input type="number" name="tahun_akhir" id="tahun_akhir" class="form-control" value="{{ request('tahun_akhir', now()->year) }}">
+            <input type="number" name="tahun_akhir" id="tahun_akhir" class="form-control"
+                value="{{ request('tahun_akhir', now()->year) }}">
         </div>
         <div class="col-md-2 d-flex align-items-end">
             <button type="submit" class="btn btn-primary w-100">Filter</button>
@@ -46,7 +50,9 @@
     const dataChart = new Chart(chart, {
         type: 'bar',
         data: {
-            labels: {!! json_encode($data->pluck('tahun_bulan')->map(fn($v) => \Carbon\Carbon::createFromFormat('Ym', $v)->format('M Y'))) !!},
+            labels: {!! json_encode(
+                $data->pluck('tahun_bulan')->map(fn($v) => \Carbon\Carbon::createFromFormat('Ym', $v)->format('M Y')),
+            ) !!},
             datasets: [{
                 label: 'Jumlah Kunjungan {{ $namaProdi }}',
                 data: {!! json_encode($data->pluck('jumlah_kunjungan')) !!},
@@ -59,13 +65,15 @@
         options: {
             responsive: true,
             scales: {
-                y: { beginAtZero: true }
+                y: {
+                    beginAtZero: true
+                }
             }
         }
     });
 </script>
 <script>
-    document.getElementById("saveChart").addEventListener("click", function () {
+    document.getElementById("saveChart").addEventListener("click", function() {
         const chartCanvas = document.getElementById("chartKunjungan");
         // Buat canvas baru
         const newCanvas = document.createElement("canvas");
@@ -88,4 +96,3 @@
     });
 </script>
 @endsection
-

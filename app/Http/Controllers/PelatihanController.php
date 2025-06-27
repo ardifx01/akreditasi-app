@@ -11,10 +11,19 @@ class PelatihanController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $pelatihan = Pelatihan::paginate(10);
+        $query = Pelatihan::query();
+
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where('id_staf', 'like', '%' . $searchTerm . '%')
+                ->orWhere('judul_pelatihan', 'like', '%' . $searchTerm . '%')
+                ->orWhere('tahun', 'like', '%' . $searchTerm . '%');
+        }
+        $pelatihan = $query->paginate(10);
         $staffs = Staff::all();
+
         return view('pages.staff.pelatihan', compact('pelatihan', 'staffs'));
     }
 
@@ -40,7 +49,7 @@ class PelatihanController extends Controller
 
         $id = $request->input('id_staf');
         $dokumen = $request->file('file_dokumen');
-        $nama_dok = 'pelatihan_'.$id.'.'.$dokumen->getClientOriginalExtension();
+        $nama_dok = 'pelatihan_' . $id . '.' . $dokumen->getClientOriginalExtension();
         $dokumen->move('dokumen/', $nama_dok);
 
         Pelatihan::create([

@@ -11,9 +11,17 @@ class SertifikasiController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $sertifikasi = Sertifikasi::paginate(10);
+        $query = Sertifikasi::query();
+
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where('id_staf', 'like', '%' . $searchTerm . '%')
+                ->orWhere('judul_sertifikasi', 'like', '%' . $searchTerm . '%')
+                ->orWhere('tahun', 'like', '%' . $searchTerm . '%');
+        }
+        $sertifikasi = $query->paginate(10);
         $staffs = Staff::all();
         return view('pages.staff.sertifikasi', compact('sertifikasi', 'staffs'));
     }
@@ -40,7 +48,7 @@ class SertifikasiController extends Controller
 
         $id = $request->input('id_staf');
         $dokumen = $request->file('file_dokumen');
-        $nama_dok = 'sertifikasi_'.$id.'.'.$dokumen->getClientOriginalExtension();
+        $nama_dok = 'sertifikasi_' . $id . '.' . $dokumen->getClientOriginalExtension();
         $dokumen->move('dokumen/', $nama_dok);
 
         Sertifikasi::create([
