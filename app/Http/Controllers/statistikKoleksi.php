@@ -232,7 +232,7 @@ class StatistikKoleksi extends Controller
     public function referensi(Request $request)
     {
         $listprodi = M_eprodi::all();
-        $prodi = $request->input('prodi'); 
+        $prodi = $request->input('prodi');
         $tahunTerakhir = $request->input('tahun', 'all');
 
         $data = collect();
@@ -277,27 +277,42 @@ class StatistikKoleksi extends Controller
     public function koleksiPerprodi(Request $request)
     {
         $listprodi = M_eprodi::all();
-        $prodi = $request->input('prodi', 'L200');
-        $cnClasses = CnClassHelper::getCnClassByProdi($prodi);
-        $namaProdi = $listprodi[$prodi] ?? 'Semua Prodi';
-        $startDate = $request->input('start_date', now()->subYear()->format('Y-m-d'));
-        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+        $prodi = $request->input('prodi'); // Hapus default 'L200'
 
-        $data = M_items::select('t.description AS Jenis', 'i.ccode AS Koleksi')
-            ->selectRaw('COUNT(DISTINCT i.biblionumber) AS Judul')
-            ->selectRaw('COUNT(i.itemnumber) AS Eksemplar')
-            ->from('items as i')
-            ->join('biblioitems as bi', 'i.biblionumber', '=', 'bi.biblionumber')
-            ->join('itemtypes as t', 'i.itype', '=', 't.itemtype')
-            ->where('i.itemlost', 0)
-            ->whereBetween('i.replacementpricedate', [$startDate, $endDate])
-            ->whereIn('bi.cn_class', $cnClasses)
-            ->groupBy('Jenis', 'Koleksi')
-            ->orderBy('Jenis', 'asc')
-            ->orderBy('Koleksi', 'asc')
-            ->get();
+        // Ubah filter tanggal menjadi filter tahun, default 'all' jika tidak ada
+        $tahunTerakhir = $request->input('tahun', 'all');
 
-        // Mengirimkan data dan parameter filter ke view
-        return view('pages.dapus.prodi', compact('namaProdi', 'listprodi', 'data', 'startDate', 'endDate'));
+        $data = collect(); // Default: data kosong
+        $namaProdi = 'Pilih Program Studi'; // Default: teks untuk dropdown
+
+        // Hanya jika 'prodi' dipilih, lakukan query
+        if ($prodi) {
+            $prodiMapping = $listprodi->pluck('nama', 'kode')->toArray();
+            $cnClasses = CnClassHelper::getCnClassByProdi($prodi);
+            $namaProdi = $prodiMapping[$prodi] ?? 'Tidak Ditemukan';
+
+            $query = M_items::select('t.description AS Jenis', 'i.ccode AS Koleksi')
+                ->selectRaw('COUNT(DISTINCT i.biblionumber) AS Judul')
+                ->selectRaw('COUNT(i.itemnumber) AS Eksemplar')
+                ->from('items as i')
+                ->join('biblioitems as bi', 'i.biblionumber', '=', 'bi.biblionumber')
+                ->join('itemtypes as t', 'i.itype', '=', 't.itemtype')
+                ->where('i.itemlost', 0)
+                ->where('i.withdrawn', 0) // Menambahkan filter withdrawn seperti koleksi lain
+                ->whereIn('bi.cn_class', $cnClasses);
+
+            // Tambahkan kondisi filter tahun jika bukan 'all'
+            // Gunakan publicationyear dari biblioitems atau sumber tahun yang relevan untuk koleksi umum
+            if ($tahunTerakhir !== 'all') {
+                $query->whereRaw('bi.publicationyear >= YEAR(CURDATE()) - ?', [$tahunTerakhir]);
+            }
+
+            $data = $query->groupBy('Jenis', 'Koleksi')
+                ->orderBy('Jenis', 'asc')
+                ->orderBy('Koleksi', 'asc')
+                ->get(); // Tetap get() karena tidak ada pagination di query asli Anda
+        }
+
+        return view('pages.dapus.prodi', compact('namaProdi', 'listprodi', 'data', 'prodi', 'tahunTerakhir'));
     }
 }
