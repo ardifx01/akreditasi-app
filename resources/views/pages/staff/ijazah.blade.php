@@ -54,9 +54,9 @@
                 @endcan
 
                 {{-- Tombol Download All Dokumen --}}
-                <a href="{{ route('ijazah.downloadAll') }}" class="btn btn-info">
+                {{-- <a href="{{ route('ijazah.downloadAll') }}" class="btn btn-info">
                     <i class="fas fa-download me-2"></i> Download Semua Dokumen
-                </a>
+                </a> --}}
             </div>
 
             {{-- Search Input Form --}}
