@@ -8,20 +8,21 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SertifikasiController;
 use App\Http\Controllers\SkpController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\StatistikKoleksi;
 use App\Http\Controllers\TranskripController;
+use App\Http\Controllers\PeminjamanController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VisitHistory;
-use App\Models\Pelatihan;
-use App\Models\Staff;
-
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
 
 
 Route::get('/', [DashboardController::class, 'totalStatistik'])->name('dashboard');
 
+
+
+Route::get('/credit', function () {
+    return view('credit');
+})->name('credit.index');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -55,7 +56,11 @@ Route::get('/koleksi/referensi', [StatistikKoleksi::class, 'referensi'])->name('
 Route::get('/koleksi/prodi', [StatistikKoleksi::class, 'koleksiPerprodi'])->name('koleksi.prodi');
 
 Route::get('/kunjungan/cek-kehadiran', [VisitHistory::class, 'cekKehadiran'])->name('kunjungan.cekKehadiran');
-require __DIR__ . '/auth.php';
 
-// test koneksi ke database staff
-// Route::get('/test-koneksi-staff', [IjazahController::class, 'testkoneksi']);
+
+Route::get('/peminjaman/peminjaman-rentang-tanggal', [PeminjamanController::class, 'pertanggal'])->name('peminjaman.peminjaman_rentang_tanggal');
+
+Route::get('/peminjaman/peminjaman-prodi-chart', [PeminjamanController::class, 'peminjamanProdiChart'])->name('peminjaman.peminjaman_prodi_chart');
+Route::get('/peminjaman/cek-histori', [PeminjamanController::class, 'checkHistory'])->name('peminjaman.check_history');
+
+require __DIR__ . '/auth.php';

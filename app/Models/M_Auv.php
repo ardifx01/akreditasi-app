@@ -35,4 +35,17 @@ class M_Auv extends Model
         return $this->hasMany(M_vishistory::class, 'cardnumber', 'authorised_value')
             ->whereRaw("LEFT(cardnumber, 4) = authorised_values.authorised_value");
     }
+
+
+    public function borrowerAttributes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(M_BorrowerAttribute::class, 'attribute', 'authorised_value')
+            ->whereColumn('borrower_attributes.code', '=', 'authorised_values.category');
+    }
+    public static function findByCategoryAndValue($category, $value)
+    {
+        return static::where('category', $category)
+            ->where('authorised_value', $value)
+            ->first();
+    }
 }

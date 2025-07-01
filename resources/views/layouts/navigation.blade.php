@@ -27,7 +27,7 @@
                             <div>{{ Auth::user()->name }}</div>
 
                             <div class="ms-1">
-                                <img src="{{ asset('img/logo2.png') }}" alt="" width="300">
+                                <img src="{{ asset('img/logo2.png') }}" alt="" width="200">
                             </div>
                         </button>
                     </x-slot>

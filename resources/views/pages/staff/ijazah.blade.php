@@ -21,6 +21,14 @@
             </div>
         @endif
 
+        @if (session('error'))
+            {{-- Added for error messages from controller --}}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         @if ($errors->any())
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <ul>
@@ -36,16 +44,23 @@
 
         {{-- Action buttons and Search form --}}
         <div class="d-flex justify-content-between align-items-center mb-3 search-form-container">
-            @can('admin-action')
-                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#ijazahModal">
-                    <i class="fas fa-plus me-2"></i> Tambah Data Ijazah
-                </button>
-                {{-- Include the create modal --}}
-                @include('modal.create-ijazah')
-            @endcan
+            <div> {{-- Wrapper for action buttons --}}
+                @can('admin-action')
+                    <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#ijazahModal">
+                        <i class="fas fa-plus me-2"></i> Tambah Data Ijazah
+                    </button>
+                    {{-- Include the create modal --}}
+                    @include('modal.create-ijazah')
+                @endcan
+
+                {{-- Tombol Download All Dokumen --}}
+                <a href="{{ route('ijazah.downloadAll') }}" class="btn btn-info">
+                    <i class="fas fa-download me-2"></i> Download Semua Dokumen
+                </a>
+            </div>
 
             {{-- Search Input Form --}}
-            <form action="{{ route('ijazah.index') }}" method="GET" class="d-flex ms-auto"> {{-- ms-auto pushes it to the right --}}
+            <form action="{{ route('ijazah.index') }}" method="GET" class="d-flex ms-auto">
                 <input type="text" name="search" class="form-control me-2" placeholder="Cari ID, Judul Ijazah, Tahun..."
                     value="{{ request('search') }}">
                 <button type="submit" class="btn btn-primary">Cari</button>
@@ -58,13 +73,13 @@
         <div class="card shadow mb-4">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover text-center" id="data-table-ijazah"> {{-- Added ID for DataTables --}}
+                    <table class="table table-striped table-hover text-center" id="data-table-ijazah">
                         <thead>
                             <tr>
                                 <th>No</th>
                                 <th>ID Staff</th>
                                 <th>Nama Ijazah</th>
-                                <th>File Ijazah</th> {{-- Changed from Nama File to File Ijazah --}}
+                                <th>File Ijazah</th>
                                 <th>Tahun</th>
                                 @can('admin-action')
                                     <th>Aksi</th>
@@ -74,7 +89,7 @@
                         <tbody>
                             @forelse ($ijazah as $no => $item)
                                 <tr>
-                                    <td>{{ $no + $ijazah->firstItem() }}</td> {{-- Corrected for pagination index --}}
+                                    <td>{{ $no + $ijazah->firstItem() }}</td>
                                     <td>{{ $item->id_staf }}</td>
                                     <td>{{ $item->judul_ijazah }}</td>
                                     <td>
@@ -100,8 +115,8 @@
                                     @endcan
                                 </tr>
                                 {{-- Include the view-pdf and edit-ijazah modals for each item --}}
-                                @include('modal.view-pdf', ['item' => $item]) {{-- Pass $item to view-pdf modal --}}
-                                @include('modal.edit-ijazah', ['ijazah' => $item]) {{-- Pass $item as $ijazah to edit-ijazah modal --}}
+                                @include('modal.view-pdf', ['item' => $item])
+                                @include('modal.edit-ijazah', ['ijazah' => $item])
                             @empty
                                 <tr>
                                     <td colspan="{{ Auth::user()->can('admin-action') ? '6' : '5' }}" class="text-center">
@@ -112,10 +127,20 @@
                     </table>
                 </div>
                 <div class="d-flex justify-content-center mt-3">
-                    {{ $ijazah->links() }} {{-- Laravel Pagination Links --}}
+                    {{ $ijazah->links() }}
                 </div>
             </div>
         </div>
     </div>
 @endsection
 
+@push('scripts')
+    {{-- Inisialisasi DataTables jika Anda menggunakannya (pastikan id="data-table-ijazah" cocok) --}}
+    {{-- <script>
+        $(document).ready(function() {
+            $('#data-table-ijazah').DataTable({
+                // Your DataTables options here
+            });
+        });
+    </script> --}}
+@endpush

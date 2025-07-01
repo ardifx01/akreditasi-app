@@ -21,14 +21,27 @@
             {{ $pesan }}
         </div>
     @endif
-    @if ($borrowerInfo && $dataKunjungan->isNotEmpty())
 
-
+    {{-- Perubahan di sini: Gunakan $fullBorrowerDetails --}}
+    @if ($fullBorrowerDetails && $dataKunjungan->isNotEmpty())
         {{-- Chart Kunjungan --}}
         <div class="card mb-4">
             <div class="card-body">
                 <button id="saveChart" class="btn btn-sm btn-success">Save Pdf</button>
                 <canvas id="chartKunjungan" height="100"></canvas>
+            </div>
+        </div>
+
+        {{-- Informasi Anggota Lengkap --}}
+        <div class="card mb-4">
+            <div class="card-header">
+                Informasi Anggota
+            </div>
+            <div class="card-body">
+                <p><strong>Nomor Kartu Anggota:</strong> {{ $fullBorrowerDetails->cardnumber }}</p>
+                <p><strong>Nama:</strong> {{ $fullBorrowerDetails->firstname }} {{ $fullBorrowerDetails->surname }}</p>
+                <p><strong>Email:</strong> {{ $fullBorrowerDetails->email }}</p>
+                <p><strong>Telepon:</strong> {{ $fullBorrowerDetails->phone }}</p>
             </div>
         </div>
 
@@ -53,6 +66,12 @@
                             @endforeach
                         </tbody>
                     </table>
+
+                    <div class="d-flex justify-content-center mt-3 row">
+                        {{ $dataKunjungan->links() }}
+                        <p class="mt-3">Total Keseluruhan Kunjungan: {{ $dataKunjungan->sum('jumlah_kunjungan') }}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -62,7 +81,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        @if ($borrowerInfo && $dataKunjungan->isNotEmpty())
+        @if ($fullBorrowerDetails && $dataKunjungan->isNotEmpty())
             const chartCanvas = document.getElementById('chartKunjungan');
             const chart = chartCanvas.getContext('2d');
 
@@ -77,8 +96,6 @@
                         data: {!! json_encode($dataKunjungan->pluck('jumlah_kunjungan')) !!},
                         backgroundColor: 'rgba(75, 192, 192, 0.5)',
                         borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.7,
-                        fill: false
                     }]
                 },
                 options: {
@@ -106,7 +123,7 @@
                 const downloadLink = document.createElement("a");
                 downloadLink.href = imageURL;
                 downloadLink.download =
-                    "chart_kunjungan_mahasiswa_{{ Str::slug($borrowerInfo->cardnumber ?? 'unknown') }}.png";
+                    "chart_kunjungan_anggota_{{ Str::slug($fullBorrowerDetails->cardnumber ?? 'unknown') }}.png";
                 downloadLink.click();
             });
         @endif

@@ -12,7 +12,7 @@
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
                                 <small class="text-muted">Total Jurnal</small>
-                                <h4 class="card-title mt-2 mb-0"></h4>
+                                <h4 class="card-title mt-2 mb-0">2.741</h4>
                             </div>
                             <div class="text-end mt-3">
                                 <i class="fas fa-book fa-2x text-primary"></i>
@@ -26,7 +26,7 @@
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
                                 <small class="text-muted">Total Judul Buku</small>
-                                <h4 class="card-title mt-2 mb-0"></h4>
+                                <h4 class="card-title mt-2 mb-0">48.411</h4>
                             </div>
                             <div class="text-end mt-3">
                                 <i class="fas fa-book-open fa-2x text-success"></i>
@@ -40,7 +40,7 @@
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
                                 <small class="text-muted">Total Eksemplar</small>
-                                <h4 class="card-title mt-2 mb-0"></h4>
+                                <h4 class="card-title mt-2 mb-0">111.892</h4>
                             </div>
                             <div class="text-end mt-3">
                                 <i class="fas fa-copy fa-2x text-info"></i>
@@ -53,11 +53,11 @@
                     <div class="card shadow-sm h-100">
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
-                                <small class="text-muted">Anggota Aktif</small>
-                                <h4 class="card-title mt-2 mb-0"></h4>
+                                <small class="text-muted">Jumlah Ebook</small>
+                                <h4 class="card-title mt-2 mb-0">1.389</h4>
                             </div>
                             <div class="text-end mt-3">
-                                <i class="fa-solid fa-person fa-3x" style="color: #FFD43B;"></i>
+                                <i class="fa-solid fa-copy fa-3x" style="color: #FFD43B;"></i>
                             </div>
                         </div>
                     </div>
@@ -71,7 +71,7 @@
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
                                 <small class="text-muted">Total Kunjungan : <?php echo date('l, d F Y'); ?></small>
-                                <h4 class="card-title mt-2 mb-0"></h4>
+                                <h4 class="card-title mt-2 mb-0">410</h4>
                             </div>
                             <div class="text-end mt-3">
                                 <i class="fa-solid fa-door-open fa-2x text-primary"></i>
@@ -96,7 +96,7 @@
                 </div>
             </div>
         </div>
-        <div class="container mt-2">
+        {{-- <div class="container mt-2">
             <div class="row">
                 <div class="col-md-6 mb-4">
                     <div class="card shadow-sm h-100">
@@ -119,8 +119,8 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="container mt-2">
+        </div> --}}
+        {{-- <div class="container mt-2">
             <div class="row">
                 <div class="col-md-7 mb-4">
                     <div class="card shadow-sm h-100">
@@ -185,7 +185,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
     @endsection
     @push('styles')
@@ -218,7 +218,7 @@
             // Inisialisasi DataTables
             $(document).ready(function() {
                 $('#bukuTerlarisTable').DataTable({
-                    dom: 'Bfrtip', 
+                    dom: 'Bfrtip',
                     buttons: [
 
                     ],
@@ -246,13 +246,13 @@
                 }]
             };
 
-            // Konfigurasi untuk Grafik Pie Kunjungan Fakultas
+
             const configFakultas = {
-                type: 'pie', // Jenis grafik: pie
+                type: 'pie',
                 data: dataFakultas,
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // Penting untuk kontrol ukuran
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             position: 'right', // Posisi legend di kanan
@@ -263,17 +263,13 @@
                         title: {
                             display: false,
                         }
-                        // Anda juga bisa menambahkan plugin ChartDataLabels untuk persentase di potongan pie
-                        // requires: 'chartjs-plugin-datalabels'
                     }
                 }
             };
 
-            // Inisialisasi Grafik Pie
             const ctxFakultas = document.getElementById('grafikFakultas').getContext('2d');
             new Chart(ctxFakultas, configFakultas);
 
-            // Data untuk Grafik Kunjungan
             const dataKunjungan = {
                 labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                     'November', 'December'
@@ -284,17 +280,16 @@
                     backgroundColor: 'rgba(0, 123, 255, 0.7)', // Biru
                     borderColor: 'rgba(0, 123, 255, 1)',
                     borderWidth: 1,
-                    borderRadius: 5, // Membuat sudut batang sedikit membulat
+                    borderRadius: 5,
                 }]
             };
 
-            // Konfigurasi untuk Grafik Kunjungan
             const configKunjungan = {
-                type: 'bar', // Jenis grafik: bar (batang)
+                type: 'bar',
                 data: dataKunjungan,
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // Penting untuk kontrol ukuran di parent div
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -309,13 +304,13 @@
                                 text: 'Bulan'
                             },
                             grid: {
-                                display: false // Menghilangkan garis vertikal
+                                display: false
                             }
                         }
                     },
                     plugins: {
                         legend: {
-                            display: false // Menghilangkan legend (karena hanya satu dataset)
+                            display: false //
                         },
                         title: {
                             display: false
@@ -368,22 +363,22 @@
                     maintainAspectRatio: false,
                     scales: {
                         x: {
-                            stacked: false, // Batang tidak ditumpuk
+                            stacked: false,
                             grid: {
                                 display: false
                             }
                         },
                         y: {
                             beginAtZero: true,
-                            stacked: false // Batang tidak ditumpuk
+                            stacked: false
                         }
                     },
                     plugins: {
                         legend: {
-                            display: true, // Tampilkan legend
-                            position: 'bottom', // Legend di bawah
+                            display: true,
+                            position: 'bottom',
                             labels: {
-                                usePointStyle: true, // Gunakan gaya titik untuk item legend
+                                usePointStyle: true, 
                             }
                         },
                         title: {

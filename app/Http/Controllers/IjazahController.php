@@ -7,6 +7,7 @@ use App\Models\Ijazah;
 use App\Models\Staff;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use ZipArchive;
 
 class IjazahController extends Controller
 {
@@ -129,6 +130,7 @@ class IjazahController extends Controller
         $ijazah->delete();
         return redirect()->back()->with('success', 'Ijazah berhasil dihapus.');
     }
+
 
     public function testkoneksi()
     {

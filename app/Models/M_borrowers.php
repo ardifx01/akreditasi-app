@@ -91,13 +91,29 @@ class M_borrowers extends Model
         'overdrive_auth_token'
     ];
 
-    public function visitHistory(){
+    public function visitHistory()
+    {
         return $this->hasMany(M_borrowers::class, 'cardnumber', 'cardnumber');
     }
 
-    public function programStudi(){
+    public function programStudi()
+    {
         return $this->belongsTo(M_Auv::class, 'cardnumber', 'authorised_value')
             ->whereRaw("LEFT(cardnumber, 4) = authorised_value");
+    }
+
+    public function statistics()
+    {
+        return $this->hasMany(M_statistics::class, 'borrowernumber', 'borrowernumber');
+    }
+
+    /**
+     * Relasi ke model M_BorrowerAttribute (tabel 'borrower_attributes')
+     * Seorang peminjam bisa memiliki banyak atribut
+     */
+    public function attributes()
+    {
+        return $this->hasMany(M_BorrowerAttribute::class, 'borrowernumber', 'borrowernumber');
     }
 
     // // Relasi ke tabel kategori

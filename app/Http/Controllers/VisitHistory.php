@@ -44,6 +44,8 @@ class VisitHistory extends Controller
                 ->leftJoin('local_eprodi as le', 'le.kode', '=', 'av.authorised_value')
                 ->whereBetween(DB::raw('YEAR(visitorhistory.visittime)'), [(int)$thnDari, (int)$thnSampai]);
 
+
+
             if ($prodi !== 'all') {
                 $query->whereIn('av.authorised_value', $kodeProdiUntukFilter);
             }
@@ -221,29 +223,42 @@ class VisitHistory extends Controller
 
         $dataKunjungan = collect();
         $borrowerInfo = null;
+        $fullBorrowerDetails = null;
         $pesan = 'Silakan masukkan Nomor Kartu Anggota (Cardnumber) untuk melihat laporan kunjungan.';
+
         if ($cardnumber) {
             $borrowerInfo = M_vishistory::where('cardnumber', $cardnumber)->first();
 
             if ($borrowerInfo) {
-                $dataKunjungan = M_vishistory::selectRaw('
-                        EXTRACT(YEAR_MONTH FROM visittime) as tahun_bulan,
-                        COUNT(id) as jumlah_kunjungan
-                    ')
+                $fullBorrowerDetails = DB::connection('mysql2')->table('borrowers')
+                    ->select('borrowernumber', 'cardnumber', 'firstname', 'surname', 'email', 'phone')
                     ->where('cardnumber', $cardnumber)
-                    ->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'))
-                    ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'), 'asc')
-                    ->get();
-                if ($dataKunjungan->isEmpty()) {
-                    $pesan = 'Tidak ada data kunjungan ditemukan untuk Nomor Kartu Anggota: ' . $cardnumber . ' (' . $borrowerInfo->firstname . ').';
+                    ->first();
+
+                if ($fullBorrowerDetails) {
+                    $dataKunjungan = M_vishistory::selectRaw('
+                            EXTRACT(YEAR_MONTH FROM visittime) as tahun_bulan,
+                            COUNT(id) as jumlah_kunjungan
+                        ')
+                        ->where('cardnumber', $cardnumber)
+                        ->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'))
+                        ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'), 'asc')
+                        ->paginate(10)
+                        ->withQueryString();
+
+                    if ($dataKunjungan->isEmpty()) {
+                        $pesan = 'Tidak ada data kunjungan ditemukan untuk Nomor Kartu Anggota: ' . $cardnumber . ' (' . $fullBorrowerDetails->firstname . ' ' . $fullBorrowerDetails->surname . ').';
+                    } else {
+                        $pesan = null;
+                    }
                 } else {
-                    $pesan = null;
+                    $pesan = 'Detail peminjam tidak ditemukan di database utama untuk Nomor Kartu Anggota: ' . $cardnumber . '.';
                 }
             } else {
-                $pesan = 'Nomor Kartu Anggota (Cardnumber) tidak ditemukan.';
+                $pesan = 'Nomor Kartu Anggota (Cardnumber) tidak ditemukan dalam histori kunjungan.';
             }
         }
 
-        return view('pages.kunjungan.cekKehadiran', compact('dataKunjungan', 'borrowerInfo', 'pesan', 'cardnumber'));
+        return view('pages.kunjungan.cekKehadiran', compact('dataKunjungan', 'borrowerInfo', 'fullBorrowerDetails', 'pesan', 'cardnumber'));
     }
 }
