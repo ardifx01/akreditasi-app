@@ -5,7 +5,6 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css">
     <style>
-        /* Optional: Adjust spacing for search form */
         .search-form-container {
             margin-bottom: 1.5rem;
         }
@@ -13,7 +12,7 @@
 @endpush
 
 @section('content')
-    <div class="container mt-4"> {{-- Added mt-4 for top margin from navbar --}}
+    <div class="container mt-4">
         @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -22,7 +21,6 @@
         @endif
 
         @if (session('error'))
-            {{-- Added for error messages from controller --}}
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -42,14 +40,12 @@
 
         <h1 class="mb-4">Data Ijazah</h1>
 
-        {{-- Action buttons and Search form --}}
         <div class="d-flex justify-content-between align-items-center mb-3 search-form-container">
-            <div> {{-- Wrapper for action buttons --}}
+            <div>
                 @can('admin-action')
                     <button type="button" class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#ijazahModal">
                         <i class="fas fa-plus me-2"></i> Tambah Data Ijazah
                     </button>
-                    {{-- Include the create modal --}}
                     @include('modal.create-ijazah')
                 @endcan
 
@@ -114,7 +110,6 @@
                                         </td>
                                     @endcan
                                 </tr>
-                                {{-- Include the view-pdf and edit-ijazah modals for each item --}}
                                 @include('modal.view-pdf', ['item' => $item])
                                 @include('modal.edit-ijazah', ['ijazah' => $item])
                             @empty
@@ -135,12 +130,4 @@
 @endsection
 
 @push('scripts')
-    {{-- Inisialisasi DataTables jika Anda menggunakannya (pastikan id="data-table-ijazah" cocok) --}}
-    {{-- <script>
-        $(document).ready(function() {
-            $('#data-table-ijazah').DataTable({
-                // Your DataTables options here
-            });
-        });
-    </script> --}}
 @endpush

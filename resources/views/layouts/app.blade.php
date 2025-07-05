@@ -22,9 +22,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;
-            /* Latar belakang lebih terang */
             overflow-x: hidden;
-            /* Mencegah scroll horizontal yang tidak diinginkan */
         }
 
         /* Sidebar Styling */

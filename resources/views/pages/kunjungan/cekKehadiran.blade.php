@@ -22,9 +22,7 @@
         </div>
     @endif
 
-    {{-- Perubahan di sini: Gunakan $fullBorrowerDetails --}}
     @if ($fullBorrowerDetails && $dataKunjungan->isNotEmpty())
-        {{-- Chart Kunjungan --}}
         <div class="card mb-4">
             <div class="card-body">
                 <button id="saveChart" class="btn btn-sm btn-success">Save Pdf</button>
@@ -32,7 +30,6 @@
             </div>
         </div>
 
-        {{-- Informasi Anggota Lengkap --}}
         <div class="card mb-4">
             <div class="card-header">
                 Informasi Anggota

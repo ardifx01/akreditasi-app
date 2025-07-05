@@ -257,7 +257,7 @@ class VisitHistory extends Controller
             } else {
                 $pesan = 'Nomor Kartu Anggota (Cardnumber) tidak ditemukan dalam histori kunjungan.';
             }
-        }
+        } 
 
         return view('pages.kunjungan.cekKehadiran', compact('dataKunjungan', 'borrowerInfo', 'fullBorrowerDetails', 'pesan', 'cardnumber'));
     }
