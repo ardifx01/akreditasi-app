@@ -8,7 +8,8 @@
             @endif
         </h4>
 
-        <form method="GET" action="{{ route('koleksi.prosiding') }}" class="row g-3 mb-4 align-items-end">
+        <form method="GET" action="{{ route('koleksi.prosiding') }}" class="row g-3 mb-4 align-items-end"
+            id="filterFormProsiding">
             <div class="col-md-4">
                 <label for="prodi" class="form-label">Pilih Prodi</label>
                 <select name="prodi" id="prodi" class="form-select">
@@ -38,13 +39,22 @@
             </div>
         </form>
         <div class="card">
+            @if ($prodi && $dataExists)
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    Daftar Koleksi Prosiding @if ($namaProdi)
+                        ({{ $namaProdi }})
+                    @endif
+                    @if ($tahunTerakhir !== 'all')
+                        - {{ $tahunTerakhir }} Tahun Terakhir
+                    @endif
+                    <button type="submit" form="filterFormProsiding" name="export_csv" value="1"
+                        class="btn btn-success btn-sm">Export CSV</button>
+                </div>
+            @endif
             <div class="card-body">
                 @if ($prodi && $data->isNotEmpty())
                     <div class="table-responsive">
-                        {{-- Tombol "Save Tabel (Excel)" --}}
-                        <button id="downloadExcelProsiding" class="btn btn-warning mt-3 mb-2">Save Tabel (Excel)</button>
                         <table class="table table-bordered table-hover table-striped" id="myTableProsiding">
-                            {{-- Ganti ID tabel --}}
                             <thead>
                                 <tr>
                                     <th>Judul</th>
@@ -61,7 +71,15 @@
                             <tbody>
                                 @forelse($data as $row)
                                     <tr>
-                                        <td>{{ $row->Judul }}</td>
+                                        <td>
+                                            {{ $row->Judul }}
+                                            @if (!empty($row->Judul_b))
+                                                : {{ $row->Judul_b }}
+                                            @endif
+                                            @if (!empty($row->Judul_c))
+                                                / {{ $row->Judul_c }}
+                                            @endif
+                                        </td>
                                         <td>{{ $row->Kelas }}</td>
                                         <td>{{ $row->Penerbit }}</td>
                                         <td>{{ $row->TahunTerbit }}</td>
@@ -96,72 +114,8 @@
             </div>
         </div>
     </div>
-
-    {{-- Script untuk Save Tabel (Excel - CSV) --}}
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const downloadExcelButton = document.getElementById("downloadExcelProsiding");
-            if (downloadExcelButton) {
-                downloadExcelButton.addEventListener("click", function() {
-                    const table = document.getElementById("myTableProsiding");
-                    if (!table) {
-                        console.error("Table 'myTableProsiding' not found.");
-                        return;
-                    }
-                    let csv = [];
-                    const delimiter = ';';
-
-
-                    const headers = Array.from(table.querySelectorAll('thead th')).map(th => {
-                        let text = th.innerText.trim();
-                        text = text.replace(/"/g, '""');
-                        if (text.includes(delimiter) || text.includes('"') || text.includes('\n')) {
-                            text = `"${text}"`;
-                        }
-                        return text;
-                    });
-                    csv.push(headers.join(delimiter));
-
-                    const rows = table.querySelectorAll('tbody tr');
-                    rows.forEach(row => {
-                        const rowData = Array.from(row.querySelectorAll('td')).map(td => {
-                            let text = td.innerText.trim();
-
-                            if (td.querySelector('a')) {
-                                text = td.querySelector('a').href;
-                            } else {
-                                text = td.innerText.trim();
-                            }
-                            text = text.replace(/"/g, '""');
-                            if (text.includes(delimiter) || text.includes('"') || text
-                                .includes('\n')) {
-                                text = `"${text}"`;
-                            }
-                            return text;
-                        });
-                        csv.push(rowData.join(delimiter));
-                    });
-
-                    const csvString = csv.join('\n');
-
-                    const BOM = "\uFEFF";
-                    const blob = new Blob([BOM + csvString], {
-                        type: 'text/csv;charset=utf-8;'
-                    });
-
-                    const link = document.createElement("a");
-                    const fileName = "prosiding_data.csv"; 
-
-                    if (navigator.msSaveBlob) {
-                        navigator.msSaveBlob(blob, fileName);
-                    } else {
-                        link.href = URL.createObjectURL(blob);
-                        link.download = fileName;
-                        link.click();
-                        URL.revokeObjectURL(link.href);
-                    }
-                });
-            }
         });
     </script>
 @endsection

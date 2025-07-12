@@ -29,7 +29,7 @@
                         <i class="fas fa-user-circle fa-3x text-success me-3"></i>
                         <div>
                             <h5 class="mb-0">Ammar Miftahudin Anshori</h5>
-                            <p class="text-muted mb-0">Peran: WEb Developer / UI/UX</p>
+                            <p class="text-muted mb-0">Peran: Web Developer / UI/UX</p>
                             <a href="#" class="text-primary small" target="_blank"><i
                                     class="fab fa-github me-1"></i>GitHub</a>
                             <a href="#" class="text-info small ms-2" target="_blank"><i
@@ -37,19 +37,19 @@
                         </div>
                     </div>
                 </div>
-                {{-- <div class="col-md-6 mb-4">
+                <div class="col-md-6 mb-4">
                     <div class="d-flex align-items-center bg-light p-3 rounded shadow-sm">
                         <i class="fas fa-user-circle fa-3x text-warning me-3"></i>
                         <div>
-                            <h5 class="mb-0">[Nama Developer 3]</h5>
-                            <p class="text-muted mb-0">Peran: Database Administrator / Tester</p>
+                            <h5 class="mb-0">Khoiruddin Nur Wahid, S.Pd</h5>
+                            <p class="text-muted mb-0">Peran: Database Administrator / Support</p>
                             <a href="#" class="text-primary small" target="_blank"><i
                                     class="fab fa-github me-1"></i>GitHub</a>
                             <a href="#" class="text-info small ms-2" target="_blank"><i
                                     class="fab fa-linkedin me-1"></i>LinkedIn</a>
                         </div>
                     </div>
-                </div> --}}
+                </div>
                 {{-- <div class="col-md-6 mb-4">
                     <div class="d-flex align-items-center bg-light p-3 rounded shadow-sm">
                         <i class="fas fa-user-circle fa-3x text-danger me-3"></i>

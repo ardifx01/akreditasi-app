@@ -5,16 +5,14 @@
     <div class="container">
         <h4>Laporan Kunjungan</h4>
 
-        {{-- Form Filter --}}
         <form method="GET" action="{{ route('kunjungan.prodiTable') }}" class="row g-3 mb-4">
             <div class="col-md-4">
-                <label for="prodi" class="form-label">Pilih Prodi/Tipe User</label> {{-- Label diubah --}}
+                <label for="prodi" class="form-label">Pilih Prodi/Tipe User</label>
                 <select name="prodi" id="prodi" class="form-select">
-                    <option value="">-- Semua Prodi & Dosen/Tendik --</option> {{-- Opsi diubah --}}
+                    <option value="">-- Semua Prodi & Dosen/Tendik --</option>
                     <option value="DOSEN_TENDIK" {{ request('prodi') == 'DOSEN_TENDIK' ? 'selected' : '' }}>
                         -- Dosen / Tenaga Kependidikan --
                     </option>
-                    {{-- Opsi prodi lainnya dari database --}}
                     @foreach ($listProdi as $kode => $nama)
                         <option value="{{ $kode }}" {{ request('prodi') == $kode ? 'selected' : '' }}>
                             ({{ $kode }})
@@ -40,7 +38,7 @@
 
         {{-- Tombol Download --}}
         <button id="downloadPng" class="btn btn-success mt-3 mb-2 me-2">Save Tabel (PNG)</button>
-        <button id="downloadExcel" class="btn btn-warning mt-3 mb-2">Save Tabel (Excel)</button>
+        <button type="button" id="downloadFullExcel" class="btn btn-warning mt-3 mb-2">Export ke CSV (Semua Data)</button>
 
         <div class="table-responsive" id="tabelLaporan">
             <table class="table table-bordered table-striped" id="myTable">
@@ -48,8 +46,8 @@
                     <tr>
                         <th>No</th>
                         <th>Tanggal Kunjungan</th>
-                        <th>Kode Identifikasi</th> {{-- Nama kolom diubah untuk lebih generik --}}
-                        <th>Tipe User / Nama Prodi</th> {{-- Nama kolom diubah untuk lebih generik --}}
+                        <th>Kode Identifikasi</th>
+                        <th>Tipe User / Nama Prodi</th>
                         <th>Jumlah Kunjungan</th>
                     </tr>
                 </thead>
@@ -58,8 +56,8 @@
                         <tr>
                             <td>{{ $loop->iteration + ($data->currentPage() - 1) * $data->perPage() }}</td>
                             <td>{{ \Carbon\Carbon::parse($row->tanggal_kunjungan)->format('d F Y') }}</td>
-                            <td>{{ $row->kode_prodi }}</td> {{-- Ini akan menampilkan DOSEN_TENDIK atau kode prodi --}}
-                            <td>{{ $row->nama_prodi }}</td> {{-- Ini akan menampilkan "Dosen / Tenaga Kependidikan" atau nama prodi --}}
+                            <td>{{ $row->kode_prodi }}</td>
+                            <td>{{ $row->nama_prodi }}</td>
                             <td>{{ $row->jumlah_kunjungan }}</td>
                         </tr>
                     @empty
@@ -76,68 +74,104 @@
         </div>
     </div>
 
-    {{-- Script untuk Save Tabel (PNG) dan (Excel) --}}
+
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script>
-        
-        document.getElementById("downloadPng").addEventListener("click", function() {
-            const element = document.getElementById("tabelLaporan");
-            html2canvas(element, {
-                backgroundColor: "#ffffff",
-                useCORS: true
-            }).then(canvas => {
-                const link = document.createElement("a");
-                link.download = "laporan_kunjungan_prodi_dosen.png";
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-            });
-        });
-
-        document.getElementById("downloadExcel").addEventListener("click", function() {
-            const table = document.getElementById("myTable");
-            let csv = [];
-            const delimiter = ';';
-
-            const headers = Array.from(table.querySelectorAll('thead th')).map(th => {
-                let text = th.innerText.trim();
-                text = text.replace(/"/g, '""');
-                if (text.includes(delimiter) || text.includes('"') || text.includes('\n')) {
-                    text = `"${text}"`;
-                }
-                return text;
-            });
-            csv.push(headers.join(delimiter));
-
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const rowData = Array.from(row.querySelectorAll('td')).map(td => {
-                    let text = td.innerText.trim();
-                    text = text.replace(/"/g, '""');
-                    if (text.includes(delimiter) || text.includes('"') || text.includes('\n')) {
-                        text = `"${text}"`;
-                    }
-                    return text;
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("downloadPng").addEventListener("click", function() {
+                const element = document.getElementById("tabelLaporan");
+                html2canvas(element, {
+                    backgroundColor: "#ffffff",
+                    useCORS: true
+                }).then(canvas => {
+                    const link = document.createElement("a");
+                    link.download = "laporan_kunjungan_prodi_dosen.png";
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
                 });
-                csv.push(rowData.join(delimiter));
             });
 
-            const csvString = csv.join('\n');
 
-            const BOM = "\uFEFF";
-            const blob = new Blob([BOM + csvString], {
-                type: 'text/csv;charset=utf-8;'
-            });
+            const downloadFullExcelButton = document.getElementById("downloadFullExcel");
+            if (downloadFullExcelButton) {
+                downloadFullExcelButton.addEventListener("click", async function() {
+                    const prodiFilter = document.getElementById('prodi').value;
+                    const tanggalAwal = document.getElementById('tanggal_awal').value;
+                    const tanggalAkhir = document.getElementById('tanggal_akhir').value;
 
-            const link = document.createElement("a");
-            const fileName = "laporan_kunjungan_prodi_dosen.csv";
+                    if (!tanggalAwal || !tanggalAkhir) {
+                        alert("Mohon pilih tanggal awal dan tanggal akhir terlebih dahulu.");
+                        return;
+                    }
 
-            if (navigator.msSaveBlob) {
-                navigator.msSaveBlob(blob, fileName);
-            } else {
-                link.href = URL.createObjectURL(blob);
-                link.download = fileName;
-                link.click();
-                URL.revokeObjectURL(link.href);
+                    let url =
+                        `{{ route('kunjungan.get_prodi_export_data') }}?tanggal_awal=${tanggalAwal}&tanggal_akhir=${tanggalAkhir}`;
+                    if (prodiFilter) {
+                        url += `&prodi=${prodiFilter}`;
+                    }
+
+                    try {
+                        const response = await fetch(url);
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            if (result.data.length === 0) {
+                                alert("Tidak ada data untuk diekspor dalam rentang filter ini.");
+                                return;
+                            }
+
+                            let csv = [];
+                            const delimiter = ';';
+
+                            const headers = ['Tanggal Kunjungan', 'Kode Identifikasi',
+                                'Tipe User / Nama Prodi', 'Jumlah Kunjungan'
+                            ];
+                            csv.push(headers.join(delimiter));
+
+                            result.data.forEach(row => {
+                                const rowData = [
+                                    `"${row.tanggal_kunjungan.replace(/"/g, '""')}"`,
+                                    `"${row.kode_identifikasi.replace(/"/g, '""')}"`,
+                                    `"${row.nama_prodi.replace(/"/g, '""')}"`,
+                                    row.jumlah_kunjungan
+                                ];
+                                csv.push(rowData.join(delimiter));
+                            });
+
+                            const csvString = csv.join('\n');
+                            const BOM = "\uFEFF";
+                            const blob = new Blob([BOM + csvString], {
+                                type: 'text/csv;charset=utf-8;'
+                            });
+
+                            const link = document.createElement("a");
+
+                            let fileName = `laporan_kunjungan_prodi_${tanggalAwal}_${tanggalAkhir}`;
+                            if (prodiFilter) {
+                                fileName += `_${prodiFilter}`;
+                            }
+                            fileName += '.csv';
+
+
+                            if (navigator.msSaveBlob) {
+                                navigator.msSaveBlob(blob, fileName);
+                            } else {
+                                link.href = URL.createObjectURL(blob);
+                                link.download = fileName;
+                                document.body.appendChild(
+                                link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(link.href);
+                            }
+                        } else {
+                            alert(result.error || "Terjadi kesalahan saat mengambil data export.");
+                        }
+                    } catch (error) {
+                        console.error('Error fetching export data:', error);
+                        alert("Terjadi kesalahan teknis saat mencoba mengekspor data.");
+                    }
+                });
             }
         });
     </script>

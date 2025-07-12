@@ -14,6 +14,12 @@
         <div class="col-md-3">
             <button type="submit" class="btn btn-primary w-100">Lihat Laporan</button>
         </div>
+        @if ($fullBorrowerDetails && $dataKunjungan->isNotEmpty())
+            <div class="col-md-3">
+                <button type="button" id="downloadExportDataButton" class="btn btn-success w-100">Export ke
+                    CSV</button>
+            </div>
+        @endif
     </form>
 
     @if ($pesan)
@@ -42,7 +48,6 @@
             </div>
         </div>
 
-        {{-- Tabel Kunjungan --}}
         <div class="card mt-4">
             <div class="card-body">
                 <div class="table-responsive">
@@ -105,7 +110,6 @@
                 }
             });
 
-            // Save Chart (PDF/PNG) logic
             document.getElementById("saveChart").addEventListener("click", function() {
                 const newCanvas = document.createElement("canvas");
                 newCanvas.width = chartCanvas.width;
@@ -123,6 +127,77 @@
                     "chart_kunjungan_anggota_{{ Str::slug($fullBorrowerDetails->cardnumber ?? 'unknown') }}.png";
                 downloadLink.click();
             });
+
+            const downloadExportDataButton = document.getElementById("downloadExportDataButton");
+            if (downloadExportDataButton) {
+                downloadExportDataButton.addEventListener("click", async function() {
+                    const cardnumber = document.getElementById('cardnumber').value;
+
+                    if (!cardnumber) {
+                        alert("Mohon masukkan Nomor Kartu Anggota terlebih dahulu.");
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(
+                            `{{ route('kunjungan.get_export_data') }}?cardnumber=${cardnumber}`
+                        );
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            if (result.data.length === 0) {
+                                alert("Tidak ada data untuk diekspor.");
+                                return;
+                            }
+
+                            let csv = [];
+                            const delimiter = ';';
+
+                            const headers = ['Bulan Tahun',
+                                'Jumlah Kunjungan'
+                            ];
+                            csv.push(headers.join(delimiter));
+
+
+                            result.data.forEach(row => {
+                                const rowData = [
+                                    `"${row.bulan_tahun.replace(/"/g, '""')}"`,
+                                    row.jumlah_kunjungan
+                                ];
+                                csv.push(rowData.join(delimiter));
+                            });
+
+                            const csvString = csv.join('\n');
+                            const BOM =
+                                "\uFEFF";
+                            const blob = new Blob([BOM + csvString], {
+                                type: 'text/csv;charset=utf-8;'
+                            });
+
+                            const link = document.createElement("a");
+                            const fileName =
+                                `laporan_kehadiran_${result.cardnumber}_${(result.borrower_name || 'unknown').replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.csv`;
+
+                            if (navigator.msSaveBlob) {
+                                navigator.msSaveBlob(blob, fileName);
+                            } else {
+                                link.href = URL.createObjectURL(blob);
+                                link.download = fileName;
+                                document.body.appendChild(
+                                    link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(link.href);
+                            }
+                        } else {
+                            alert(result.error || "Terjadi kesalahan saat mengambil data export.");
+                        }
+                    } catch (error) {
+                        console.error('Error fetching export data:', error);
+                        alert("Terjadi kesalahan teknis saat mencoba mengekspor data.");
+                    }
+                });
+            }
         @endif
     });
 </script>

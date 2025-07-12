@@ -23,7 +23,7 @@ class MouController extends Controller
         $mou = $query->paginate(10);
         $staffs = Staff::all();
 
-        return view('pages.staff.mou', compact('mou', 'staffs')); // Tambahkan 'staffs' ke compact
+        return view('pages.staff.mou', compact('mou', 'staffs'));
 
     }
 

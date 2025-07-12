@@ -108,6 +108,7 @@ class DashboardController extends Controller
             ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visitorhistory.visittime)'), 'asc')
             ->orderBy('av.authorised_value', 'asc')
             ->orderBy('le.nama', 'asc');
+            
         // ============================ GRAFIK KUNJUNGAN TAHUNAN ============================ //
 
         return view('dashboard', compact('data', 'totalJurnal', 'kunjunganHarian',  'formatTotalEksemplar', 'formatTotalJudulBuku', 'formatTotalEbooks', 'formatTotalJurnal'));

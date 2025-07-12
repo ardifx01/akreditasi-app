@@ -8,12 +8,10 @@
             @endif
         </h4>
 
-        {{-- Form Filter --}}
         <form method="GET" action="{{ route('koleksi.prodi') }}" class="row g-3 mb-4 align-items-end">
             <div class="col-md-4">
                 <label for="prodi" class="form-label">Pilih Prodi</label>
                 <select name="prodi" id="prodi" class="form-select">
-                    {{-- Opsi default kosong --}}
                     <option value="">-- Pilih Program Studi --</option>
                     @foreach ($listprodi as $itemProdi)
                         <option value="{{ $itemProdi->kode }}" {{ $prodi == $itemProdi->kode ? 'selected' : '' }}>
@@ -23,7 +21,7 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3"> {{-- Mengganti input tanggal dengan dropdown tahun --}}
+            <div class="col-md-3">
                 <label for="tahun" class="form-label">Tahun Terbit</label>
                 <select name="tahun" id="tahun" class="form-select">
                     <option value="all" {{ $tahunTerakhir == 'all' ? 'selected' : '' }}>Semua Tahun</option>
@@ -41,12 +39,9 @@
         <div class="card">
             <div class="card-body">
                 @if ($prodi && $data->isNotEmpty())
-                    {{-- Hanya tampilkan tabel jika prodi dipilih DAN data tidak kosong --}}
                     <div class="table-responsive">
-                        {{-- Tombol "Save Tabel (Excel)" --}}
                         <button id="downloadExcelPerProdi" class="btn btn-warning mt-3 mb-2">Save Tabel (Excel)</button>
                         <table class="table table-bordered table-hover table-striped" id="myTablePerProdi">
-                            {{-- Ganti ID tabel --}}
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -78,7 +73,6 @@
                         </table>
                     </div>
                 @elseif ($prodi && $data->isEmpty())
-                    {{-- Jika prodi dipilih tapi tidak ada data --}}
                     <div class="alert alert-info text-center" role="alert">
                         Data tidak ditemukan untuk program studi ini
                         @if ($tahunTerakhir !== 'all')
@@ -86,7 +80,6 @@
                         @endif.
                     </div>
                 @else
-                    {{-- Jika belum ada prodi yang dipilih --}}
                     <div class="alert alert-info text-center" role="alert">
                         Silakan pilih program studi dan filter tahun untuk menampilkan data koleksi.
                     </div>
@@ -95,7 +88,6 @@
         </div>
     </div>
 
-    {{-- Script untuk Save Tabel (Excel - CSV) --}}
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const downloadExcelButton = document.getElementById("downloadExcelPerProdi");
@@ -142,7 +134,7 @@
                     });
 
                     const link = document.createElement("a");
-                    const fileName = "koleksi_per_prodi_data.csv"; 
+                    const fileName = "koleksi_per_prodi_data.csv";
 
                     if (navigator.msSaveBlob) {
                         navigator.msSaveBlob(blob, fileName);

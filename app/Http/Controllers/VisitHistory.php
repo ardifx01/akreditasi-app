@@ -10,61 +10,6 @@ use Illuminate\Http\Request;
 
 class VisitHistory extends Controller
 {
-    public function kunjunganProdiChart(Request $request)
-    {
-        $listProdi = M_eprodi::pluck('nama', 'kode')->toArray();
-        $prodi = $request->input('prodi');
-        $thnDari = $request->input('tahun_awal');
-        $thnSampai = $request->input('tahun_akhir');
-
-        $data = collect();
-        $namaProdi = 'Pilih Program Studi';
-
-        if ($prodi && $thnDari && $thnSampai) {
-            $kodeProdiUntukFilter = ($prodi === 'all') ? array_keys($listProdi) : [$prodi];
-
-            if ($prodi === 'all') {
-                $namaProdi = 'Semua Prodi';
-            } else {
-                $namaProdi = $listProdi[$prodi] ?? 'Tidak Ditemukan';
-            }
-
-            $query = M_vishistory::selectRaw('
-                EXTRACT(YEAR_MONTH FROM visitorhistory.visittime) as tahun_bulan,
-                av.authorised_value as kode_prodi,
-                le.nama as nama_prodi,
-                COUNT(visitorhistory.id) as jumlah_kunjungan
-            ')
-                ->leftJoin('borrowers as b', 'visitorhistory.cardnumber', '=', 'b.cardnumber')
-                ->leftJoin('borrower_attributes as ba', 'ba.borrowernumber', '=', 'b.borrowernumber')
-                ->leftJoin('authorised_values as av', function ($join) {
-                    $join->on('ba.code', '=', 'av.category')
-                        ->on('ba.attribute', '=', 'av.authorised_value');
-                })
-                ->leftJoin('local_eprodi as le', 'le.kode', '=', 'av.authorised_value')
-                ->whereBetween(DB::raw('YEAR(visitorhistory.visittime)'), [(int)$thnDari, (int)$thnSampai]);
-
-
-
-            if ($prodi !== 'all') {
-                $query->whereIn('av.authorised_value', $kodeProdiUntukFilter);
-            }
-
-            $data = $query->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visitorhistory.visittime)'), 'av.authorised_value', 'le.nama')
-                ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visitorhistory.visittime)'), 'asc')
-                ->orderBy('av.authorised_value', 'asc')
-                ->orderBy('le.nama', 'asc')
-                ->paginate(12)
-                ->withQueryString();
-        }
-
-        $selectedProdi = $request->input('prodi', '');
-        $selectedTahunAwal = $request->input('tahun_awal', now()->year - 2);
-        $selectedTahunAkhir = $request->input('tahun_akhir', now()->year);
-
-        return view('pages.kunjungan.prodiChart', compact('data', 'listProdi', 'namaProdi', 'selectedProdi', 'selectedTahunAwal', 'selectedTahunAkhir'));
-    }
-
     //  Data Mapping prodi
     private $prodiMapping = [
         'L200' => 'Teknik Informatika',
@@ -135,6 +80,67 @@ class VisitHistory extends Controller
         'W100'    => 'Magister Akuntansi',
     ];
 
+    public function __construct()
+    {
+        $this->prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray();
+    }
+    public function kunjunganProdiChart(Request $request)
+    {
+        $listProdi = M_eprodi::pluck('nama', 'kode')->toArray();
+        $prodi = $request->input('prodi');
+        $thnDari = $request->input('tahun_awal');
+        $thnSampai = $request->input('tahun_akhir');
+
+        $data = collect();
+        $namaProdi = 'Pilih Program Studi';
+
+        if ($prodi && $thnDari && $thnSampai) {
+            $kodeProdiUntukFilter = ($prodi === 'all') ? array_keys($listProdi) : [$prodi];
+
+            if ($prodi === 'all') {
+                $namaProdi = 'Semua Prodi';
+            } else {
+                $namaProdi = $listProdi[$prodi] ?? 'Tidak Ditemukan';
+            }
+
+            $query = M_vishistory::selectRaw('
+                EXTRACT(YEAR_MONTH FROM visitorhistory.visittime) as tahun_bulan,
+                av.authorised_value as kode_prodi,
+                le.nama as nama_prodi,
+                COUNT(visitorhistory.id) as jumlah_kunjungan
+            ')
+                ->leftJoin('borrowers as b', 'visitorhistory.cardnumber', '=', 'b.cardnumber')
+                ->leftJoin('borrower_attributes as ba', 'ba.borrowernumber', '=', 'b.borrowernumber')
+                ->leftJoin('authorised_values as av', function ($join) {
+                    $join->on('ba.code', '=', 'av.category')
+                        ->on('ba.attribute', '=', 'av.authorised_value');
+                })
+                ->leftJoin('local_eprodi as le', 'le.kode', '=', 'av.authorised_value')
+                ->whereBetween(DB::raw('YEAR(visitorhistory.visittime)'), [(int)$thnDari, (int)$thnSampai]);
+
+
+
+            if ($prodi !== 'all') {
+                $query->whereIn('av.authorised_value', $kodeProdiUntukFilter);
+            }
+
+            $data = $query->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visitorhistory.visittime)'), 'av.authorised_value', 'le.nama')
+                ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visitorhistory.visittime)'), 'asc')
+                ->orderBy('av.authorised_value', 'asc')
+                ->orderBy('le.nama', 'asc')
+                ->paginate(12)
+                ->withQueryString();
+        }
+
+        $selectedProdi = $request->input('prodi', '');
+        $selectedTahunAwal = $request->input('tahun_awal', now()->year - 2);
+        $selectedTahunAkhir = $request->input('tahun_akhir', now()->year);
+
+        return view('pages.kunjungan.prodiChart', compact('data', 'listProdi', 'namaProdi', 'selectedProdi', 'selectedTahunAwal', 'selectedTahunAkhir'));
+    }
+
+
+
     public function kunjunganProdiTable(Request $request)
     {
         $listProdi = M_eprodi::pluck('nama', 'kode')->toArray();
@@ -168,7 +174,6 @@ class VisitHistory extends Controller
             DB::raw('DATE(visittime)'),
             DB::raw('CASE WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK" ELSE SUBSTR(cardnumber, 1, 4) END')
         )
-            // Mengurutkan hasil
             ->orderBy(DB::raw('DATE(visittime)'), 'asc')
             ->orderBy(DB::raw('CASE WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK" ELSE SUBSTR(cardnumber, 1, 4) END'), 'asc')
             ->paginate(10);
@@ -190,8 +195,6 @@ class VisitHistory extends Controller
 
         return view('pages.kunjungan.prodiTable', compact('data', 'listProdi'));
     }
-
-
 
     public function kunjunganTanggalTable(Request $request)
     {
@@ -257,8 +260,147 @@ class VisitHistory extends Controller
             } else {
                 $pesan = 'Nomor Kartu Anggota (Cardnumber) tidak ditemukan dalam histori kunjungan.';
             }
-        } 
+        }
 
         return view('pages.kunjungan.cekKehadiran', compact('dataKunjungan', 'borrowerInfo', 'fullBorrowerDetails', 'pesan', 'cardnumber'));
+    }
+
+    public function getKehadiranExportData(Request $request)
+    {
+        $cardnumber = $request->input('cardnumber');
+
+        if (!$cardnumber) {
+            return response()->json(['error' => 'Nomor Kartu Anggota (Cardnumber) diperlukan.'], 400);
+        }
+
+        $borrowerInfo = M_vishistory::where('cardnumber', $cardnumber)->first();
+
+        if (!$borrowerInfo) {
+            return response()->json(['error' => 'Nomor Kartu Anggota (Cardnumber) tidak ditemukan dalam histori kunjungan.'], 404);
+        }
+
+        $dataKunjungan = M_vishistory::on('mysql2')
+            ->selectRaw('
+                EXTRACT(YEAR_MONTH FROM visittime) as tahun_bulan,
+                COUNT(id) as jumlah_kunjungan
+            ')
+            ->where('cardnumber', $cardnumber)
+            ->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'))
+            ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'), 'asc')
+            ->get();
+
+        $fullBorrowerDetails = DB::connection('mysql2')->table('borrowers')
+            ->select('cardnumber', 'firstname', 'surname')
+            ->where('cardnumber', $cardnumber)
+            ->first();
+
+        $exportData = $dataKunjungan->map(function ($row) {
+            return [
+                'bulan_tahun' => Carbon::createFromFormat('Ym', $row->tahun_bulan)->format('M Y'),
+                'jumlah_kunjungan' => $row->jumlah_kunjungan,
+            ];
+        });
+
+        return response()->json([
+            'data' => $exportData,
+            'borrower_name' => $fullBorrowerDetails ? $fullBorrowerDetails->firstname . ' ' . $fullBorrowerDetails->surname : 'Unknown',
+            'cardnumber' => $cardnumber,
+        ]);
+    }
+
+    public function getKunjunganHarianExportData(Request $request)
+    {
+        $tanggalAwal = $request->input('tanggal_awal');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+
+        if (!$tanggalAwal || !$tanggalAkhir) {
+            return response()->json(['error' => 'Tanggal awal dan tanggal akhir diperlukan.'], 400);
+        }
+        $dataKunjunganHarian = M_vishistory::on('mysql2') // Pastikan koneksi sesuai
+            ->selectRaw('
+                DATE(visittime) as tanggal_kunjungan,
+                COUNT(id) as jumlah_kunjungan_harian
+            ')
+            ->where('visittime', '>=', $tanggalAwal . ' 00:00:00')
+            ->where('visittime', '<=', $tanggalAkhir . ' 23:59:59')
+            ->groupBy(DB::raw('DATE(visittime)'))
+            ->orderBy(DB::raw('DATE(visittime)'), 'asc')
+            ->get();
+        $exportData = $dataKunjunganHarian->map(function ($row) {
+            return [
+                'tanggal_kunjungan' => Carbon::parse($row->tanggal_kunjungan)->format('d F Y'),
+                'jumlah_kunjungan_harian' => $row->jumlah_kunjungan_harian,
+            ];
+        });
+
+        return response()->json([
+            'data' => $exportData,
+            'tanggal_awal' => $tanggalAwal,
+            'tanggal_akhir' => $tanggalAkhir
+        ]);
+    }
+
+    public function getKunjunganProdiExportData(Request $request)
+    {
+        $tanggalAwal = $request->input('tanggal_awal');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+        $kodeProdiFilter = $request->input('prodi');
+
+        if (!$tanggalAwal || !$tanggalAkhir) {
+            return response()->json(['error' => 'Tanggal awal dan tanggal akhir diperlukan.'], 400);
+        }
+
+        $query = M_vishistory::on('mysql2')
+            ->selectRaw('
+                DATE(visittime) as tanggal_kunjungan,
+                CASE
+                    WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK"
+                    ELSE SUBSTR(cardnumber, 1, 4)
+                END as kode_identifikasi,
+                COUNT(id) as jumlah_kunjungan
+            ')
+            ->where('visittime', '>=', $tanggalAwal . ' 00:00:00')
+            ->where('visittime', '<=', $tanggalAkhir . ' 23:59:59');
+
+        if (!empty($kodeProdiFilter)) {
+            if (strtoupper($kodeProdiFilter) === 'DOSEN_TENDIK') {
+                $query->whereRaw('LENGTH(cardnumber) <= 6');
+            } else {
+                $query->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
+            }
+        }
+
+        $dataKunjunganProdi = $query->groupBy(
+            DB::raw('DATE(visittime)'),
+            DB::raw('CASE WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK" ELSE SUBSTR(cardnumber, 1, 4) END')
+        )
+            ->orderBy(DB::raw('DATE(visittime)'), 'asc')
+            ->orderBy(DB::raw('CASE WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK" ELSE SUBSTR(cardnumber, 1, 4) END'), 'asc')
+            ->get();
+
+        $prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray();
+
+        $exportData = $dataKunjunganProdi->map(function ($item) use ($prodiMapping) {
+            $namaProdi = '';
+            if (strtoupper($item->kode_identifikasi) === 'DOSEN_TENDIK') {
+                $namaProdi = 'Dosen / Tenaga Kependidikan';
+            } else {
+                $namaProdi = $prodiMapping[strtoupper($item->kode_identifikasi)] ?? 'Prodi Tidak Dikenal';
+            }
+
+            return [
+                'tanggal_kunjungan' => Carbon::parse($item->tanggal_kunjungan)->format('d F Y'),
+                'kode_identifikasi' => $item->kode_identifikasi,
+                'nama_prodi' => $namaProdi,
+                'jumlah_kunjungan' => $item->jumlah_kunjungan,
+            ];
+        });
+
+        return response()->json([
+            'data' => $exportData,
+            'filter_prodi' => $kodeProdiFilter,
+            'tanggal_awal' => $tanggalAwal,
+            'tanggal_akhir' => $tanggalAkhir
+        ]);
     }
 }

@@ -117,7 +117,6 @@ class SkpController extends Controller
      */
     public function destroy($id)
     {
-        // saat data dihapus maka file yang ada di folder 'public/dokumen' juga terhapus sesuai dengan id yang dihapus
         $skp = Skp::findOrFail($id);
         $file_lama = public_path('dokumen/' . $skp->file_dokumen);
         if (file_exists($file_lama)) {

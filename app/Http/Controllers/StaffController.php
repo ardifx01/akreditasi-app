@@ -14,7 +14,6 @@ class StaffController extends Controller
     {
         $query = Staff::query();
 
-        // Fitur Search
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = $request->search;
             $query->where('id_staf', 'like', '%' . $searchTerm . '%')

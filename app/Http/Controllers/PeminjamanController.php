@@ -364,4 +364,105 @@ class PeminjamanController extends Controller
             'errorMessage' => $errorMessage,
         ]);
     }
+
+     public function getBorrowingHistoryExportData(Request $request)
+    {
+        $cardnumber = $request->input('cardnumber');
+
+        if (!$cardnumber) {
+            return response()->json(['error' => 'Nomor Kartu Anggota (Cardnumber) diperlukan.'], 400);
+        }
+
+        $borrower = DB::connection('mysql2')->table('borrowers')
+            ->select('borrowernumber', 'cardnumber', 'firstname', 'surname')
+            ->where('cardnumber', $cardnumber)
+            ->first();
+
+        if (!$borrower) {
+            return response()->json(['error' => 'Nomor kartu peminjam tidak ditemukan.'], 404);
+        }
+        $borrowingHistory = DB::connection('mysql2')->table('statistics as s')
+            ->select(
+                's.datetime',
+                's.type', // issue, renew
+                'i.barcode',
+                'b.title',
+                'b.author'
+            )
+            ->leftJoin('items as i', 'i.itemnumber', '=', 's.itemnumber')
+            ->leftJoin('biblioitems as bi', 'bi.biblionumber', '=', 'i.biblionumber')
+            ->leftJoin('biblio as b', 'b.biblionumber', '=', 'bi.biblionumber')
+            ->where('s.borrowernumber', $borrower->borrowernumber)
+            ->whereIn('s.type', ['issue', 'renew'])
+            ->orderBy('s.datetime', 'desc')
+            ->get();
+
+        $exportData = $borrowingHistory->map(function ($history) {
+            return [
+                'tanggal_waktu' => Carbon::parse($history->datetime)->format('d M Y H:i:s'),
+                'tipe' => ucfirst($history->type),
+                'barcode_buku' => $history->barcode,
+                'judul_buku' => $history->title,
+                'pengarang' => $history->author,
+            ];
+        });
+
+        return response()->json([
+            'data' => $exportData,
+            'cardnumber' => $cardnumber,
+            'borrower_name' => $borrower->firstname . ' ' . $borrower->surname,
+            'type' => 'peminjaman'
+        ]);
+    }
+
+    public function getReturnHistoryExportData(Request $request)
+    {
+        $cardnumber = $request->input('cardnumber');
+
+        if (!$cardnumber) {
+            return response()->json(['error' => 'Nomor Kartu Anggota (Cardnumber) diperlukan.'], 400);
+        }
+
+        $borrower = DB::connection('mysql2')->table('borrowers')
+            ->select('borrowernumber', 'cardnumber', 'firstname', 'surname')
+            ->where('cardnumber', $cardnumber)
+            ->first();
+
+        if (!$borrower) {
+            return response()->json(['error' => 'Nomor kartu peminjam tidak ditemukan.'], 404);
+        }
+
+        $returnHistory = DB::connection('mysql2')->table('statistics as s')
+            ->select(
+                's.datetime',
+                's.type', // return
+                'i.barcode',
+                'b.title',
+                'b.author'
+            )
+            ->leftJoin('items as i', 'i.itemnumber', '=', 's.itemnumber')
+            ->leftJoin('biblioitems as bi', 'bi.biblionumber', '=', 'i.biblionumber')
+            ->leftJoin('biblio as b', 'b.biblionumber', '=', 'bi.biblionumber')
+            ->where('s.borrowernumber', $borrower->borrowernumber)
+            ->where('s.type', 'return')
+            ->orderBy('s.datetime', 'desc')
+            ->get();
+
+        $exportData = $returnHistory->map(function ($history) {
+            return [
+                'tanggal_waktu' => Carbon::parse($history->datetime)->format('d M Y H:i:s'),
+                'tipe' => ucfirst($history->type),
+                'barcode_buku' => $history->barcode,
+                'judul_buku' => $history->title,
+                'pengarang' => $history->author,
+            ];
+        });
+
+        return response()->json([
+            'data' => $exportData,
+            'cardnumber' => $cardnumber,
+            'borrower_name' => $borrower->firstname . ' ' . $borrower->surname,
+            'type' => 'pengembalian'
+        ]);
+    }
 }
