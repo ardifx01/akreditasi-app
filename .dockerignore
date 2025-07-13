@@ -1,0 +1,12 @@
+.env
+/vendor
+/node_modules
+/storage/*.log
+/storage/*.sqlite
+/public/storage # Ini untuk mengatasi error public/storage
+.git
+.gitignore
+.DS_Store
+npm-debug.log
+yarn-error.log
+.vscode

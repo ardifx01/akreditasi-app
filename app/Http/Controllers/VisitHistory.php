@@ -316,7 +316,7 @@ class VisitHistory extends Controller
         if (!$tanggalAwal || !$tanggalAkhir) {
             return response()->json(['error' => 'Tanggal awal dan tanggal akhir diperlukan.'], 400);
         }
-        $dataKunjunganHarian = M_vishistory::on('mysql2') // Pastikan koneksi sesuai
+        $dataKunjunganHarian = M_vishistory::on('mysql2') 
             ->selectRaw('
                 DATE(visittime) as tanggal_kunjungan,
                 COUNT(id) as jumlah_kunjungan_harian

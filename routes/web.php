@@ -64,11 +64,8 @@ Route::get('/peminjaman/peminjaman-prodi-chart', [PeminjamanController::class, '
 Route::get('/peminjaman/cek-histori', [PeminjamanController::class, 'checkHistory'])->name('peminjaman.check_history');
 
 Route::get('/kunjungan/export-kehadiran-full-data', [VisitHistory::class, 'getKehadiranExportData'])->name('kunjungan.get_export_data');
-
 Route::get('/kunjungan/export-harian-full-data', [VisitHistory::class, 'getKunjunganHarianExportData'])->name('kunjungan.get_harian_export_data');
-
 Route::get('/kunjungan/export-prodi-full-data', [VisitHistory::class, 'getKunjunganProdiExportData'])->name('kunjungan.get_prodi_export_data');
-
 Route::get('/peminjaman/export-borrowing-full-data', [PeminjamanController::class, 'getBorrowingHistoryExportData'])->name('peminjaman.get_borrowing_export_data');
 Route::get('/peminjaman/export-return-full-data', [PeminjamanController::class, 'getReturnHistoryExportData'])->name('peminjaman.get_return_export_data');
 
