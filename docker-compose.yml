@@ -15,18 +15,27 @@ services:
             DB_DATABASE: ${DB_DATABASE} # Pake DB_DATABASE buat database pertama
             DB_USERNAME: ${DB_USERNAME}
             DB_PASSWORD: ${DB_PASSWORD}
-            DB_SECOND_HOST: mysql # PENTING: Ini HARUS 'mysql' juga kalo pake Docker Compose
-            DB_SECOND_PORT: ${DB_SECOND_PORT}
-            DB_SECOND_DATABASE: ${DB_SECOND_DATABASE}
-            DB_SECOND_USERNAME: ${DB_SECOND_USERNAME}
-            DB_SECOND_PASSWORD: ${DB_SECOND_PASSWORD}
+            DB_SECOND_HOST: ${DB_SECOND_HOST} # Ambil dari .env
+            DB_SECOND_PORT: ${DB_SECOND_PORT} # Ambil dari .env
+            DB_SECOND_DATABASE: ${DB_SECOND_DATABASE} # Ambil dari .env
+            DB_SECOND_USERNAME: ${DB_SECOND_USERNAME} # Ambil dari .env
+            DB_SECOND_PASSWORD: ${DB_SECOND_PASSWORD} # Ambil dari .env
+            # Konfigurasi Redis
+            REDIS_HOST: ${REDIS_HOST}
+            REDIS_PASSWORD: ${REDIS_PASSWORD}
+            REDIS_PORT: ${REDIS_PORT}
+            CACHE_STORE: ${CACHE_STORE}
+            QUEUE_CONNECTION: ${QUEUE_CONNECTION}
             # Pastiin variabel lingkungan lain yang dibutuhin Laravel juga ada, ya
             APP_ENV: ${APP_ENV}
             APP_KEY: ${APP_KEY}
             APP_DEBUG: ${APP_DEBUG}
             APP_URL: ${APP_URL}
+        extra_hosts: # <--- Letakkan di sini untuk Debian 7 atau Docker lama
+            - "host.docker.internal:host-gateway"
         depends_on:
-            - mysql # Pastiin MySQL udah nyala sebelum aplikasinya
+            - mysql # Pastiin MySQL (yang di Docker) udah nyala sebelum aplikasi
+            - redis # Tambahkan Redis sebagai dependensi
         networks:
             - laravel_network
 
@@ -44,7 +53,7 @@ services:
         networks:
             - laravel_network
 
-    # Layanan MySQL
+    # Layanan MySQL (untuk db_data)
     mysql:
         image: mysql:8.0
         container_name: laravel_mysql
@@ -53,20 +62,28 @@ services:
             # Jika port 3306 di host sudah terpakai, kamu bisa ubah ke port lain, contoh:
             # - "3307:3306"
         environment:
-            # Ambil variabel MySQL_ROOT_PASSWORD dari file .env di folder utama proyek
+            # Ambil variabel MYSQL_ROOT_PASSWORD dari file .env di folder utama proyek
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_DATABASE: ${DB_DATABASE} # Database default yang bakal dibikin pas pertama kali (db_data)
-            # MYSQL_USER dan MYSQL_PASSWORD tidak digunakan untuk user 'root'
-            # MYSQL_USER: ${DB_USERNAME} # Baris ini dihapus
-            # MYSQL_PASSWORD: ${DB_PASSWORD} # Baris ini dihapus
-            # Buat database kedua (koha), kamu bisa bikin manual atau lewat migrasi Laravel
         volumes:
             - mysql_data:/var/lib/mysql # Volume buat data MySQL biar gak ilang
         networks:
             - laravel_network
 
+    # Layanan Redis
+    redis:
+        image: redis:alpine # Gunakan image Redis versi Alpine yang ringan
+        container_name: laravel_redis
+        ports:
+            - "6379:6379" # Sambungin port 6379 di komputer host ke port 6379 di container (opsional, untuk akses langsung dari host)
+        networks:
+            - laravel_network
+        volumes:
+            - redis_data:/data # Volume untuk data persisten Redis (opsional, jika butuh persistensi)
+
 volumes:
-    mysql_data: # Ini definisi volume buat data MySQL
+    mysql_data: # Definisi volume buat data MySQL
+    redis_data: # Definisi volume buat data Redis
 
 networks:
     laravel_network: # Ini definisi network biar semua service bisa ngobrol
