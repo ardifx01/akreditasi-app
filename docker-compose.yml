@@ -21,9 +21,9 @@ services:
             DB_SECOND_USERNAME: ${DB_SECOND_USERNAME} # Ambil dari .env
             DB_SECOND_PASSWORD: ${DB_SECOND_PASSWORD} # Ambil dari .env
             # Konfigurasi Redis
-            REDIS_HOST: ${REDIS_HOST}
-            REDIS_PASSWORD: ${REDIS_PASSWORD}
-            REDIS_PORT: ${REDIS_PORT}
+            # REDIS_HOST: ${REDIS_HOST}
+            # REDIS_PASSWORD: ${REDIS_PASSWORD}
+            # REDIS_PORT: ${REDIS_PORT}
             CACHE_STORE: ${CACHE_STORE}
             QUEUE_CONNECTION: ${QUEUE_CONNECTION}
             # Pastiin variabel lingkungan lain yang dibutuhin Laravel juga ada, ya
@@ -35,7 +35,7 @@ services:
             - "host.docker.internal:host-gateway"
         depends_on:
             - mysql # Pastiin MySQL (yang di Docker) udah nyala sebelum aplikasi
-            - redis # Tambahkan Redis sebagai dependensi
+            # - redis # Tambahkan Redis sebagai dependensi
         networks:
             - laravel_network
 
@@ -71,19 +71,19 @@ services:
             - laravel_network
 
     # Layanan Redis
-    redis:
-        image: redis:alpine # Gunakan image Redis versi Alpine yang ringan
-        container_name: laravel_redis
-        ports:
-            - "6379:6379" # Sambungin port 6379 di komputer host ke port 6379 di container (opsional, untuk akses langsung dari host)
-        networks:
-            - laravel_network
-        volumes:
-            - redis_data:/data # Volume untuk data persisten Redis (opsional, jika butuh persistensi)
+    # redis:
+    #     image: redis:alpine # Gunakan image Redis versi Alpine yang ringan
+    #     container_name: laravel_redis
+    #     ports:
+    #         - "6379:6379" # Sambungin port 6379 di komputer host ke port 6379 di container (opsional, untuk akses langsung dari host)
+    #     networks:
+    #         - laravel_network
+    #     volumes:
+    #         - redis_data:/data # Volume untuk data persisten Redis (opsional, jika butuh persistensi)
 
 volumes:
     mysql_data: # Definisi volume buat data MySQL
-    redis_data: # Definisi volume buat data Redis
+    # redis_data: # Definisi volume buat data Redis
 
 networks:
     laravel_network: # Ini definisi network biar semua service bisa ngobrol

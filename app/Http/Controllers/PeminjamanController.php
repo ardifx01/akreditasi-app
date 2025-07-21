@@ -123,9 +123,9 @@ class PeminjamanController extends Controller
         ]);
     }
 
-
     public function peminjamanProdiChart(Request $request)
     {
+        // Mengambil prodiOptions langsung dari database
         $prodiOptions = DB::connection('mysql2')->table('authorised_values')
             ->select('authorised_value', 'lib')
             ->where('category', 'PRODI')
@@ -136,8 +136,7 @@ class PeminjamanController extends Controller
                 if (str_starts_with($cleanedLib, 'FAI/ ')) {
                     $cleanedLib = substr($cleanedLib, 5);
                 }
-                $cleanedLib = trim($cleanedLib);
-                $prodi->lib = $cleanedLib;
+                $prodi->lib = trim($cleanedLib);
                 return $prodi;
             });
 
@@ -169,7 +168,7 @@ class PeminjamanController extends Controller
                         ->where('av.category', '=', 'PRODI')
                         ->where('ba.code', '=', 'PRODI');
                 })
-                ->whereIn('s.type', ['issue', 'renew'])
+                ->whereIn('s.type', ['issue', 'renew']) // PENTING: KONDISI INI
                 ->whereYear('s.datetime', $selectedYear);
 
             if (!empty($selectedProdiCodes)) {
@@ -295,6 +294,47 @@ class PeminjamanController extends Controller
         ]);
     }
 
+    public function getPeminjamDetail(Request $request)
+    {
+        $periodeYm = $request->input('periode_ym');
+        $prodiCode = $request->input('prodi_code');
+
+        if (!$periodeYm || !$prodiCode) {
+            return response()->json(['error' => 'Periode atau Kode Prodi tidak lengkap.'], 400);
+        }
+
+        try {
+            $year = substr($periodeYm, 0, 4);
+            $month = substr($periodeYm, 4, 2);
+
+            $peminjamList = DB::connection('mysql2')->table('statistics as s')
+                ->select(DB::raw("TRIM(CONCAT(COALESCE(b.firstname, ''), ' ', COALESCE(b.surname, ''))) as nama_peminjam"))
+                ->join('borrowers as b', 's.borrowernumber', '=', 'b.borrowernumber')
+                ->leftJoin('borrower_attributes as ba', 'b.borrowernumber', '=', 'ba.borrowernumber')
+                ->leftJoin('authorised_values as av', function ($join) {
+                    $join->on('av.authorised_value', '=', 'ba.attribute')
+                        ->where('av.category', '=', 'PRODI')
+                        ->where('ba.code', '=', 'PRODI');
+                })
+                ->whereYear('s.datetime', $year)
+                ->whereMonth('s.datetime', $month)
+                ->whereIn('s.type', ['issue', 'renew'])
+                ->where('av.authorised_value', $prodiCode)
+                ->distinct()
+                ->orderBy('nama_peminjam')
+                ->get();
+
+            if ($peminjamList->isEmpty()) {
+                return response()->json(['message' => 'Tidak ada data peminjam ditemukan untuk periode dan prodi ini.', 'data' => []]);
+            }
+
+            return response()->json(['success' => true, 'data' => $peminjamList->pluck('nama_peminjam')]);
+        } catch (\Exception $e) {
+            // \Log::error('Error fetching peminjam detail: ' . $e->getMessage() . ' - ' . $e->getFile() . ':' . $e->getLine());
+            // return response()->json(['error' => 'Terjadi kesalahan saat mengambil detail peminjam.'], 500);
+        }
+    }
+
     public function checkHistory(Request $request)
     {
         $cardnumber = $request->input('cardnumber');
@@ -365,7 +405,7 @@ class PeminjamanController extends Controller
         ]);
     }
 
-     public function getBorrowingHistoryExportData(Request $request)
+    public function getBorrowingHistoryExportData(Request $request)
     {
         $cardnumber = $request->input('cardnumber');
 
@@ -463,6 +503,128 @@ class PeminjamanController extends Controller
             'cardnumber' => $cardnumber,
             'borrower_name' => $borrower->firstname . ' ' . $borrower->surname,
             'type' => 'pengembalian'
+        ]);
+    }
+
+    public function peminjamanBerlangsung(Request $request)
+    {
+        $listProdi = DB::connection('mysql2')->table('authorised_values')
+            ->select('authorised_value', 'lib')
+            ->where('category', 'PRODI')
+            ->orderBy('lib', 'asc')
+            ->get()
+            ->map(function ($prodi) {
+                $cleanedLib = $prodi->lib;
+                if (str_starts_with($cleanedLib, 'FAI/ ')) {
+                    $cleanedLib = substr($cleanedLib, 5);
+                }
+                $prodi->lib = trim($cleanedLib);
+                return $prodi;
+            });
+
+        $selectedProdiCode = $request->input('prodi', '');
+
+        $namaProdiFilter = 'Semua Program Studi';
+
+        try {
+            $query = DB::connection('mysql2')->table('issues as i')
+                ->select(
+                    'i.issuedate AS BukuDipinjamSaat',
+                    'b.title AS JudulBuku',
+                    'it.barcode AS BarcodeBuku',
+                    'av.authorised_value AS KodeProdi',
+                    DB::raw("CONCAT(
+                        COALESCE(br.cardnumber, ''),
+                        CASE WHEN br.cardnumber IS NOT NULL THEN ' - ' ELSE '' END,
+                        TRIM(CONCAT(COALESCE(br.firstname, ''), ' ', COALESCE(br.surname, '')))
+                    ) AS Peminjam"),
+                    'i.date_due AS BatasWaktuPengembalian'
+                )
+                ->join('items as it', 'i.itemnumber', '=', 'it.itemnumber')
+                ->join('biblio as b', 'it.biblionumber', '=', 'b.biblionumber')
+                ->join('borrowers as br', 'i.borrowernumber', '=', 'br.borrowernumber')
+                ->leftJoin('borrower_attributes as ba', 'br.borrowernumber', '=', 'ba.borrowernumber')
+                ->leftJoin('authorised_values as av', function ($join) {
+                    $join->on('av.category', '=', 'ba.code')
+                        ->on('ba.attribute', '=', 'av.authorised_value');
+                })
+                ->whereRaw('i.date_due >= CURDATE()')
+                ->orderBy('BukuDipinjamSaat', 'asc')
+                ->orderBy('BatasWaktuPengembalian', 'asc');
+
+            if ($selectedProdiCode) {
+                $query->whereRaw('LEFT(br.cardnumber, 4) = ?', [$selectedProdiCode]);
+
+                $foundProdi = $listProdi->firstWhere('authorised_value', $selectedProdiCode);
+                if ($foundProdi) {
+                    $namaProdiFilter = $foundProdi->lib;
+                }
+            }
+
+            $activeLoans = $query->paginate(15)->withQueryString();
+            $dataExists = $activeLoans->isNotEmpty();
+
+            // Logika untuk export CSV
+            if ($request->has('export_csv')) {
+                $dataToExport = $query->get();
+                return $this->exportCsvPeminjamanBerlangsung($dataToExport, $namaProdiFilter);
+            }
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            // \Log::error('Error fetching active loans: ' . $e->getMessage() . ' - ' . $e->getFile() . ':' . $e->getLine());
+            // return redirect()->back()->with('error', 'Terjadi kesalahan saat mengambil data peminjaman berlangsung: ' . $e->getMessage());
+        }
+
+        return view('pages.peminjaman.peminjamanBerlangsung', compact(
+            'activeLoans',
+            'listProdi',
+            'selectedProdiCode',
+            'namaProdiFilter',
+            'dataExists'
+        ));
+    }
+
+    private function exportCsvPeminjamanBerlangsung($data, $namaProdiFilter)
+    {
+        $filename = "peminjaman_berlangsung";
+        if ($namaProdiFilter && $namaProdiFilter !== 'Semua Program Studi') {
+            $cleanProdiName = preg_replace('/[^a-zA-Z0-9 ]/', '', str_replace(' ', '_', $namaProdiFilter));
+            $filename .= "_" . $cleanProdiName;
+        }
+        $filename .= "_" . Carbon::now()->format('Ymd_His') . ".csv";
+
+        $headers = [
+            'Buku Dipinjam Saat',
+            'Judul Buku',
+            'Penulis',
+            'Barcode Buku',
+            'Kode Prodi',
+            'Peminjam',
+            'Batas Waktu Pengembalian'
+        ];
+
+        $callback = function () use ($data, $headers) {
+            $file = fopen('php://output', 'w');
+            fputs($file, $bom = chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($file, $headers, ';');
+
+            foreach ($data as $row) {
+                fputcsv($file, [
+                    Carbon::parse($row->BukuDipinjamSaat)->format('d M Y H:i:s'),
+                    $row->JudulBuku,
+                    $row->Penulis,
+                    $row->BarcodeBuku,
+                    $row->KodeProdi,
+                    $row->Peminjam,
+                    Carbon::parse($row->BatasWaktuPengembalian)->format('d M Y')
+                ], ';');
+            }
+            fclose($file);
+        };
+
+        return response()->streamDownload($callback, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
 }

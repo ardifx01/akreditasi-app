@@ -1,6 +1,6 @@
 <div class="sidebar-header d-flex flex-column align-items-center justify-content-center pt-4 pb-3">
     <a href="{{ route('dashboard') }}">
-        <img src="{{ asset('img/sidebar.png') }}" alt="Logo" class="img-fluid sidebar-logo mb-3">
+        {{-- <img src="{{ asset('img/sidebar.png') }}" alt="Logo" class="img-fluid sidebar-logo mb-3"> --}}
     </a>
     <button id="closeSidebarBtn" class="btn btn-sm btn-outline-light d-lg-none position-absolute top-0 end-0 m-2">
         <i class="fas fa-times fa-lg"></i>
@@ -274,12 +274,18 @@
                             href="{{ route('peminjaman.check_history') }}">
                             <i class="fas fa-history me-2"></i>Cek Histori
                         </a>
+                    </li>
+                    <li class="nav-item mb-1">
+                        <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('peminjaman.berlangsung') ? 'active' : '' }}"
+                            href="{{ route('peminjaman.berlangsung') }}">
+                            <i class="fas fa-handshake me-2"></i>Peminjaman Berlangsung
+                        </a>
+                    </li>
                 </ul>
             </div>
         </li>
     </ul>
 
-    {{-- Menu Credit (fixed bottom) --}}
     <ul class="nav flex-column mt-auto py-3 border-top border-secondary">
         <li class="nav-item">
             <a data-bs-toggle="tooltip" data-bs-placement="right" title="Credit & Developers"

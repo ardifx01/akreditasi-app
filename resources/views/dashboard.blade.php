@@ -4,7 +4,8 @@
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-12">
-                <h2 class="text-center mb-4">Statistik Perpustakaan Tahun <?php echo date('Y'); ?></h2>
+                {{-- <h2 class="text-center mb-4">Statistik Perpustakaan Tahun <?php echo date('Y'); ?></h2> --}}
+                <h2 class="text-center mb-4">Statistik Perpustakaan</h2>
             </div>
             <div class="row">
                 <div class="col-md-3 col-sm-6 mb-4">
@@ -268,129 +269,129 @@
                 }
             };
 
-            const ctxFakultas = document.getElementById('grafikFakultas').getContext('2d');
-            new Chart(ctxFakultas, configFakultas);
+            // const ctxFakultas = document.getElementById('grafikFakultas').getContext('2d');
+            // new Chart(ctxFakultas, configFakultas);
 
-            const dataKunjungan = {
-                labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
-                    'November', 'December'
-                ],
-                datasets: [{
-                    label: 'Jumlah Kunjungan',
-                    data: [6500, 11500, 11900, 0, 0, 0, 0, 0, 0, 0, 0, 0], // Contoh data sesuai gambar
-                    backgroundColor: 'rgba(0, 123, 255, 0.7)', // Biru
-                    borderColor: 'rgba(0, 123, 255, 1)',
-                    borderWidth: 1,
-                    borderRadius: 5,
-                }]
-            };
+            // const dataKunjungan = {
+            //     labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+            //         'November', 'December'
+            //     ],
+            //     datasets: [{
+            //         label: 'Jumlah Kunjungan',
+            //         data: [6500, 11500, 11900, 0, 0, 0, 0, 0, 0, 0, 0, 0], // Contoh data sesuai gambar
+            //         backgroundColor: 'rgba(0, 123, 255, 0.7)', // Biru
+            //         borderColor: 'rgba(0, 123, 255, 1)',
+            //         borderWidth: 1,
+            //         borderRadius: 5,
+            //     }]
+            // };
 
-            const configKunjungan = {
-                type: 'bar',
-                data: dataKunjungan,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: false,
-                                text: 'Jumlah'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: false,
-                                text: 'Bulan'
-                            },
-                            grid: {
-                                display: false
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false //
-                        },
-                        title: {
-                            display: false
-                        }
-                    }
-                }
-            };
+            // const configKunjungan = {
+            //     type: 'bar',
+            //     data: dataKunjungan,
+            //     options: {
+            //         responsive: true,
+            //         maintainAspectRatio: false,
+            //         scales: {
+            //             y: {
+            //                 beginAtZero: true,
+            //                 title: {
+            //                     display: false,
+            //                     text: 'Jumlah'
+            //                 }
+            //             },
+            //             x: {
+            //                 title: {
+            //                     display: false,
+            //                     text: 'Bulan'
+            //                 },
+            //                 grid: {
+            //                     display: false
+            //                 }
+            //             }
+            //         },
+            //         plugins: {
+            //             legend: {
+            //                 display: false //
+            //             },
+            //             title: {
+            //                 display: false
+            //             }
+            //         }
+            //     }
+            // };
 
-            // Inisialisasi Grafik Kunjungan
-            const ctxKunjungan = document.getElementById('grafikKunjungan').getContext('2d');
-            new Chart(ctxKunjungan, configKunjungan);
+            // // Inisialisasi Grafik Kunjungan
+            // const ctxKunjungan = document.getElementById('grafikKunjungan').getContext('2d');
+            // new Chart(ctxKunjungan, configKunjungan);
 
 
-            // Data untuk Grafik Sirkulasi
-            const dataSirkulasi = {
-                labels: ['January', 'February', 'March'],
-                datasets: [{
-                        label: 'Peminjaman Buku',
-                        data: [350, 850, 500],
-                        backgroundColor: 'rgba(0, 123, 255, 0.7)', // Biru
-                        borderColor: 'rgba(0, 123, 255, 1)',
-                        borderWidth: 1,
-                        borderRadius: 5,
-                    },
-                    {
-                        label: 'Perpanjangan Buku',
-                        data: [150, 200, 250],
-                        backgroundColor: 'rgba(40, 167, 69, 0.7)', // Hijau (success)
-                        borderColor: 'rgba(40, 167, 69, 1)',
-                        borderWidth: 1,
-                        borderRadius: 5,
-                    },
-                    {
-                        label: 'Pengembalian Buku',
-                        data: [980, 1050, 1200],
-                        backgroundColor: 'rgba(255, 193, 7, 0.7)', // Kuning (warning)
-                        borderColor: 'rgba(255, 193, 7, 1)',
-                        borderWidth: 1,
-                        borderRadius: 5,
-                    }
-                ]
-            };
+            // // Data untuk Grafik Sirkulasi
+            // const dataSirkulasi = {
+            //     labels: ['January', 'February', 'March'],
+            //     datasets: [{
+            //             label: 'Peminjaman Buku',
+            //             data: [350, 850, 500],
+            //             backgroundColor: 'rgba(0, 123, 255, 0.7)', // Biru
+            //             borderColor: 'rgba(0, 123, 255, 1)',
+            //             borderWidth: 1,
+            //             borderRadius: 5,
+            //         },
+            //         {
+            //             label: 'Perpanjangan Buku',
+            //             data: [150, 200, 250],
+            //             backgroundColor: 'rgba(40, 167, 69, 0.7)', // Hijau (success)
+            //             borderColor: 'rgba(40, 167, 69, 1)',
+            //             borderWidth: 1,
+            //             borderRadius: 5,
+            //         },
+            //         {
+            //             label: 'Pengembalian Buku',
+            //             data: [980, 1050, 1200],
+            //             backgroundColor: 'rgba(255, 193, 7, 0.7)', // Kuning (warning)
+            //             borderColor: 'rgba(255, 193, 7, 1)',
+            //             borderWidth: 1,
+            //             borderRadius: 5,
+            //         }
+            //     ]
+            // };
 
-            // Konfigurasi untuk Grafik Sirkulasi
-            const configSirkulasi = {
-                type: 'bar',
-                data: dataSirkulasi,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            stacked: false,
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            stacked: false
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                            }
-                        },
-                        title: {
-                            display: false
-                        }
-                    }
-                }
-            };
+            // // Konfigurasi untuk Grafik Sirkulasi
+            // const configSirkulasi = {
+            //     type: 'bar',
+            //     data: dataSirkulasi,
+            //     options: {
+            //         responsive: true,
+            //         maintainAspectRatio: false,
+            //         scales: {
+            //             x: {
+            //                 stacked: false,
+            //                 grid: {
+            //                     display: false
+            //                 }
+            //             },
+            //             y: {
+            //                 beginAtZero: true,
+            //                 stacked: false
+            //             }
+            //         },
+            //         plugins: {
+            //             legend: {
+            //                 display: true,
+            //                 position: 'bottom',
+            //                 labels: {
+            //                     usePointStyle: true,
+            //                 }
+            //             },
+            //             title: {
+            //                 display: false
+            //             }
+            //         }
+            //     }
+            // };
 
-            // Inisialisasi Grafik Sirkulasi
-            const ctxSirkulasi = document.getElementById('grafikSirkulasi').getContext('2d');
-            new Chart(ctxSirkulasi, configSirkulasi);
+            // // Inisialisasi Grafik Sirkulasi
+            // const ctxSirkulasi = document.getElementById('grafikSirkulasi').getContext('2d');
+            // new Chart(ctxSirkulasi, configSirkulasi);
         </script>
     @endpush
