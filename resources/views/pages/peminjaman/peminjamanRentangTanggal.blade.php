@@ -110,17 +110,14 @@
                                 </tr>
                             @endforeach
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <th class="text-start">Total Keseluruhan</th>
+                                <th>{{ $statistics->sum('jumlah_peminjaman_buku') }}</th>
+                                <th>{{ $statistics->sum('jumlah_peminjam_unik') }}</th>
+                            </tr>
+                        </tfoot>
                     </table>
-                </div>
-                <div class="d-flex justify-content-end mt-3">
-                    <p class="h5">Total Buku Terpinjam:
-                        <strong>{{ $statistics->sum('jumlah_peminjaman_buku') }}</strong>
-                    </p>
-                </div>
-                <div class="d-flex justify-content-end">
-                    <p class="h5">Total Peminjam:
-                        <strong>{{ $statistics->sum('jumlah_peminjam_unik') }}</strong>
-                    </p>
                 </div>
                 <div class="d-flex justify-content-center mt-3">
                     @if ($filterType == 'daily')
@@ -142,6 +139,7 @@
         const dailyFilterEnd = document.getElementById('dailyFilterEnd');
         const monthlyFilter = document.getElementById('monthlyFilter');
         const exportCsvBtn = document.getElementById('exportCsvBtn');
+
         function toggleFilterInputs() {
             const selectedValue = filterTypeSelect.value;
             if (selectedValue === 'daily') {

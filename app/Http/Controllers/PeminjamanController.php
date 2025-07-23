@@ -561,7 +561,7 @@ class PeminjamanController extends Controller
                 }
             }
 
-            $activeLoans = $query->paginate(15)->withQueryString();
+            $activeLoans = $query->paginate(10)->withQueryString();
             $dataExists = $activeLoans->isNotEmpty();
 
             // Logika untuk export CSV

@@ -8,7 +8,6 @@
                 - {{ $namaProdiFilter }}
             @endif
         </h4>
-
         <form method="GET" action="{{ route('peminjaman.berlangsung') }}" class="row g-3 mb-4 align-items-end"
             id="filterPeminjamanBerlangsungForm">
             <div class="col-md-4">
