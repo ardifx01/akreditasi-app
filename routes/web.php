@@ -90,5 +90,7 @@ Route::get('/kunjungan/prodi-table/detail-pengunjung', [VisitHistory::class, 'ge
 
 Route::get('/kunjungan/get_detail_pengunjung_harian', [VisitHistory::class, 'getDetailPengunjungHarian'])->name('kunjungan.get_detail_pengunjung_harian');
 
+Route::get('/kunjungan/export-pdf', [VisitHistory::class, 'exportPdf'])->name('kunjungan.export-pdf');
+
 
 require __DIR__ . '/auth.php';

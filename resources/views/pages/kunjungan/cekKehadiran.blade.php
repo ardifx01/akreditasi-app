@@ -6,15 +6,19 @@
     <h4>Cek Kehadiran Per Bulan</h4>
 
     <form method="GET" action="{{ route('kunjungan.cekKehadiran') }}" class="row g-3 mb-4 align-items-end">
-        <div class="col-md-6">
+        <div class="col-md-3">
             <label for="cardnumber" class="form-label">Nomor Kartu Anggota (Cardnumber)</label>
             <input type="text" name="cardnumber" id="cardnumber" class="form-control"
                 value="{{ old('cardnumber', $cardnumber ?? '') }}" placeholder="Masukkan Nomor Kartu Anggota...">
         </div>
         <div class="col-md-3">
-            <button type="submit" class="btn btn-primary w-100">Lihat Laporan</button>
+            <button type="submit" class="btn btn-primary w-100">Lihat</button>
         </div>
         @if ($fullBorrowerDetails && $dataKunjungan->isNotEmpty())
+            <div class="col-md-3">
+                <a href="{{ route('kunjungan.export-pdf', ['cardnumber' => $fullBorrowerDetails->cardnumber]) }}"
+                    class="btn btn-danger w-100">Export ke PDF</a>
+            </div>
             <div class="col-md-3">
                 <button type="button" id="downloadExportDataButton" class="btn btn-success w-100">Export ke
                     CSV</button>

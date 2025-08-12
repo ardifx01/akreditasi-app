@@ -7,6 +7,7 @@ use App\Models\M_vishistory;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class VisitHistory extends Controller
 {
@@ -840,5 +841,42 @@ class VisitHistory extends Controller
             'borrower_name' => $fullBorrowerDetails ? $fullBorrowerDetails->firstname . ' ' . $fullBorrowerDetails->surname : 'Unknown',
             'cardnumber' => $cardnumber,
         ]);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $cardnumber = $request->input('cardnumber');
+
+        // Validasi atau cek apakah cardnumber ada
+        if (!$cardnumber) {
+            return redirect()->back()->with('error', 'Nomor Kartu Anggota harus diisi untuk mengekspor laporan.');
+        }
+
+        // Ambil data dari database (sama seperti di method cekKehadiran)
+        $fullBorrowerDetails = DB::connection('mysql2')->table('borrowers')
+            ->select('cardnumber', 'firstname', 'surname', 'email', 'phone')
+            ->where('cardnumber', $cardnumber)
+            ->first();
+
+        $dataKunjungan = M_vishistory::on('mysql2')
+            ->selectRaw('
+            EXTRACT(YEAR_MONTH FROM visittime) as tahun_bulan,
+            COUNT(id) as jumlah_kunjungan
+        ')
+            ->where('cardnumber', $cardnumber)
+            ->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'))
+            ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'), 'asc')
+            ->get();
+
+        // Cek jika data tidak ditemukan
+        if (!$fullBorrowerDetails || $dataKunjungan->isEmpty()) {
+            return redirect()->back()->with('error', 'Data tidak ditemukan untuk Nomor Kartu Anggota tersebut.');
+        }
+
+        // Kirim data ke view Blade khusus PDF
+        $pdf = PDF::loadView('pages.kunjungan.laporan_kehadiran_pdf', compact('fullBorrowerDetails', 'dataKunjungan'));
+
+        // Unduh PDF
+        return $pdf->download('laporan_kehadiran_' . $cardnumber . '.pdf');
     }
 }
