@@ -1,16 +1,13 @@
-<div class="sidebar-header d-flex flex-column align-items-center justify-content-center pt-4 pb-3">
-    <a href="{{ route('dashboard') }}">
-        {{-- <img src="{{ asset('img/sidebar.png') }}" alt="Logo" class="img-fluid sidebar-logo mb-3"> --}}
+<div class="sidebar-header d-flex align-items-center justify-content-between p-4">
+    <a href="{{ route('dashboard') }}" class="d-flex align-items-center text-decoration-none">
+        <img src="{{ asset('img/sidebar.png') }}" alt="Logo" class="sidebar-logo" style="max-height: 200px;">
     </a>
-    <button id="closeSidebarBtn" class="btn btn-sm btn-outline-light d-lg-none position-absolute top-0 end-0 m-2">
-        <i class="fas fa-times fa-lg"></i>
-    </button>
 </div>
 
-<div class="sidebar-menu px-3 d-flex flex-column h-100">
-    <ul class="nav flex-column flex-grow-1">
+<div class="sidebar-menu px-3 d-flex flex-column min-vh-100 mt-3" id="sidebarMenu">
+    <ul class="nav flex-column flex-grow-1 gap-2">
         {{-- Dashboard --}}
-        <li class="nav-item mb-2">
+        <li class="nav-item">
             <a data-bs-toggle="tooltip" data-bs-placement="right" title="Dashboard"
                 class="nav-link d-flex align-items-center rounded py-2 px-3 {{ request()->is('dashboard') ? 'active' : '' }}"
                 href="{{ route('dashboard') }}">
@@ -20,7 +17,7 @@
         </li>
 
         {{-- Data SDM --}}
-        @php
+        {{-- @php
             $isSdmActive = request()->routeIs([
                 'staff.*',
                 'ijazah.*',
@@ -31,52 +28,52 @@
                 'mou.*',
             ]);
         @endphp
-        <li class="nav-item mb-2">
+        <li class="nav-item">
             <a class="nav-link d-flex align-items-center rounded py-2 px-3 {{ $isSdmActive ? 'active' : '' }}"
-                data-bs-toggle="collapse" href="#sdmCollapse" aria-expanded="{{ $isSdmActive ? 'true' : 'false' }}">
+                data-bs-toggle="collapse" href="#sdmCollapse" id="sdmMenuBtn">
                 <i class="fas fa-users me-3"></i>
                 <span class="nav-text">Data SDM</span>
-                <i class="fas fa-chevron-down ms-auto nav-arrow"></i>
+                <i class="fas fa-chevron-right ms-auto nav-arrow"></i>
             </a>
             <div class="collapse {{ $isSdmActive ? 'show' : '' }}" id="sdmCollapse">
-                <ul class="nav flex-column ms-4 mt-2">
-                    <li class="nav-item mb-1">
+                <ul class="nav flex-column mt-2">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('staff.*') ? 'active' : '' }}"
                             href="{{ route('staff.index') }}">
                             <i class="fas fa-id-card me-2"></i>Master Data Staff
                         </a>
                     </li>
-                    <li class="nav-item mb-1">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('ijazah.*') ? 'active' : '' }}"
                             href="{{ route('ijazah.index') }}">
                             <i class="fas fa-graduation-cap me-2"></i>Data Ijazah
                         </a>
                     </li>
-                    <li class="nav-item mb-1">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('transkrip.*') ? 'active' : '' }}"
                             href="{{ route('transkrip.index') }}">
                             <i class="fas fa-file-alt me-2"></i>Data Transkrip
                         </a>
                     </li>
-                    <li class="nav-item mb-1">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('pelatihan.*') ? 'active' : '' }}"
                             href="{{ route('pelatihan.index') }}">
                             <i class="fas fa-chalkboard-teacher me-2"></i>Data Pelatihan
                         </a>
                     </li>
-                    <li class="nav-item mb-1">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('skp.*') ? 'active' : '' }}"
                             href="{{ route('skp.index') }}">
                             <i class="fas fa-tasks me-2"></i>Data SKP
                         </a>
                     </li>
-                    <li class="nav-item mb-1">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('sertifikasi.*') ? 'active' : '' }}"
                             href="{{ route('sertifikasi.index') }}">
                             <i class="fas fa-certificate me-2"></i>Data Sertifikasi
                         </a>
                     </li>
-                    <li class="nav-item mb-1">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('mou.*') ? 'active' : '' }}"
                             href="{{ route('mou.index') }}">
                             <i class="fas fa-handshake me-2"></i>Data MoU
@@ -84,100 +81,56 @@
                     </li>
                 </ul>
             </div>
-        </li>
+        </li> --}}
 
         {{-- Daftar Koleksi --}}
         @php
-            $isDaftarKoleksiActive = request()->routeIs('koleksi.*');
-            $isStatistikKoleksiActive = request()->routeIs('koleksi.prodi');
-            $isJenisKoleksiActive = request()->routeIs([
-                'koleksi.jurnal',
-                'koleksi.ebook',
-                'koleksi.textbook',
-                'koleksi.prosiding',
-                'koleksi.periodikal',
-                'koleksi.referensi',
-            ]);
+            $isDaftarKoleksiActive = request()->routeIs(['koleksi.*']);
         @endphp
-        <li class="nav-item mb-2">
+        <li class="nav-item">
             <a class="nav-link d-flex align-items-center rounded py-2 px-3 {{ $isDaftarKoleksiActive ? 'active' : '' }}"
-                data-bs-toggle="collapse" href="#daftarKoleksiCollapse"
-                aria-expanded="{{ $isDaftarKoleksiActive ? 'true' : 'false' }}">
+                data-bs-toggle="collapse" href="#daftarKoleksiCollapse" id="daftarKoleksiMenuBtn">
                 <i class="fas fa-book me-3"></i>
                 <span class="nav-text">Daftar Koleksi</span>
-                <i class="fas fa-chevron-down ms-auto nav-arrow"></i>
+                <i class="fas fa-chevron-right ms-auto nav-arrow"></i>
             </a>
             <div class="collapse {{ $isDaftarKoleksiActive ? 'show' : '' }}" id="daftarKoleksiCollapse">
-                <ul class="nav flex-column ms-4 mt-2">
-                    {{-- Statistik Koleksi --}}
-                    <li class="nav-item mb-1">
-                        <a class="nav-link rounded py-2 px-3 {{ $isStatistikKoleksiActive ? 'active' : '' }}"
-                            data-bs-toggle="collapse" href="#statistikKoleksiSubCollapse"
-                            aria-expanded="{{ $isStatistikKoleksiActive ? 'true' : 'false' }}">
-                            <i class="fas fa-chart-pie me-2"></i>Statistik Koleksi
-                            <i class="fas fa-chevron-down ms-auto nav-arrow-small"></i>
+                <ul class="nav flex-column mt-2">
+                    <li class="nav-item">
+                        <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.jurnal') ? 'active' : '' }}"
+                            href="{{ route('koleksi.jurnal') }}">
+                            <i class="fas fa-journal-whills me-2"></i>Journal
                         </a>
-                        <div class="collapse {{ $isStatistikKoleksiActive ? 'show' : '' }}"
-                            id="statistikKoleksiSubCollapse">
-                            <ul class="nav flex-column ms-4 mt-1">
-                                <li class="nav-item">
-                                    <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.prodi') ? 'active' : '' }}"
-                                        href="{{ route('koleksi.prodi') }}">
-                                        <i class="fas fa-graduation-cap me-2"></i>Per Prodi
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
                     </li>
-
-                    {{-- Jenis Koleksi --}}
-                    <li class="nav-item mb-1">
-                        <a class="nav-link rounded py-2 px-3 {{ $isJenisKoleksiActive ? 'active' : '' }}"
-                            data-bs-toggle="collapse" href="#jenisKoleksiSubCollapse"
-                            aria-expanded="{{ $isJenisKoleksiActive ? 'true' : 'false' }}">
-                            <i class="fas fa-layer-group me-2"></i>Jenis Koleksi
-                            <i class="fas fa-chevron-down ms-auto nav-arrow-small"></i>
+                    <li class="nav-item">
+                        <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.ebook') ? 'active' : '' }}"
+                            href="{{ route('koleksi.ebook') }}">
+                            <i class="fas fa-tablet-alt me-2"></i>E-Book
                         </a>
-                        <div class="collapse {{ $isJenisKoleksiActive ? 'show' : '' }}" id="jenisKoleksiSubCollapse">
-                            <ul class="nav flex-column ms-4 mt-1">
-                                <li class="nav-item">
-                                    <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.jurnal') ? 'active' : '' }}"
-                                        href="{{ route('koleksi.jurnal') }}">
-                                        <i class="fas fa-journal-whills me-2"></i>Journal
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.ebook') ? 'active' : '' }}"
-                                        href="{{ route('koleksi.ebook') }}">
-                                        <i class="fas fa-tablet-alt me-2"></i>E-Book
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.textbook') ? 'active' : '' }}"
-                                        href="{{ route('koleksi.textbook') }}">
-                                        <i class="fas fa-book me-2"></i>Text Book
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.prosiding') ? 'active' : '' }}"
-                                        href="{{ route('koleksi.prosiding') }}">
-                                        <i class="fas fa-newspaper me-2"></i>Prosiding
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.periodikal') ? 'active' : '' }}"
-                                        href="{{ route('koleksi.periodikal') }}">
-                                        <i class="fas fa-calendar-week me-2"></i>Periodical
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.referensi') ? 'active' : '' }}"
-                                        href="{{ route('koleksi.referensi') }}">
-                                        <i class="fas fa-bookmark me-2"></i>References
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.textbook') ? 'active' : '' }}"
+                            href="{{ route('koleksi.textbook') }}">
+                            <i class="fas fa-book me-2"></i>Text Book
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.prosiding') ? 'active' : '' }}"
+                            href="{{ route('koleksi.prosiding') }}">
+                            <i class="fas fa-newspaper me-2"></i>Prosiding
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.periodikal') ? 'active' : '' }}"
+                            href="{{ route('koleksi.periodikal') }}">
+                            <i class="fas fa-calendar-week me-2"></i>Majalah
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded py-1 px-3 {{ request()->routeIs('koleksi.referensi') ? 'active' : '' }}"
+                            href="{{ route('koleksi.referensi') }}">
+                            <i class="fas fa-bookmark me-2"></i>References
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -185,42 +138,30 @@
 
         {{-- Data Kunjungan --}}
         @php
-            $isKunjunganActive = request()->routeIs([
-                'kunjungan.prodiChart',
-                'kunjungan.prodiTable',
-                'kunjungan.tanggalTable',
-                'kunjungan.cekKehadiran',
-            ]);
+            $isKunjunganActive = request()->routeIs(['kunjungan.*']);
         @endphp
-        <li class="nav-item mb-2">
+        <li class="nav-item">
             <a class="nav-link d-flex align-items-center rounded py-2 px-3 {{ $isKunjunganActive ? 'active' : '' }}"
-                data-bs-toggle="collapse" href="#kunjunganCollapse"
-                aria-expanded="{{ $isKunjunganActive ? 'true' : 'false' }}">
+                data-bs-toggle="collapse" href="#kunjunganCollapse" id="kunjunganMenuBtn">
                 <i class="fas fa-users me-3"></i>
                 <span class="nav-text">Data Kunjungan</span>
-                <i class="fas fa-chevron-down ms-auto nav-arrow"></i>
+                <i class="fas fa-chevron-right ms-auto nav-arrow"></i>
             </a>
             <div class="collapse {{ $isKunjunganActive ? 'show' : '' }}" id="kunjunganCollapse">
-                <ul class="nav flex-column ms-4 mt-2">
-                    <li class="nav-item mb-1">
-                        <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('kunjungan.prodiChart') ? 'active' : '' }}"
-                            href="{{ route('kunjungan.prodiChart') }}">
-                            <i class="fas fa-chart-bar me-2"></i>Grafik
-                        </a>
-                    </li>
-                    <li class="nav-item mb-1">
-                        <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('kunjungan.prodiTable') ? 'active' : '' }}"
-                            href="{{ route('kunjungan.prodiTable') }}">
-                            <i class="fas fa-table me-2"></i>Civitas
-                        </a>
-                    </li>
-                    <li class="nav-item mb-1">
+                <ul class="nav flex-column mt-2">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('kunjungan.tanggalTable') ? 'active' : '' }}"
                             href="{{ route('kunjungan.tanggalTable') }}">
-                            <i class="fas fa-calendar-alt me-2"></i>Per Hari
+                            <i class="fas fa-calendar-alt me-2"></i>Keseluruhan
                         </a>
                     </li>
-                    <li class="nav-item mb-1">
+                    <li class="nav-item">
+                        <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('kunjungan.prodiTable') ? 'active' : '' }}"
+                            href="{{ route('kunjungan.prodiTable') }}">
+                            <i class="fas fa-table me-2"></i>Mahasiswa & Staff
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('kunjungan.cekKehadiran') ? 'active' : '' }}"
                             href="{{ route('kunjungan.cekKehadiran') }}">
                             <i class="fas fa-clipboard-check me-2"></i>Cek Kehadiran
@@ -232,50 +173,36 @@
 
         {{-- Data Peminjaman --}}
         @php
-            $isPeminjamanActive = request()->routeIs([
-                'peminjaman.*',
-                'peminjaman.peminjaman_rentang_tanggal',
-                'peminjaman.peminjaman_per_bulan',
-            ]);
+            $isPeminjamanActive = request()->routeIs(['peminjaman.*']);
         @endphp
-        <li class="nav-item mb-2">
+        <li class="nav-item">
             <a class="nav-link d-flex align-items-center rounded py-2 px-3 {{ $isPeminjamanActive ? 'active' : '' }}"
-                data-bs-toggle="collapse" href="#peminjamanCollapse"
-                aria-expanded="{{ $isPeminjamanActive ? 'true' : 'false' }}">
+                data-bs-toggle="collapse" href="#peminjamanCollapse" id="peminjamanMenuBtn">
                 <i class="fas fa-book-reader me-3"></i>
                 <span class="nav-text">Data Peminjaman</span>
-                <i class="fas fa-chevron-down ms-auto nav-arrow"></i>
+                <i class="fas fa-chevron-right ms-auto nav-arrow"></i>
             </a>
             <div class="collapse {{ $isPeminjamanActive ? 'show' : '' }}" id="peminjamanCollapse">
-                <ul class="nav flex-column ms-4 mt-2">
-                    {{-- Peminjaman Per Bulan (uncomment if needed) --}}
-                    {{--
-                    <li class="nav-item mb-1">
-                        <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('peminjaman.peminjaman_per_bulan') ? 'active' : '' }}"
-                            href="{{ route('peminjaman.peminjaman_per_bulan') }}">
-                            <i class="fas fa-calendar-alt me-2"></i>Peminjaman Per Bulan
-                        </a>
-                    </li>
-                    --}}
-                    <li class="nav-item mb-1">
+                <ul class="nav flex-column mt-2">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('peminjaman.peminjaman_rentang_tanggal') ? 'active' : '' }}"
                             href="{{ route('peminjaman.peminjaman_rentang_tanggal') }}">
-                            <i class="fas fa-calendar-day me-2"></i>Statistik
+                            <i class="fas fa-calendar-day me-2"></i>Keseluruhan
                         </a>
                     </li>
-                    <li class="nav-item mb-1">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('peminjaman.peminjaman_prodi_chart') ? 'active' : '' }}"
                             href="{{ route('peminjaman.peminjaman_prodi_chart') }}">
                             <i class="fas fa-chart-line me-2"></i>Statistik Prodi
                         </a>
                     </li>
-                    <li class="nav-item mb-1">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('peminjaman.check_history') ? 'active' : '' }}"
                             href="{{ route('peminjaman.check_history') }}">
                             <i class="fas fa-history me-2"></i>Cek Histori
                         </a>
                     </li>
-                    <li class="nav-item mb-1">
+                    <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('peminjaman.berlangsung') ? 'active' : '' }}"
                             href="{{ route('peminjaman.berlangsung') }}">
                             <i class="fas fa-handshake me-2"></i>Peminjaman Berlangsung
@@ -286,7 +213,7 @@
         </li>
     </ul>
 
-    <ul class="nav flex-column mt-auto py-3 border-top border-secondary">
+    <ul class="nav flex-column py-3 border-top border-secondary">
         <li class="nav-item">
             <a data-bs-toggle="tooltip" data-bs-placement="right" title="Credit & Developers"
                 class="nav-link d-flex align-items-center rounded py-2 px-3 {{ request()->routeIs('credit.index') ? 'active' : '' }}"

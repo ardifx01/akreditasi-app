@@ -9,58 +9,75 @@
     <link rel="shortcut icon" href="{{ asset('img/logo4.png') }}" type="image/x-icon">
 
     {{-- CSS LINKS --}}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    {{-- Menggunakan Font Awesome 6 untuk ikon yang lebih modern --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-
-    @stack('styles') {{-- Untuk CSS tambahan dari halaman anak --}}
+    @stack('styles')
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-            overflow-x: hidden;
+        /* CSS Custom Properties for easy theme changes */
+        :root {
+            --sidebar-bg: #1e283b;
+            --sidebar-color: #f1f3f5;
+            --main-bg: #f5f7fa;
+            --accent-color: #5d87ff;
+            --link-hover-bg: rgba(255, 255, 255, 0.08);
+            --link-active-bg: rgba(255, 255, 255, 0.15);
+            --box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         }
 
-        /* Sidebar Styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--main-bg);
+            color: #495057;
+            overflow-x: hidden;
+            font-size: 1rem;
+        }
+
+        /* Sidebar Styling - Lebih halus dan modern */
         .sidebar {
             width: 260px;
-            background-color: #212529;
-            color: #f8f9fa;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-color);
             transition: all 0.3s ease-in-out;
             position: fixed;
             top: 0;
             left: 0;
             height: 100vh;
             z-index: 1050;
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             overflow-y: auto;
-            transform: translateX(0);
+        }
+
+        .sidebar-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(30, 40, 59, 0.4);
+            z-index: 1049;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar-backdrop.show {
+            opacity: 1;
+            visibility: visible;
         }
 
         .sidebar-header {
             min-height: 120px;
+            padding: 30px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 20px !important;
-        }
-
-        .sidebar-logo {
-            max-width: 180px;
-            height: auto;
-            display: block;
-        }
-
-        .sidebar-menu {
-            padding-top: 20px;
         }
 
         .sidebar .nav-link {
-            color: #e9ecef;
+            color: var(--sidebar-color);
             font-size: 0.95rem;
-            padding: 12px 15px;
+            padding: 12px 20px;
             border-radius: 8px;
             transition: all 0.2s ease-in-out;
             display: flex;
@@ -68,63 +85,61 @@
         }
 
         .sidebar .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: var(--link-hover-bg);
             color: #ffffff;
+            transform: translateX(5px);
         }
 
         .sidebar .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.15);
+            background-color: var(--link-active-bg);
             color: #ffffff;
-            font-weight: 500;
+            font-weight: 600;
+            position: relative;
+        }
+
+        /* Aksen di sisi kiri menu aktif */
+        .sidebar .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 70%;
+            width: 4px;
+            background-color: var(--accent-color);
+            border-radius: 0 5px 5px 0;
         }
 
         .sidebar .nav-link i {
             font-size: 1.1rem;
-            /* Ukuran ikon */
             min-width: 30px;
         }
 
-        .sidebar .nav-link .nav-text {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
         .sidebar .nav-link .nav-arrow {
-            margin-left: auto;
-            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
             transition: transform 0.2s ease-in-out;
         }
 
         .sidebar .nav-link[aria-expanded="true"] .nav-arrow {
-            transform: rotate(90deg);
+            transform: rotate(180deg);
         }
 
         .sidebar .collapse .nav-link {
-            padding-left: 45px;
+            padding-left: 50px;
             font-size: 0.875rem;
-            color: #ced4da;
-        }
-
-        .sidebar .collapse .nav-link:hover,
-        .sidebar .collapse .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.05);
-            color: #ffffff;
-        }
-
-        .sidebar .collapse .nav-link i {
-            font-size: 0.95rem;
-            min-width: 25px;
-        }
-
-        .sidebar .collapse .nav-arrow-small {
-            font-size: 0.7rem;
-            margin-left: auto;
+            color: #b2b2b2;
             transition: transform 0.2s ease-in-out;
         }
 
-        .sidebar .collapse .nav-link[aria-expanded="true"] .nav-arrow-small {
-            transform: rotate(90deg);
+        .sidebar .collapse .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--sidebar-color);
+            transform: translateX(3px);
+        }
+
+        .sidebar .collapse .nav-link.active {
+            font-weight: 500;
+            color: #ffffff;
         }
 
         /* Main Content Area */
@@ -138,11 +153,20 @@
 
         .content-area {
             flex-grow: 1;
-            padding: 20px;
-            background-color: #f8f9fa;
+            padding: 30px;
+            background-color: var(--main-bg);
         }
 
-        /* Navbar untuk toggle di mobile */
+        /* Header utama */
+        .page-header {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+        }
+
+        /* Navbar untuk mobile */
         .navbar-top {
             background-color: #ffffff;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -152,65 +176,108 @@
             z-index: 1000;
         }
 
-        .navbar-toggler-custom {
-            border: none;
-            color: #212529;
-            font-size: 1.5rem;
-        }
-
-        .sidebar-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1045;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-        }
-
-        .sidebar-backdrop.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 991.98px) {
-            .sidebar {
-                transform: translateX(-100%);
-                box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
-            }
-
-            .sidebar.show {
-                transform: translateX(0);
-            }
-
-            .main-wrapper {
-                padding-left: 0;
-            }
-
-            .navbar-top {
-                display: flex;
-            }
-        }
-
-        @media (min-width: 992px) {
-            .navbar-top {
-                display: none;
-            }
-        }
-
         /* Footer */
         .app-footer {
-            background-color: #f0f2f5;
+            background-color: #ffffff;
             padding: 20px;
             text-align: center;
             border-top: 1px solid #e0e0e0;
             color: #6c757d;
             font-size: 0.9rem;
             margin-top: auto;
+            border-radius: 12px 12px 0 0;
+        }
+
+        /* MEDIA QUERIES FOR RESPONSIVENESS */
+
+        /* Laptop/Tablet (width < 992px) */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                left: -260px;
+                box-shadow: none;
+                width: 80vw;
+                max-width: 260px;
+            }
+
+            .sidebar.show {
+                left: 0;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            }
+
+            .main-wrapper {
+                padding-left: 0 !important;
+                flex-direction: column;
+                /* Stacks the content and footer */
+            }
+
+            .content-area {
+                padding: 15px;
+                /* Reduced padding for smaller screens */
+            }
+
+            .page-header {
+                padding: 15px 10px;
+                margin-bottom: 15px;
+                font-size: 1rem;
+            }
+
+            .app-footer {
+                padding: 10px;
+                font-size: 0.85rem;
+            }
+
+            .navbar-top {
+                padding: 8px 10px;
+            }
+
+            h5,
+            .fs-5 {
+                font-size: 1.1rem !important;
+            }
+
+            /* Hiding the date/time on smaller tablets for cleaner look */
+            .page-header .text-end {
+                display: none !important;
+            }
+
+            /* Centering the greeting on smaller screens */
+            #greeting-header {
+                flex-grow: 1;
+                text-align: center;
+            }
+        }
+
+        /* Mobile (width < 576px) */
+        @media (max-width: 575.98px) {
+            .sidebar {
+                width: 95vw;
+                max-width: 260px;
+            }
+
+            .content-area {
+                padding: 8px;
+                /* Even smaller padding for mobile */
+            }
+
+            .page-header {
+                padding: 8px 5px;
+                font-size: 0.95rem;
+                flex-direction: column;
+                /* Stack header elements */
+                align-items: flex-start;
+                gap: 10px;
+                /* Space between greeting and logout button */
+            }
+
+            .page-header .btn {
+                width: 100%;
+                /* Make logout button full width */
+            }
+
+            h5,
+            .fs-5 {
+                font-size: 1rem !important;
+            }
         }
     </style>
 </head>
@@ -225,29 +292,47 @@
         {{-- Main Content Area --}}
         <div class="content-area d-flex flex-column">
             {{-- Top Navbar (untuk mobile toggle) --}}
-            <nav class="navbar-top d-lg-none sticky-top">
-                <button class="navbar-toggler-custom" type="button" id="toggleSidebarBtn"
-                    aria-label="Toggle navigation">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="navbar-brand-mobile ms-auto">
-                    <img src="{{ asset('img/logo4.png') }}" alt="Logo" style="height: 35px;">
+            <nav class="navbar-top d-lg-none sticky-top mt-2">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <div class="navbar-brand-mobile">
+                        <img src="{{ asset('img/sidebar.png') }}" alt="Logo" style="height: 35px;">
+                    </div>
+
+                    <button class="navbar-toggler-custom" type="button" id="toggleSidebarBtn"
+                        aria-label="Toggle navigation">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
             </nav>
 
-            <header class="d-flex justify-content-between align-items-center mb-4 pt-3">
-                <h5 class="card-title"><span id="current-time"></span></h5>
-                @auth
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-danger btn-sm">
-                            <i class="fas fa-sign-out-alt me-1"></i> Logout
-                        </button>
-                    </form>
-                @endauth
+            {{-- Header Utama --}}
+            <header class="d-flex justify-content-between align-items-center page-header mt-2">
+                <div class="d-flex align-items-center">
+                    {{-- Greeting dan logo --}}
+                    <img src="{{ asset('img/logo0.png') }}" alt="Logo" style="height: 40px; margin-right: 10px;">
+                    {{-- <h5 class="m-0 fs-5 fw-medium text-primary" id="greeting-header">
+                        <span class="me-2" id="greeting-icon"></span>
+                        <span id="greeting-text"></span>
+                    </h5> --}}
+                </div>
+                <div class="d-flex align-items-center">
+                    {{-- Tanggal dan waktu --}}
+                    <div class="text-end me-3 d-none d-md-block">
+                        <div id="current-date" class="small text-muted"></div>
+                        <div id="current-time" class="fw-bold fs-4 text-dark"></div>
+                    </div>
+                    @auth
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="fas fa-sign-out-alt me-1"></i> Logout
+                            </button>
+                        </form>
+                    @endauth
+                </div>
             </header>
 
-            <main class="flex-grow-1 mb-7">
+            <main class="flex-grow-1">
                 <div class="container-fluid">
                     @yield('content')
                 </div>
@@ -261,16 +346,46 @@
 
     {{-- JS LINKS --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
     <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js">
+    </script>
 
     @stack('scripts')
     <script>
+        $(document).ready(function() {
+            function updateGreeting() {
+                const now = new Date();
+                const hour = now.getHours();
+                let greetingText = "";
+                let iconClass = "";
+
+                if (hour >= 5 && hour < 12) {
+                    greetingText = "Selamat Pagi";
+                    iconClass = "fas fa-sun text-warning";
+                } else if (hour >= 12 && hour < 15) {
+                    greetingText = "Selamat Siang";
+                    iconClass = "fas fa-cloud-sun text-warning";
+                } else if (hour >= 15 && hour < 19) {
+                    greetingText = "Selamat Sore";
+                    iconClass = "fas fa-cloud-sun text-warning";
+                } else {
+                    greetingText = "Selamat Malam";
+                    iconClass = "fas fa-moon text-primary";
+                }
+
+                $('#greeting-text').text(greetingText);
+                $('#greeting-icon').removeClass().addClass(iconClass);
+            }
+
+            updateGreeting();
+            //setInterval(updateGreeting, 60000);
+        });
+
         $(document).ready(function() {
             function updateTime() {
                 const now = new Date();
@@ -288,34 +403,31 @@
                 };
                 const formattedDate = new Intl.DateTimeFormat('id-ID', dateOptions).format(now);
                 const formattedTime = new Intl.DateTimeFormat('id-ID', timeOptions).format(now);
-                document.getElementById('current-time').textContent = formattedDate + ' ' + formattedTime;
+
+                $('#current-date').text(formattedDate);
+                $('#current-time').text(formattedTime);
             }
 
             updateTime();
             setInterval(updateTime, 1000);
 
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            })
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
         });
 
         // Script untuk sidebar toggle
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('sidebar');
             const toggleBtn = document.getElementById('toggleSidebarBtn');
-            const closeBtn = document.getElementById('closeSidebarBtn');
             const sidebarBackdrop = document.getElementById('sidebarBackdrop');
             const mainWrapper = document.querySelector('.main-wrapper');
 
-            function toggleSidebar() {
-                sidebar.classList.toggle('show');
-                sidebarBackdrop.classList.toggle('show');
-                if (sidebar.classList.contains('show') && window.innerWidth < 992) {
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    document.body.style.overflow = '';
-                }
+            function openSidebar() {
+                sidebar.classList.add('show');
+                sidebarBackdrop.classList.add('show');
+                document.body.style.overflow = 'hidden';
             }
 
             function closeSidebar() {
@@ -324,14 +436,17 @@
                 document.body.style.overflow = '';
             }
 
+            function toggleSidebar() {
+                if (sidebar.classList.contains('show')) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
+            }
+
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', toggleSidebar);
             }
-
-            if (closeBtn) {
-                closeBtn.addEventListener('click', closeSidebar);
-            }
-
             if (sidebarBackdrop) {
                 sidebarBackdrop.addEventListener('click', closeSidebar);
             }
@@ -340,16 +455,15 @@
                 if (window.innerWidth < 992) {
                     sidebar.classList.remove('show');
                     sidebarBackdrop.classList.remove('show');
-                    document.body.style.overflow = '';
                     mainWrapper.style.paddingLeft = '0';
+                    document.body.style.overflow = '';
                 } else {
                     sidebar.classList.add('show');
                     sidebarBackdrop.classList.remove('show');
-                    document.body.style.overflow = '';
                     mainWrapper.style.paddingLeft = '260px';
+                    document.body.style.overflow = '';
                 }
             }
-
             handleResize();
             window.addEventListener('resize', handleResize);
 
@@ -358,12 +472,11 @@
                 element.addEventListener('click', function() {
                     const targetId = this.getAttribute('href');
                     const targetCollapse = document.querySelector(targetId);
+                    const navArrow = this.querySelector('.nav-arrow, .nav-arrow-small');
                     if (targetCollapse && targetCollapse.classList.contains('show')) {
-                        this.querySelector('.nav-arrow, .nav-arrow-small').style.transform =
-                            'rotate(0deg)';
+                        navArrow.style.transform = 'rotate(0deg)';
                     } else {
-                        this.querySelector('.nav-arrow, .nav-arrow-small').style.transform =
-                            'rotate(90deg)';
+                        navArrow.style.transform = 'rotate(180deg)';
                     }
                 });
             });
@@ -373,10 +486,9 @@
                     `[data-bs-toggle="collapse"][href="#${collapseElement.id}"]`);
                 if (parentLink) {
                     parentLink.querySelector('.nav-arrow, .nav-arrow-small').style.transform =
-                        'rotate(90deg)';
+                        'rotate(180deg)';
                 }
             });
-
         });
     </script>
 </body>

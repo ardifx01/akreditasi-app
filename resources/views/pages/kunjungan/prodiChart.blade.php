@@ -74,7 +74,8 @@
                 {{-- Tambahkan link paginasi di sini --}}
                 <div class="d-flex justify-content-center mt-3 row">
                     {{ $data->links() }}
-                    <p class="mt-3">Total Keseluruhan Kunjungan: {{ $data->sum('jumlah_kunjungan') }}</p>
+                    {{-- PERBAIKAN DI SINI: Gunakan variabel totalKeseluruhanKunjungan --}}
+                    <p class="mt-3">Total Keseluruhan Kunjungan: {{ $totalKeseluruhanKunjungan }}</p>
                 </div>
             </div>
         </div>

@@ -47,8 +47,8 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 Histori Peminjaman (Issue & Renew)
                 @if ($borrowingHistory->isNotEmpty())
-                    <button type="button" id="exportBorrowingHistory" class="btn btn-sm btn-warning">Export
-                        CSV</button>
+                    <button type="button" id="exportBorrowingHistory" class="btn btn-sm btn-success"><i
+                            class="fas fa-file-csv"></i> Export CSV</button>
                 @endif
             </div>
             <div class="card-body">
@@ -93,7 +93,8 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 Histori Pengembalian (Return)
                 @if ($returnHistory->isNotEmpty())
-                    <button type="button" id="exportReturnHistory" class="btn btn-sm btn-warning">Export CSV</button>
+                    <button type="button" id="exportReturnHistory" class="btn btn-sm btn-success"><i
+                            class="fas fa-file-csv"></i> Export CSV</button>
                 @endif
             </div>
             <div class="card-body">

@@ -33,7 +33,7 @@ class DashboardController extends Controller
             ->where('items.itemlost', 0)
             ->where('items.withdrawn', 0)
             ->where(DB::raw('LEFT(items.itype, 2)'), 'BK')
-            ->where('items.homebranch', 'PUSAT')
+            // ->where('items.homebranch', 'PUSAT')
             ->value('total_judul_buku');
 
         $totalEksemplar = M_items::on('mysql2')
@@ -46,7 +46,7 @@ class DashboardController extends Controller
             ->where('items.itemlost', 0)
             ->where('items.withdrawn', 0)
             ->where(DB::raw('LEFT(items.itype, 2)'), 'BK')
-            ->where('items.homebranch', 'PUSAT')
+            // ->where('items.homebranch', 'PUSAT')
             ->value('total_eksemplar');
 
 
@@ -60,7 +60,7 @@ class DashboardController extends Controller
             ->where('items.itemlost', 0)
             ->where('items.withdrawn', 0)
             ->where(DB::raw('LEFT(items.itype, 2)'), 'EB')
-            ->where('items.homebranch', 'PUSAT')
+            // ->where('items.homebranch', 'PUSAT')
             ->value('total_ebooks');
 
         $totalJurnal = M_items::on('mysql2')
@@ -73,7 +73,7 @@ class DashboardController extends Controller
             ->where('items.itemlost', 0)
             ->where('items.withdrawn', 0)
             ->whereIn('items.itype', ['EJ', 'JRA', 'JR', 'JRT'])
-            ->where('items.homebranch', 'PUSAT')
+            // ->where('items.homebranch', 'PUSAT')
             ->value('total_jurnal');
 
         $formatTotalJudulBuku = number_format($totalJudulBuku, 0, ',', '.');

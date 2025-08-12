@@ -61,14 +61,34 @@ Route::get('/peminjaman/peminjaman-rentang-tanggal', [PeminjamanController::clas
 
 Route::get('/peminjaman/peminjaman-prodi-chart', [PeminjamanController::class, 'peminjamanProdiChart'])->name('peminjaman.peminjaman_prodi_chart');
 Route::get('/peminjaman/cek-histori', [PeminjamanController::class, 'checkHistory'])->name('peminjaman.check_history');
+
 Route::get('/peminjaman/berlangsung', [PeminjamanController::class, 'peminjamanBerlangsung'])->name('peminjaman.berlangsung');
+
+Route::get('/peminjaman/export-berlangsung-full-data', [PeminjamanController::class, 'getBerlangsungExportData'])->name('peminjaman.get_berlangsung_export_data');
+
+
+
+Route::get('/peminjaman/detail-peminjaman', [PeminjamanController::class, 'getDetailPeminjaman'])->name('peminjaman.detail');
+
+
 
 Route::get('/kunjungan/export-kehadiran-full-data', [VisitHistory::class, 'getKehadiranExportData'])->name('kunjungan.get_export_data');
 Route::get('/kunjungan/export-harian-full-data', [VisitHistory::class, 'getKunjunganHarianExportData'])->name('kunjungan.get_harian_export_data');
-Route::get('/kunjungan/export-prodi-full-data', [VisitHistory::class, 'getKunjunganProdiExportData'])->name('kunjungan.get_prodi_export_data');
+
+
+Route::get('/kunjungan/export-prodi-full-data', [VisitHistory::class, 'getProdiExportData'])->name('kunjungan.get_prodi_export_data');
+
 Route::get('/peminjaman/export-borrowing-full-data', [PeminjamanController::class, 'getBorrowingHistoryExportData'])->name('peminjaman.get_borrowing_export_data');
 Route::get('/peminjaman/export-return-full-data', [PeminjamanController::class, 'getReturnHistoryExportData'])->name('peminjaman.get_return_export_data');
 
 Route::get('/peminjaman/peminjam-detail', [PeminjamanController::class, 'getPeminjamDetail'])->name('peminjaman.peminjamDetail');
+
+Route::get('/koleksi/detail', [StatistikKoleksi::class, 'getDetailKoleksi'])->name('koleksi.detail');
+
+Route::get('/kunjungan/prodi-table/detail-pengunjung', [VisitHistory::class, 'getDetailPengunjung'])
+    ->name('kunjungan.get_detail_pengunjung');
+
+Route::get('/kunjungan/get_detail_pengunjung_harian', [VisitHistory::class, 'getDetailPengunjungHarian'])->name('kunjungan.get_detail_pengunjung_harian');
+
 
 require __DIR__ . '/auth.php';

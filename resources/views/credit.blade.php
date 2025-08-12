@@ -3,80 +3,91 @@
 @section('title', 'Developers')
 
 @section('content')
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Pengembang Aplikasi Web Akreditasi Support</h4>
+    <div class="card shadow-lg">
+        <div class="card-header bg-white text-dark text-center py-3">
+            <h4 class="fw-bold mb-0">Tim Pengembang Aplikasi</h4>
+            <p class="lead mt-1 mb-0">Akreditasi Support</p>
         </div>
-        <div class="card-body">
-            <p class="lead">Aplikasi ini dikembangkan dengan dedikasi oleh tim berikut:</p>
+        <div class="card-body p-3">
+            <p class="text-center mb-4 small">Aplikasi ini dikembangkan oleh:</p>
 
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="d-flex align-items-center bg-light p-3 rounded shadow-sm">
-                        <i class="fas fa-user-circle fa-3x text-info me-3"></i>
-                        <div>
-                            <h5 class="mb-0">Muhammad Asharul Maali, S.Kom</h5>
-                            <p class="text-muted mb-0">Peran: Lead Developer</p>
-                            <a href="#" class="text-primary small" target="_blank"><i
-                                    class="fab fa-github me-1"></i>GitHub</a>
-                            <a href="#" class="text-info small ms-2" target="_blank"><i
-                                    class="fab fa-linkedin me-1"></i>LinkedIn</a>
+            <div class="row g-3 justify-content-center">
+                <div class="col-md-6 col-lg-3 d-flex">
+                    <div class="card h-100 shadow-sm border-0 developer-card p-2">
+                        <div class="card-body text-center d-flex flex-column align-items-center p-2">
+                            <i class="fas fa-user-circle fa-4x text-info mb-2"></i>
+                            <h6 class="fw-bold mb-0">Muhammad Asharul Maali, S.Kom</h6>
+                            <p class="text-muted small mb-1">Lead Developer</p>
+                            <div>
+                                <a href="#" class="btn btn-outline-dark btn-sm me-1" target="_blank"
+                                    data-bs-toggle="tooltip" title="GitHub">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-primary btn-sm" target="_blank"
+                                    data-bs-toggle="tooltip" title="LinkedIn">
+                                    <i class="fab fa-linkedin"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-4">
-                    <div class="d-flex align-items-center bg-light p-3 rounded shadow-sm">
-                        <i class="fas fa-user-circle fa-3x text-success me-3"></i>
-                        <div>
-                            <h5 class="mb-0">Ammar Miftahudin Anshori</h5>
-                            <p class="text-muted mb-0">Peran: Web Developer / UI/UX</p>
-                            <a href="#" class="text-primary small" target="_blank"><i
-                                    class="fab fa-github me-1"></i>GitHub</a>
-                            <a href="#" class="text-info small ms-2" target="_blank"><i
-                                    class="fab fa-linkedin me-1"></i>LinkedIn</a>
+
+                <div class="col-md-6 col-lg-3 d-flex">
+                    <div class="card h-100 shadow-sm border-0 developer-card p-2">
+                        <div class="card-body text-center d-flex flex-column align-items-center p-2">
+                            <i class="fas fa-user-circle fa-4x text-success mb-2"></i>
+                            <h6 class="fw-bold mb-0">Ammar Miftahudin Anshori</h6>
+                            <p class="text-muted small mb-1">Web Developer / UI/UX</p>
+                            <div>
+                                <a href="#" class="btn btn-outline-dark btn-sm me-1" target="_blank"
+                                    data-bs-toggle="tooltip" title="GitHub">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-primary btn-sm" target="_blank"
+                                    data-bs-toggle="tooltip" title="LinkedIn">
+                                    <i class="fab fa-linkedin"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-4">
-                    <div class="d-flex align-items-center bg-light p-3 rounded shadow-sm">
-                        <i class="fas fa-user-circle fa-3x text-warning me-3"></i>
-                        <div>
-                            <h5 class="mb-0">Khoiruddin Nur Wahid, S.Pd</h5>
-                            <p class="text-muted mb-0">Peran: Database Administrator / Support</p>
-                            <a href="#" class="text-primary small" target="_blank"><i
-                                    class="fab fa-github me-1"></i>GitHub</a>
-                            <a href="#" class="text-info small ms-2" target="_blank"><i
-                                    class="fab fa-linkedin me-1"></i>LinkedIn</a>
+
+                <div class="col-md-6 col-lg-3 d-flex">
+                    <div class="card h-100 shadow-sm border-0 developer-card p-2">
+                        <div class="card-body text-center d-flex flex-column align-items-center p-2">
+                            <i class="fas fa-user-circle fa-4x text-warning mb-2"></i>
+                            <h6 class="fw-bold mb-0">Khoiruddin Nur Wahid, S.Pd</h6>
+                            <p class="text-muted small mb-1">Database Administrator / Support</p>
+                            <div>
+                                <a href="#" class="btn btn-outline-dark btn-sm me-1" target="_blank"
+                                    data-bs-toggle="tooltip" title="GitHub">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-primary btn-sm" target="_blank"
+                                    data-bs-toggle="tooltip" title="LinkedIn">
+                                    <i class="fab fa-linkedin"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                {{-- <div class="col-md-6 mb-4">
-                    <div class="d-flex align-items-center bg-light p-3 rounded shadow-sm">
-                        <i class="fas fa-user-circle fa-3x text-danger me-3"></i>
-                        <div>
-                            <h5 class="mb-0">[Nama Developer 4]</h5>
-                            <p class="text-muted mb-0">Peran: Dokumentasi / Support</p>
-                            <a href="#" class="text-primary small" target="_blank"><i
-                                    class="fab fa-github me-1"></i>GitHub</a>
-                            <a href="#" class="text-info small ms-2" target="_blank"><i
-                                    class="fab fa-linkedin me-1"></i>LinkedIn</a>
-                        </div>
-                    </div>
-                </div> --}}
+
+                <hr class="my-3">
+
+                <div class="px-5 fs-6">
+                    <h5>Ucapan Terima Kasih</h5>
+                    <p>Kami mengucapkan terima kasih kepada semua pihak yang telah berkontribusi dan memberikan dukungan
+                        dalam
+                        pengembangan aplikasi ini, termasuk:</p>
+                    <ul>
+                        <li>Allah Swt</li>
+                        <li>Tim Perpustakaan</li>
+                        <li>Komunitas Open Source (Laravel, Bootstrap, Font Awesome, jQuery, Chart.js, DataTables)</li>
+                    </ul>
+                </div>
             </div>
-
-            <hr class="my-4">
-
-            <h5>Ucapan Terima Kasih</h5>
-            <p>Kami mengucapkan terima kasih kepada semua pihak yang telah berkontribusi dan memberikan dukungan dalam
-                pengembangan aplikasi ini, termasuk:</p>
-            <ul>
-                <li>Allah Swt</li>
-                <li>Tim Perpustakaan</li>
-                <li>Komunitas Open Source (Laravel, Bootstrap, Font Awesome, jQuery, Chart.js, DataTables)</li>
-            </ul>
-
-            <p class="mt-4 text-center text-muted">Aplikasi ini dibuat dengan &#x2764;&#xfe0f; Indonesia.</p>
+            <div class="card-footer text-center text-muted p-2">
+                <p class="mb-0 small">Dibuat dengan ❤️ dari Indonesia.</p>
+            </div>
         </div>
-    </div>
-@endsection
+    @endsection

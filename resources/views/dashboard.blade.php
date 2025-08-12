@@ -4,8 +4,8 @@
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-12">
-                {{-- <h2 class="text-center mb-4">Statistik Perpustakaan Tahun <?php echo date('Y'); ?></h2> --}}
-                <h2 class="text-center mb-4">Statistik Perpustakaan</h2>
+                {{-- Untuk tahun --}}
+                <h2 class="text-center mb-4">Statistik Perpustakaan Tahun {{ date('Y') }}</h2>
             </div>
             <div class="row">
                 <div class="col-md-3 col-sm-6 mb-4">
@@ -72,7 +72,7 @@
                     <div class="card shadow-sm h-100">
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
-                                <small class="text-muted">Total Kunjungan : <?php echo date('l, d F Y'); ?></small>
+                                <small class="text-muted">Total Kunjungan Offline : <?php echo date('l, d F Y'); ?></small>
                                 <h4 class="card-title mt-2 mb-0">{{ $kunjunganHarian }}</h4>
                             </div>
                             <div class="text-end mt-3">
@@ -85,8 +85,23 @@
                     <div class="card shadow-sm h-100">
                         <div class="card-body d-flex flex-column justify-content-between">
                             <div>
-                                <small class="text-muted">Total Kunjungan Website : <?php echo date('l, d F Y'); ?></small>
+                                <small class="text-muted">Total Kunjungan Website Library UMS : <?php echo date('l, d F Y'); ?></small>
                                 <h4 class="card-title mt-2 mb-0"><a href="http://statcounter.com/p13060651/summary/?guest=1"
+                                        target="_blank">Klik
+                                        Disini</a></h4>
+                            </div>
+                            <div class="text-end mt-3">
+                                <i class="fa-solid fa-globe fa-2x" style="color: #8914d7;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <div>
+                                <small class="text-muted">Total Kunjungan Repository : <?php echo date('l, d F Y'); ?></small>
+                                <h4 class="card-title mt-2 mb-0"><a href="http://statcounter.com/p13060683/summary/?guest=1"
                                         target="_blank">Klik
                                         Disini</a></h4>
                             </div>
@@ -98,6 +113,7 @@
                 </div>
             </div>
         </div>
+
         {{-- <div class="container mt-2">
             <div class="row">
                 <div class="col-md-6 mb-4">
@@ -230,7 +246,7 @@
 
             // Data untuk Grafik Pie Kunjungan Fakultas
             const dataFakultas = {
-                labels: ['FKIP', 'EKONOMI', 'HUKUM', 'TEKNIK', 'GEOGRAFI', 'PSI KOLOGI', 'FAI', 'OTHER'],
+                labels: ['FKIP', 'EKONOMI', 'HUKUM', 'TEKNIK', 'GEOGRAFI', 'PSIKOLOGI', 'FAI', 'OTHER'],
                 datasets: [{
                     label: 'Jumlah Kunjungan',
                     data: [100, 20, 15, 10, 5, 5, 5, 2], // Contoh data
