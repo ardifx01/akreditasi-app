@@ -1,12 +1,15 @@
-.env
-/vendor
-/node_modules
-/storage/*.log
-/storage/*.sqlite
-/public/storage # Ini untuk mengatasi error public/storage
 .git
-.gitignore
-.DS_Store
+node_modules
+vendor
+.env
+.env.*
+.env.local
+.env.testing
+.env.development
+.dockerignore
+Dockerfile
+README.md
+public/storage
+storage/*.log
 npm-debug.log
-yarn-error.log
-.vscode
+composer.lock

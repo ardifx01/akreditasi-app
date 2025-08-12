@@ -807,7 +807,6 @@ class VisitHistory extends Controller
         if (!$cardnumber) {
             return response()->json(['error' => 'Nomor Kartu Anggota (Cardnumber) diperlukan.'], 400);
         }
-
         $borrowerInfo = M_vishistory::where('cardnumber', $cardnumber)->first();
 
         if (!$borrowerInfo) {

@@ -1,5 +1,7 @@
+# Pake image PHP-FPM dengan Alpine Linux biar ukurannya kecil
 FROM php:8.3-fpm-alpine
 
+# Instal aplikasi sistem yang dibutuhin
 RUN apk update && apk add --no-cache \
     curl \
     libzip-dev \
@@ -14,27 +16,30 @@ RUN apk update && apk add --no-cache \
     libpng-dev \
     jpeg-dev \
     autoconf \
-    build-base # Tambahkan build-base di sini untuk menyediakan C compiler dan alat build lainnya
+    build-base
 
+# Instal ekstensi PHP
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath opcache zip gd
 
-RUN pecl install redis \
-    && docker-php-ext-enable redis \
-    && rm -rf /tmp/pear # Bersihkan file sementara setelah instalasi
+# Instal ekstensi Redis
+RUN pecl install redis && docker-php-ext-enable redis && rm -rf /tmp/pear
 
+# Atur folder kerja
 WORKDIR /var/www/html
 
-COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+# Salin .env.example dan generate key
+COPY .env.example .env
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN php artisan key:generate --force
 
+# Salin semua file proyek
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
+# Buat symlink dan set permission
 RUN chown -R www-data:www-data storage bootstrap/cache
 RUN chmod -R 775 storage bootstrap/cache
-
-RUN php artisan optimize
+RUN ln -sf /var/www/html/storage/app/public /var/www/html/public/storage
 
 EXPOSE 9000
-
 CMD ["php-fpm"]

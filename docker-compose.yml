@@ -2,11 +2,12 @@ services:
     # Layanan Aplikasi Laravel (PHP-FPM)
     app:
         build:
-            context: ./ # PENTING: Konteks build sekarang adalah folder utama proyek
-            dockerfile: Dockerfile # Dockerfile sekarang ada di folder utama proyek
+            context: ./ # Konteks build adalah folder utama proyek
+            dockerfile: Dockerfile # Dockerfile ada di folder utama proyek
         container_name: laravel_app
+        # Tidak ada lagi mapping port langsung di sini, Nginx yang akan memetakan port 80
         volumes:
-            - ./:/var/www/html # Masukin semua folder proyek ke dalam container
+            - ./:/var/www/html # Masukkan semua folder proyek ke dalam container
         environment:
             # Ambil variabel DB dari file .env di folder utama proyek
             DB_CONNECTION: ${DB_CONNECTION}
@@ -21,9 +22,9 @@ services:
             DB_SECOND_USERNAME: ${DB_SECOND_USERNAME} # Ambil dari .env
             DB_SECOND_PASSWORD: ${DB_SECOND_PASSWORD} # Ambil dari .env
             # Konfigurasi Redis
-            # REDIS_HOST: ${REDIS_HOST}
-            # REDIS_PASSWORD: ${REDIS_PASSWORD}
-            # REDIS_PORT: ${REDIS_PORT}
+            REDIS_HOST: ${REDIS_HOST}
+            REDIS_PASSWORD: ${REDIS_PASSWORD}
+            REDIS_PORT: ${REDIS_PORT}
             CACHE_STORE: ${CACHE_STORE}
             QUEUE_CONNECTION: ${QUEUE_CONNECTION}
             # Pastiin variabel lingkungan lain yang dibutuhin Laravel juga ada, ya
@@ -35,23 +36,27 @@ services:
             - "host.docker.internal:host-gateway"
         depends_on:
             - mysql # Pastiin MySQL (yang di Docker) udah nyala sebelum aplikasi
-            # - redis # Tambahkan Redis sebagai dependensi
+            - redis # AKTIFKAN: Tambahkan Redis sebagai dependensi agar app menunggu Redis siap
         networks:
             - laravel_network
+        restart: always # Tambahkan ini untuk auto-restart
 
     # Layanan Nginx
-    nginx:
-        image: nginx:stable-alpine
-        container_name: laravel_nginx
-        ports:
-            - "80:80" # Sambungin port 80 di komputer host ke port 80 di container
-        volumes:
-            - ./:/var/www/html # Masukin semua folder proyek
-            - ./nginx/default.conf:/etc/nginx/conf.d/default.conf # Masukin konfigurasi Nginx dari folder nginx di root
-        depends_on:
-            - app # Pastiin aplikasi (PHP-FPM) udah siap nerima permintaan
-        networks:
-            - laravel_network
+    # nginx:
+    #     image: nginx:stable-alpine
+    #     container_name: laravel_nginx
+    #     ports:
+    #         - "80:80" # Sambungin port 80 di komputer host ke port 80 di container
+    #         # Jika port 80 di host sudah terpakai, kamu bisa ubah ke port lain, contoh:
+    #         # - "8080:80"
+    #     volumes:
+    #         - ./:/var/www/html # Masukin semua folder proyek
+    #         - ./nginx/default.conf:/etc/nginx/conf.d/default.conf # Masukin konfigurasi Nginx dari folder nginx di root
+    #     depends_on:
+    #         - app # Pastiin aplikasi (PHP-FPM) udah siap nerima permintaan
+    #     networks:
+    #         - laravel_network
+    #     restart: always # Tambahkan ini untuk auto-restart
 
     # Layanan MySQL (untuk db_data)
     mysql:
@@ -67,8 +72,10 @@ services:
             MYSQL_DATABASE: ${DB_DATABASE} # Database default yang bakal dibikin pas pertama kali (db_data)
         volumes:
             - mysql_data:/var/lib/mysql # Volume buat data MySQL biar gak ilang
+            - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf # BARU: Mount file konfigurasi MySQL
         networks:
             - laravel_network
+        restart: always # Tambahkan ini untuk auto-restart
 
     # Layanan Redis
     # redis:
@@ -80,6 +87,7 @@ services:
     #         - laravel_network
     #     volumes:
     #         - redis_data:/data # Volume untuk data persisten Redis (opsional, jika butuh persistensi)
+    #     restart: always # Tambahkan ini untuk auto-restart
 
 volumes:
     mysql_data: # Definisi volume buat data MySQL
