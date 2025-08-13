@@ -98,35 +98,46 @@
                 </button>
             </div>
             <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="alert alert-primary py-2 m-0">
-                            <i class="fas fa-book me-2"></i> Total Keseluruhan:
-                            <span class="fw-bold">{{ number_format($totalKeseluruhanKunjungan, 0, ',', '.') }}</span>
+                @if (request()->has('filter_type') ||
+                        request()->has('tanggal_awal') ||
+                        request()->has('tanggal_akhir') ||
+                        request()->has('tahun'))
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="alert alert-primary py-2 m-0">
+                                <i class="fas fa-book me-2"></i> Total Keseluruhan:
+                                <span class="fw-bold">{{ number_format($totalKeseluruhanKunjungan, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="alert alert-info py-2 m-0">
+                                <i class="fas fa-list-ol me-2"></i> Total Entri Data:
+                                <span class="fw-bold">{{ number_format($data->total(), 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="alert alert-secondary py-2 m-0">
+                                <i class="fas fa-filter me-2"></i>Periode:
+                                <span class="fw-bold">
+                                    @if (($filterType ?? 'daily') == 'daily')
+                                        @if ($tanggalAwal && $tanggalAkhir)
+                                            {{ \Carbon\Carbon::parse($tanggalAwal)->translatedFormat('d F Y') }} s/d
+                                            {{ \Carbon\Carbon::parse($tanggalAkhir)->translatedFormat('d F Y') }}
+                                        @else
+                                            Tidak Ada
+                                        @endif
+                                    @elseif (($filterType ?? '') == 'yearly')
+                                        @if ($selectedYear)
+                                            Tahun {{ $selectedYear }}
+                                        @else
+                                            Semua Tahun
+                                        @endif
+                                    @endif
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="alert alert-info py-2 m-0">
-                            <i class="fas fa-list-ol me-2"></i> Total Entri Data:
-                            <span class="fw-bold">{{ number_format($data->total(), 0, ',', '.') }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-5">
-                        <div class="alert alert-secondary py-2 m-0">
-                            <i class="fas fa-filter me-2"></i>Periode:
-                            <span class="fw-bold">
-                                @if (($filterType ?? 'daily') == 'daily')
-                                    {{ \Carbon\Carbon::parse($tanggalAwal)->translatedFormat('d F Y') }} s/d
-                                    {{ \Carbon\Carbon::parse($tanggalAkhir)->translatedFormat('d F Y') }}
-                                @else
-                                    {{ \Carbon\Carbon::parse($selectedTahunAwal ?? now()->startOfYear())->translatedFormat('F Y') }}
-                                    s/d
-                                    {{ \Carbon\Carbon::parse($selectedTahunAkhir ?? now()->endOfYear())->translatedFormat('F Y') }}
-                                @endif
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                @endif
 
                 <div class="table-responsive" id="tabelLaporan">
                     <table class="table table-bordered table-striped" id="myTable">
@@ -189,15 +200,32 @@
                     <p><strong>Total Pengunjung:</strong> <span id="modalTotalPengunjungDetail"></span></p>
                     <hr>
                     <h6>Daftar Nama Pengunjung:</h6>
-                    <ul id="daftarNamaPengunjung" class="list-group mb-3">
-                        <li class="list-group-item text-center" id="loadingMessage">Memuat data...</li>
-                    </ul>
+                    <div class="table-responsive mb-3">
+                        <table class="table table-bordered table-striped" id="tabelDetailPengunjung">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nama</th>
+                                    <th>Cardnumber</th>
+                                    <th>Jumlah Kunjungan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyDetailPengunjung">
+                                <tr id="loadingMessage">
+                                    <td colspan="4" class="text-center">Memuat data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     <nav aria-label="Page navigation for visitors">
                         <ul class="pagination justify-content-center" id="paginationVisitors">
                         </ul>
                     </nav>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="exportDetailPengunjungCsv">
+                        <i class="fas fa-file-csv me-2"></i> Export CSV
+                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
@@ -214,6 +242,7 @@
         const filterType = "{{ $filterType ?? 'daily' }}";
 
         document.addEventListener("DOMContentLoaded", function() {
+            const exportDetailPengunjungCsvBtn = document.getElementById('exportDetailPengunjungCsv');
             const filterTypeSelect = document.getElementById('filter_type');
             const dailyFilterStart = document.getElementById('dailyFilterStart');
             const dailyFilterEnd = document.getElementById('dailyFilterEnd');
@@ -231,6 +260,7 @@
                     dailyFilterEnd.style.display = 'block';
                     yearlyFilterYear.style.display = 'none';
 
+                    tahunSelect.value = '';
                     tahunSelect.disabled = true;
                     tanggalAwalInput.disabled = false;
                     tanggalAkhirInput.disabled = false;
@@ -239,6 +269,8 @@
                     dailyFilterEnd.style.display = 'none';
                     yearlyFilterYear.style.display = 'block';
 
+                    tanggalAwalInput.value = '';
+                    tanggalAkhirInput.value = '';
                     tanggalAwalInput.disabled = true;
                     tanggalAkhirInput.disabled = true;
                     tahunSelect.disabled = false;
@@ -274,6 +306,7 @@
             filterForm.addEventListener('submit', function() {
                 toggleFilterInputs();
             });
+
             if (downloadFullCsvButton) {
                 downloadFullCsvButton.addEventListener('click', async function() {
                     const params = new URLSearchParams(new FormData(filterForm));
@@ -298,7 +331,6 @@
                     }
 
                     try {
-                        // Mengirim request ke server untuk mengambil SEMUA data export, tanpa pagination
                         const response = await fetch(
                             `{{ route('kunjungan.get_harian_export_data') }}?${params.toString()}`
                         );
@@ -311,22 +343,18 @@
                             }
 
                             let csv = [];
-                            const delimiter =
-                                ';'; // Menggunakan titik koma agar lebih mudah dibuka di Excel
+                            const delimiter = ';';
 
-                            // Header CSV
                             const headers = (currentFilterType === 'daily') ? ['No',
                                 'Tanggal Kunjungan', 'Total Kunjungan Harian'
                             ] : ['No', 'Bulan Kunjungan', 'Total Kunjungan Bulanan'];
 
                             csv.push(headers.map(h => `"${h}"`).join(delimiter));
 
-                            // Data CSV
                             let counter = 1;
                             result.data.forEach(row => {
                                 let displayDate;
                                 if (currentFilterType === 'daily') {
-                                    // Carbon format d-m-Y agar tidak salah saat dibuka di Excel
                                     displayDate = moment(row.tanggal_kunjungan).format(
                                         'DD-MM-YYYY');
                                 } else {
@@ -368,13 +396,13 @@
             // --- Skrip untuk Pop-up Modal Detail Pengunjung ---
             const detailModalEl = document.getElementById('detailPengunjungModal');
             const detailModal = new bootstrap.Modal(detailModalEl);
-            const daftarNamaPengunjungUl = document.getElementById('daftarNamaPengunjung');
+            const tbodyDetailPengunjung = document.getElementById('tbodyDetailPengunjung');
             const modalTanggalSpan = document.getElementById('modalTanggal');
             const modalTotalPengunjungDetailSpan = document.getElementById('modalTotalPengunjungDetail');
             const paginationVisitorsUl = document.getElementById('paginationVisitors');
 
             let currentDetailTanggal = '';
-            const loadingMessage = `<li class="list-group-item text-center">Memuat data...</li>`;
+            const loadingMessage = `<tr><td colspan="4" class="text-center">Memuat data...</td></tr>`;
 
             detailModalEl.addEventListener('show.bs.modal', function(event) {
                 const button = event.relatedTarget;
@@ -384,7 +412,7 @@
 
             async function loadDetailPengunjung(tanggal, page = 1) {
                 currentDetailTanggal = tanggal;
-                daftarNamaPengunjungUl.innerHTML = loadingMessage;
+                tbodyDetailPengunjung.innerHTML = loadingMessage;
                 paginationVisitorsUl.innerHTML = '';
 
                 try {
@@ -397,33 +425,33 @@
                         modalTanggalSpan.textContent = result.modal_display_date;
                         modalTotalPengunjungDetailSpan.textContent = result.total;
 
-                        daftarNamaPengunjungUl.innerHTML = '';
+                        tbodyDetailPengunjung.innerHTML = '';
                         if (result.data && result.data.length > 0) {
                             result.data.forEach((pengunjung, index) => {
-                                const li = document.createElement('li');
-                                li.className =
-                                    'list-group-item d-flex justify-content-between align-items-center';
-                                li.innerHTML = `
-                                    <span>${(result.from || 0) + index}. ${pengunjung.nama} (${pengunjung.cardnumber})</span>
-                                    <span class="badge bg-secondary rounded-pill">${pengunjung.visit_count}x</span>
+                                const tr = document.createElement('tr');
+                                tr.innerHTML = `
+                                    <td>${(result.from || 0) + index}</td>
+                                    <td>${pengunjung.nama}</td>
+                                    <td>${pengunjung.cardnumber}</td>
+                                    <td><span class="badge bg-secondary rounded-pill">${pengunjung.visit_count}x</span></td>
                                 `;
-                                daftarNamaPengunjungUl.appendChild(li);
+                                tbodyDetailPengunjung.appendChild(tr);
                             });
                             renderPagination(result);
                         } else {
-                            const li = document.createElement('li');
-                            li.className = 'list-group-item text-center';
-                            li.textContent = 'Tidak ada detail nama pengunjung ditemukan.';
-                            daftarNamaPengunjungUl.appendChild(li);
+                            const tr = document.createElement('tr');
+                            tr.innerHTML =
+                                `<td colspan="4" class="text-center">Tidak ada detail nama pengunjung ditemukan.</td>`;
+                            tbodyDetailPengunjung.appendChild(tr);
                         }
                     } else {
-                        daftarNamaPengunjungUl.innerHTML =
-                            `<li class="list-group-item text-danger text-center">Error: ${result.error || 'Gagal memuat detail pengunjung.'}</li>`;
+                        tbodyDetailPengunjung.innerHTML =
+                            `<tr><td colspan="4" class="text-danger text-center">Error: ${result.error || 'Gagal memuat detail pengunjung.'}</td></tr>`;
                         console.error('Error fetching detail:', result.error);
                     }
                 } catch (error) {
-                    daftarNamaPengunjungUl.innerHTML =
-                        `<li class="list-group-item text-danger text-center">Terjadi kesalahan jaringan atau server.</li>`;
+                    tbodyDetailPengunjung.innerHTML =
+                        `<tr><td colspan="4" class="text-danger text-center">Terjadi kesalahan jaringan atau server.</td></tr>`;
                     console.error('Network or server error:', error);
                 }
             }
@@ -486,6 +514,62 @@
                     });
                 });
             }
+
+            // --- Fungsionalitas Export Detail Pengunjung (tambahan) ---
+            exportDetailPengunjungCsvBtn.addEventListener('click', async function() {
+                if (!currentDetailTanggal) {
+                    alert("Tidak ada data detail untuk diekspor.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch(
+                        `{{ route('kunjungan.get_detail_pengunjung_harian_export') }}?tanggal=${currentDetailTanggal}`
+                    );
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        if (result.data.length === 0) {
+                            alert("Tidak ada data detail pengunjung untuk diekspor pada tanggal ini.");
+                            return;
+                        }
+
+                        let csv = [];
+                        const delimiter = ';';
+                        const headers = ['No', 'Nama', 'Cardnumber', 'Jumlah Kunjungan'];
+                        csv.push(headers.map(h => `"${h}"`).join(delimiter));
+
+                        let counter = 1;
+                        result.data.forEach(pengunjung => {
+                            const rowData = [
+                                `"${counter++}"`,
+                                `"${pengunjung.nama.replace(/"/g, '""')}"`,
+                                `"${pengunjung.cardnumber.replace(/"/g, '""')}"`,
+                                `"${pengunjung.visit_count}"`
+                            ];
+                            csv.push(rowData.join(delimiter));
+                        });
+
+                        const BOM = "\uFEFF";
+                        const csvString = csv.join('\n');
+                        const blob = new Blob([BOM + csvString], {
+                            type: 'text/csv;charset=utf-8;'
+                        });
+
+                        const link = document.createElement("a");
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `detail_kunjungan_${currentDetailTanggal}.csv`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    } else {
+                        alert(result.error || "Terjadi kesalahan saat mengambil data export detail.");
+                    }
+                } catch (error) {
+                    console.error('Error fetching export data:', error);
+                    alert("Terjadi kesalahan teknis saat mencoba mengekspor data detail.");
+                }
+            });
 
 
             // --- Skrip untuk Chart.js ---

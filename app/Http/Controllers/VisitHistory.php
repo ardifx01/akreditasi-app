@@ -434,11 +434,9 @@ class VisitHistory extends Controller
         // Terapkan filter tanggal ke query
         $baseQuery->whereBetween('visittime', [$tanggalAwal . ' 00:00:00', $tanggalAkhir . ' 23:59:59']);
 
-        // Data untuk tabel (dipaginasi)
-        // Ganti nilai `10` dengan variabel `$perPage`
+
         $data = (clone $baseQuery)->paginate($perPage);
 
-        // Data untuk chart (TIDAK DIPAGINASI)
         $chartData = (clone $baseQuery)->get();
         $totalKeseluruhanKunjungan = $chartData->sum('jumlah_kunjungan_harian');
 
@@ -449,110 +447,41 @@ class VisitHistory extends Controller
         return view('pages.kunjungan.tanggalTable', compact('data', 'totalKeseluruhanKunjungan', 'filterType', 'tanggalAwal', 'tanggalAkhir', 'selectedYear', 'chartData', 'perPage'));
     }
 
-    // public function kunjunganTanggalTable(Request $request)
-    // {
-    //     $filterType = $request->input('filter_type', 'daily'); // Default 'daily'
-    //     $tanggalAwal = null;
-    //     $tanggalAkhir = null;
-    //     $selectedYear = null;
-
-    //     // Base query yang akan digunakan untuk table dan chart
-    //     $baseQuery = M_vishistory::query();
-
-    //     if ($filterType === 'yearly') {
-    //         $selectedYear = $request->input('tahun', Carbon::now()->year);
-
-    //         // Validasi dan set tahun jika perlu
-    //         if (!is_numeric($selectedYear)) {
-    //             $selectedYear = Carbon::now()->year;
-    //         }
-
-    //         $tanggalAwal = Carbon::createFromDate($selectedYear, 1, 1)->startOfYear()->format('Y-m-d');
-    //         $tanggalAkhir = Carbon::createFromDate($selectedYear, 12, 31)->endOfYear()->format('Y-m-d');
-
-    //         $baseQuery->select(
-    //             DB::raw('DATE_FORMAT(visittime, "%Y-%m-01") as tanggal_kunjungan'),
-    //             DB::raw('COUNT(id) as jumlah_kunjungan_harian')
-    //         )
-    //             ->groupBy(DB::raw('DATE_FORMAT(visittime, "%Y-%m-01")'))
-    //             ->orderBy(DB::raw('DATE_FORMAT(visittime, "%Y-%m-01")'), 'asc');
-    //     } else { // filterType === 'daily'
-    //         $tanggalAwal = $request->input('tanggal_awal', Carbon::now()->startOfMonth()->format('Y-m-d'));
-    //         $tanggalAkhir = $request->input('tanggal_akhir', Carbon::now()->endOfMonth()->format('Y-m-d'));
-
-    //         // Validasi tanggal
-    //         if (Carbon::parse($tanggalAwal)->greaterThan(Carbon::parse($tanggalAkhir))) {
-    //             return redirect()->back()->withInput($request->all())->with('error', 'Tanggal Awal tidak boleh lebih besar dari Tanggal Akhir.');
-    //         }
-
-    //         $baseQuery->selectRaw('
-    //             DATE(visittime) as tanggal_kunjungan,
-    //             COUNT(id) as jumlah_kunjungan_harian
-    //         ')
-    //             ->groupBy(DB::raw('DATE(visittime)'))
-    //             ->orderBy(DB::raw('DATE(visittime)'), 'asc');
-    //     }
-
-    //     // Terapkan filter tanggal ke query
-    //     $baseQuery->whereBetween('visittime', [$tanggalAwal . ' 00:00:00', $tanggalAkhir . ' 23:59:59']);
-
-    //     // Data untuk tabel (dipaginasi)
-    //     $data = (clone $baseQuery)->paginate(10);
-
-    //     // Data untuk chart (TIDAK DIPAGINASI)
-    //     $chartData = (clone $baseQuery)->get();
-    //     $totalKeseluruhanKunjungan = $chartData->sum('jumlah_kunjungan_harian');
-    //     $data->appends($request->all());
-
-    //     return view('pages.kunjungan.tanggalTable', compact('data', 'totalKeseluruhanKunjungan', 'filterType', 'tanggalAwal', 'tanggalAkhir', 'selectedYear', 'chartData'));
-    // }
-
     // public function getDetailPengunjungHarian(Request $request)
     // {
-    //     $tanggal = $request->input('tanggal'); // Ini akan menjadi 'YYYY-MM-DD'
+    //     $tanggal = $request->input('tanggal');
     //     $page = $request->input('page', 1);
 
     //     if (!$tanggal) {
     //         return response()->json(['error' => 'Tanggal tidak ditemukan.'], 400);
     //     }
 
-    //     // Tentukan apakah tanggal yang dikirim adalah awal bulan (untuk deteksi filter tahunan)
     //     $dateCarbon = Carbon::parse($tanggal);
     //     $isFirstDayOfMonth = ($dateCarbon->day == 1);
-    //     $month = $dateCarbon->month;
-    //     $year = $dateCarbon->year;
+    //     $startDate = null;
+    //     $endDate = null;
 
-    //     $query = M_vishistory::query();
-    //     $totalVisitorsQuery = M_vishistory::query();
-
-    //     // Jika ini adalah awal bulan dan kita berasumsi ini dari filter tahunan,
-    //     // kita akan mencari data untuk seluruh bulan tersebut.
-    //     // Jika tidak, kita cari per hari.
     //     if ($isFirstDayOfMonth) {
-    //         $startDateOfMonth = Carbon::createFromDate($year, $month, 1)->startOfDay();
-    //         $endDateOfMonth = Carbon::createFromDate($year, $month)->endOfMonth()->endOfDay();
-
-    //         $query->whereBetween('visittime', [$startDateOfMonth, $endDateOfMonth]);
-    //         $totalVisitorsQuery->whereBetween('visittime', [$startDateOfMonth, $endDateOfMonth]);
+    //         $startDate = $dateCarbon->startOfMonth()->toDateTimeString();
+    //         $endDate = $dateCarbon->endOfMonth()->toDateTimeString();
+    //         $displayTanggal = $dateCarbon->format('F Y');
     //     } else {
-    //         // Ini untuk kasus filter harian yang klik detail per hari
-    //         $query->whereDate('visittime', $tanggal);
-    //         $totalVisitorsQuery->whereDate('visittime', $tanggal);
+    //         $startDate = $dateCarbon->startOfDay()->toDateTimeString();
+    //         $endDate = $dateCarbon->endOfDay()->toDateTimeString();
+    //         $displayTanggal = $dateCarbon->format('d F Y');
     //     }
 
-    //     // Get total visitors for the determined period
-    //     $totalVisitors = $totalVisitorsQuery->count();
+    //     // Query untuk menghitung total kunjungan (bukan pengunjung unik)
+    //     $totalVisitors = M_vishistory::whereBetween('visittime', [$startDate, $endDate])->count();
 
-    //     // Get paginated unique visitors for the determined period
-    //     // Pastikan nama tabel 'visitorhistory' dan 'borrowers' sudah benar.
-    //     // Asumsi: M_vishistory mengacu ke 'visitorhistory'
-    //     // Asumsi: Join menggunakan 'cardnumber' di kedua tabel. Jika 'borrowers' punya 'borrowernumber', sesuaikan.
-    //     $visitors = $query->select(
+    //     // Query untuk mendapatkan pengunjung unik
+    //     $visitors = M_vishistory::select(
     //         'visitorhistory.cardnumber',
     //         'borrowers.surname',
     //         DB::raw('COUNT(visitorhistory.id) as visit_count')
     //     )
-    //         ->join('borrowers', 'visitorhistory.cardnumber', '=', 'borrowers.cardnumber') // Sesuaikan join key jika perlu
+    //         ->join('borrowers', 'visitorhistory.cardnumber', '=', 'borrowers.cardnumber')
+    //         ->whereBetween('visittime', [$startDate, $endDate])
     //         ->groupBy('visitorhistory.cardnumber', 'borrowers.surname')
     //         ->orderBy('borrowers.surname', 'asc')
     //         ->paginate(5, ['*'], 'page', $page);
@@ -565,15 +494,6 @@ class VisitHistory extends Controller
     //         ];
     //     });
 
-    //     // Tentukan tanggal yang akan ditampilkan di modal
-    //     $displayTanggal = $tanggal;
-    //     if ($isFirstDayOfMonth) {
-    //         $displayTanggal = Carbon::createFromDate($year, $month, 1)->format('F Y'); // Contoh: "January 2024"
-    //     } else {
-    //         $displayTanggal = Carbon::parse($tanggal)->format('d F Y'); // Contoh: "01 January 2024"
-    //     }
-
-
     //     return response()->json([
     //         'data' => $formattedVisitors,
     //         'total' => $totalVisitors,
@@ -582,38 +502,36 @@ class VisitHistory extends Controller
     //         'per_page' => $visitors->perPage(),
     //         'from' => $visitors->firstItem(),
     //         'to' => $visitors->lastItem(),
-    //         'modal_display_date' => $displayTanggal // Mengirim format tanggal untuk modal
+    //         'modal_display_date' => $displayTanggal
     //     ]);
     // }
 
     public function getDetailPengunjungHarian(Request $request)
     {
         $tanggal = $request->input('tanggal');
+        $filterType = $request->input('filter_type', 'daily'); // Tambahkan parameter ini
         $page = $request->input('page', 1);
 
         if (!$tanggal) {
             return response()->json(['error' => 'Tanggal tidak ditemukan.'], 400);
         }
 
-        $dateCarbon = Carbon::parse($tanggal);
-        $isFirstDayOfMonth = ($dateCarbon->day == 1);
-        $startDate = null;
-        $endDate = null;
+        $dateCarbon = \Carbon\Carbon::parse($tanggal);
 
-        if ($isFirstDayOfMonth) {
+        if ($filterType === 'yearly') {
             $startDate = $dateCarbon->startOfMonth()->toDateTimeString();
             $endDate = $dateCarbon->endOfMonth()->toDateTimeString();
-            $displayTanggal = $dateCarbon->format('F Y');
-        } else {
+            $displayTanggal = $dateCarbon->translatedFormat('F Y'); // Menggunakan translatedFormat
+        } else { // 'daily'
             $startDate = $dateCarbon->startOfDay()->toDateTimeString();
             $endDate = $dateCarbon->endOfDay()->toDateTimeString();
-            $displayTanggal = $dateCarbon->format('d F Y');
+            $displayTanggal = $dateCarbon->translatedFormat('d F Y');
         }
 
-        // Query untuk menghitung total kunjungan (bukan pengunjung unik)
+        // Menggunakan Eloquent untuk Query
         $totalVisitors = M_vishistory::whereBetween('visittime', [$startDate, $endDate])->count();
 
-        // Query untuk mendapatkan pengunjung unik
+        // Pastikan ada relationship 'borrower' di model M_vishistory
         $visitors = M_vishistory::select(
             'visitorhistory.cardnumber',
             'borrowers.surname',
@@ -628,21 +546,63 @@ class VisitHistory extends Controller
         $formattedVisitors = $visitors->map(function ($visitor) {
             return [
                 'cardnumber' => $visitor->cardnumber,
-                'nama' => $visitor->surname,
+                // Asumsi: borrower->surname adalah nama lengkap. Sesuaikan jika beda.
+                'nama' => $visitor->borrowers->surname ?? 'Nama tidak ditemukan',
                 'visit_count' => $visitor->visit_count,
             ];
         });
 
         return response()->json([
             'data' => $formattedVisitors,
-            'total' => $totalVisitors,
+            'total' => number_format($totalVisitors, 0, ',', '.'), // Format angka agar mudah dibaca
+            'modal_display_date' => $displayTanggal,
             'current_page' => $visitors->currentPage(),
             'last_page' => $visitors->lastPage(),
-            'per_page' => $visitors->perPage(),
             'from' => $visitors->firstItem(),
-            'to' => $visitors->lastItem(),
-            'modal_display_date' => $displayTanggal
+            'per_page' => $visitors->perPage(),
         ]);
+    }
+
+    public function getDetailPengunjungHarianExport(Request $request)
+    {
+        $tanggal = $request->input('tanggal');
+        $filterType = $request->input('filter_type', 'daily');
+
+        if (!$tanggal) {
+            return response()->json(['error' => 'Tanggal tidak ditemukan.'], 400);
+        }
+
+        $dateCarbon = \Carbon\Carbon::parse($tanggal);
+
+        if ($filterType === 'yearly') {
+            $startDate = $dateCarbon->startOfMonth()->toDateTimeString();
+            $endDate = $dateCarbon->endOfMonth()->toDateTimeString();
+        } else { // 'daily'
+            $startDate = $dateCarbon->startOfDay()->toDateTimeString();
+            $endDate = $dateCarbon->endOfDay()->toDateTimeString();
+        }
+
+        // Ambil SEMUA data tanpa pagination
+        $visitors = M_vishistory::select(
+            'visitorhistory.cardnumber',
+            'borrowers.surname',
+            DB::raw('COUNT(visitorhistory.id) as visit_count')
+        )
+            ->join('borrowers', 'visitorhistory.cardnumber', '=', 'borrowers.cardnumber')
+            ->whereBetween('visittime', [$startDate, $endDate])
+            ->groupBy('visitorhistory.cardnumber', 'borrowers.surname')
+            ->orderBy('borrowers.surname', 'asc')
+            ->get(); // Gunakan get() bukan paginate()
+
+        $formattedVisitors = $visitors->map(function ($visitor) {
+            return [
+                'nama' => $visitor->borrowers->surname ?? 'Nama tidak ditemukan',
+                'cardnumber' => $visitor->cardnumber,
+                'visit_count' => $visitor->visit_count,
+            ];
+        });
+
+        return response()->json(['data' => $formattedVisitors]);
     }
 
 
@@ -707,54 +667,6 @@ class VisitHistory extends Controller
 
         return response()->json(['data' => $exportData]);
     }
-
-    // public function getKunjunganHarianExportData(Request $request)
-    // {
-    //     $filterType = $request->input('filter_type', 'daily');
-    //     $tanggalAwal = null;
-    //     $tanggalAkhir = null;
-    //     $selectedYear = null;
-
-    //     $baseQuery = M_vishistory::query();
-
-    //     if ($filterType === 'yearly') {
-    //         $selectedYear = $request->input('tahun', Carbon::now()->year);
-
-    //         if (!is_numeric($selectedYear)) {
-    //             return response()->json(['error' => 'Tahun tidak valid.'], 400);
-    //         }
-
-    //         $tanggalAwal = Carbon::createFromDate($selectedYear, 1, 1)->startOfYear()->format('Y-m-d');
-    //         $tanggalAkhir = Carbon::createFromDate($selectedYear, 12, 31)->endOfYear()->format('Y-m-d');
-
-    //         $baseQuery->select(
-    //             DB::raw('DATE_FORMAT(visittime, "%Y-%m-01") as tanggal_kunjungan'),
-    //             DB::raw('COUNT(id) as jumlah_kunjungan_harian')
-    //         )
-    //             ->groupBy(DB::raw('DATE_FORMAT(visittime, "%Y-%m-01")'))
-    //             ->orderBy(DB::raw('DATE_FORMAT(visittime, "%Y-%m-01")'), 'asc');
-    //     } else { // filterType === 'daily'
-    //         $tanggalAwal = $request->input('tanggal_awal');
-    //         $tanggalAkhir = $request->input('tanggal_akhir');
-
-    //         if (!$tanggalAwal || !$tanggalAkhir || Carbon::parse($tanggalAwal)->greaterThan(Carbon::parse($tanggalAkhir))) {
-    //             return response()->json(['error' => 'Input tanggal tidak valid.'], 400);
-    //         }
-
-    //         $baseQuery->selectRaw('
-    //             DATE(visittime) as tanggal_kunjungan,
-    //             COUNT(id) as jumlah_kunjungan_harian
-    //         ')
-    //             ->groupBy(DB::raw('DATE(visittime)'))
-    //             ->orderBy(DB::raw('DATE(visittime)'), 'asc');
-    //     }
-
-    //     $exportData = $baseQuery
-    //         ->whereBetween('visittime', [$tanggalAwal . ' 00:00:00', $tanggalAkhir . ' 23:59:59'])
-    //         ->get();
-
-    //     return response()->json(['data' => $exportData]);
-    // }
 
     public function cekKehadiran(Request $request)
     {
