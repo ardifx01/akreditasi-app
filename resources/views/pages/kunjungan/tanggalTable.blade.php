@@ -1,12 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Statistik Kunjungan Harian')
+@section('title', 'Statistik Kunjungan Keseluruhan')
 @section('content')
     <div class="container-fluid">
-        <h4>Statistik Kunjungan Harian</h4>
+        <h4>Statistik Kunjungan Keseluruhan</h4>
         <hr>
-
-        {{-- Filter Section --}}
         <div class="card mb-4">
             <div class="card-body">
                 <form method="GET" action="{{ route('kunjungan.tanggalTable') }}" class="row g-3 align-items-end"
@@ -77,7 +75,9 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center">
-                    <h5 class="mb-0 me-3">Laporan Data Kunjungan</h5>
+                    <h5 class="mb-0 me-3">Statistik Data Kunjungan</h5>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
                     <div class="dropdown">
                         <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="entriesDropdown"
                             data-bs-toggle="dropdown" aria-expanded="false">
@@ -92,10 +92,11 @@
                                     href="{{ request()->fullUrlWithQuery(['per_page' => 1000]) }}">1000</a></li>
                         </ul>
                     </div>
+                    <button type="button" id="downloadFullCsv" class="btn btn-success">
+                        <i class="fas fa-file-csv me-2"></i> Export ke CSV
+                    </button>
                 </div>
-                <button type="button" id="downloadFullCsv" class="btn btn-success">
-                    <i class="fas fa-file-csv me-2"></i> Export ke CSV
-                </button>
+
             </div>
             <div class="card-body">
                 @if (request()->has('filter_type') ||
@@ -162,10 +163,11 @@
                                     </td>
                                     <td>{{ number_format($row->jumlah_kunjungan_harian, 0, ',', '.') }}</td>
                                     <td>
-                                        <button type="button" class="btn btn-primary btn-sm view-detail-btn"
-                                            data-bs-toggle="modal" data-bs-target="#detailPengunjungModal"
+                                        <button class="btn btn-primary btn-sm view-detail-btn" data-bs-toggle="modal"
+                                            data-bs-target="#detailPengunjungModal"
                                             data-tanggal="{{ $row->tanggal_kunjungan }}"
-                                            data-total="{{ $row->jumlah_kunjungan_harian }}">
+                                            data-filter-type="{{ $filterType ?? 'daily' }}"
+                                            data-total="{{ $row->jumlah_kunjungan_harian }}"> {{-- Hapus number_format() --}}
                                             <i class="fas fa-eye"></i> Lihat Detail
                                         </button>
                                     </td>
@@ -240,6 +242,7 @@
     <script>
         const chartData = @json($chartData);
         const filterType = "{{ $filterType ?? 'daily' }}";
+        let currentFilterType = '';
 
         document.addEventListener("DOMContentLoaded", function() {
             const exportDetailPengunjungCsvBtn = document.getElementById('exportDetailPengunjungCsv');
@@ -407,22 +410,39 @@
             detailModalEl.addEventListener('show.bs.modal', function(event) {
                 const button = event.relatedTarget;
                 const tanggalKunjungan = button.getAttribute('data-tanggal');
-                loadDetailPengunjung(tanggalKunjungan);
+                const filterType = button.getAttribute('data-filter-type');
+                currentFilterType = button.getAttribute('data-filter-type');
+                loadDetailPengunjung(tanggalKunjungan, currentFilterType);
             });
 
-            async function loadDetailPengunjung(tanggal, page = 1) {
+            async function loadDetailPengunjung(tanggal, filterType, page =
+                1) { // <-- Tambahkan parameter 'filterType'
                 currentDetailTanggal = tanggal;
                 tbodyDetailPengunjung.innerHTML = loadingMessage;
                 paginationVisitorsUl.innerHTML = '';
 
+                const params = new URLSearchParams();
+                if (filterType === 'yearly') {
+                    // Untuk filter tahunan, kirim parameter 'bulan'
+                    params.append('bulan', tanggal.substring(0, 7)); // Ambil format YYYY-MM
+                } else {
+                    // Untuk filter harian, kirim parameter 'tanggal'
+                    params.append('tanggal', tanggal);
+                }
+                params.append('page', page);
+
                 try {
                     const response = await fetch(
-                        `{{ route('kunjungan.get_detail_pengunjung_harian') }}?tanggal=${tanggal}&page=${page}`
+                        `{{ route('kunjungan.get_detail_pengunjung_harian') }}?${params.toString()}`
                     );
                     const result = await response.json();
 
                     if (response.ok) {
+                        // Tempatkan perbaikan di sini
                         modalTanggalSpan.textContent = result.modal_display_date;
+
+                        // Pastikan data yang dikirim dari controller sudah benar-benar angka
+                        // Controller harus mengirim `result.total` sebagai angka (tanpa number_format)
                         modalTotalPengunjungDetailSpan.textContent = result.total;
 
                         tbodyDetailPengunjung.innerHTML = '';
@@ -430,11 +450,11 @@
                             result.data.forEach((pengunjung, index) => {
                                 const tr = document.createElement('tr');
                                 tr.innerHTML = `
-                                    <td>${(result.from || 0) + index}</td>
-                                    <td>${pengunjung.nama}</td>
-                                    <td>${pengunjung.cardnumber}</td>
-                                    <td><span class="badge bg-secondary rounded-pill">${pengunjung.visit_count}x</span></td>
-                                `;
+                        <td>${(result.from || 0) + index}</td>
+                        <td>${pengunjung.nama}</td>
+                        <td>${pengunjung.cardnumber}</td>
+                        <td><span class="badge bg-secondary rounded-pill">${pengunjung.visit_count}x</span></td>
+                    `;
                                 tbodyDetailPengunjung.appendChild(tr);
                             });
                             renderPagination(result);
@@ -524,7 +544,7 @@
 
                 try {
                     const response = await fetch(
-                        `{{ route('kunjungan.get_detail_pengunjung_harian_export') }}?tanggal=${currentDetailTanggal}`
+                        `{{ route('kunjungan.get_detail_pengunjung_harian_export') }}?tanggal=${currentDetailTanggal}&filter_type=${currentFilterType}`
                     );
                     const result = await response.json();
 

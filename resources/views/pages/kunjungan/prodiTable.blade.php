@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Laporan Kunjungan Prodi')
+@section('title', 'Statistik Kunjungan Mahasiswa / Staff')
 @section('content')
-    <div class="container">
-        <h4>Laporan Kunjungan</h4>
+    <div class="container-fluid">
+        <h4>Statistik Kunjungan</h4>
 
         {{-- Form Filter Dinamis (Per Hari & Per Tahun) --}}
         <form method="GET" action="{{ route('kunjungan.prodiTable') }}" class="row g-3 mb-4 align-items-end" id="filterForm">
@@ -17,7 +17,6 @@
             <div class="col-md-4">
                 <label for="prodi" class="form-label">Pilih Prodi/Tipe User</label>
                 <select name="prodi" id="prodi" class="form-select">
-                    {{-- <option value="">-- Semua Prodi & Dosen/Tendik --</option> --}}
                     @foreach ($listProdi as $kode => $nama)
                         <option value="{{ $kode }}" {{ request('prodi') == $kode ? 'selected' : '' }}>
                             ({{ $kode }})
@@ -61,70 +60,141 @@
             </div>
         </form>
 
-        <div class="d-flex justify-content-end">
-            <button type="button" id="downloadFullExcel" class="btn btn-success mt-3 mb-2">
-                <i class="fas fa-file-csv"></i> Export ke CSV
-            </button>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Grafik Kunjungan Berdasarkan Prodi/Tipe User</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="kunjunganProdiChart" style="max-height: 400px; height: 400px;"></canvas>
+            </div>
         </div>
-
-        {{-- Tabel Laporan Kunjungan --}}
-        <div class="table-responsive" id="tabelLaporan">
-            <table class="table table-bordered table-striped" id="myTable">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>
-                            @if (($filterType ?? 'daily') == 'yearly')
-                                Bulan
-                            @else
-                                Tanggal Kunjungan
-                            @endif
-                        </th>
-                        <th>Kode Identifikasi</th>
-                        <th>Tipe User / Nama Prodi</th>
-                        <th>Jumlah Kunjungan</th>
-                        <th>Detail Pengunjung</th> {{-- Kolom ini sekarang selalu ada --}}
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($data as $index => $row)
-                        <tr>
-                            <td>{{ $loop->iteration + ($data->currentPage() - 1) * $data->perPage() }}</td>
-                            <td>
-                                @if (($filterType ?? 'daily') == 'yearly')
-                                    {{ \Carbon\Carbon::createFromFormat('Y-m', $row->bulan)->locale('id')->isoFormat('MMMM YYYY') }}
-                                @else
-                                    {{ \Carbon\Carbon::parse($row->tanggal_kunjungan)->format('d F Y') }}
-                                @endif
-                            </td>
-                            <td>{{ $row->kode_prodi }}</td>
-                            <td>{{ $row->nama_prodi }}</td>
-                            <td>{{ $row->jumlah_kunjungan }}</td>
-                            <td>
-                                <button type="button" class="btn btn-primary btn-sm view-detail-btn"
-                                    data-filter-type="{{ $filterType }}"
-                                    @if (($filterType ?? 'daily') == 'yearly') data-bulan-tahun="{{ $row->bulan }}"
+        <hr>
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="mb-0">Data Kunjungan</h5>
+                <div class="d-flex gap-2">
+                    {{-- Dropdown untuk jumlah entri --}}
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="entriesDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Tampilkan {{ $data->perPage() }} entri
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="entriesDropdown">
+                            <li><a class="dropdown-item @if ($data->perPage() == 10) active @endif"
+                                    href="{{ request()->fullUrlWithQuery(['per_page' => 10]) }}">10</a></li>
+                            <li><a class="dropdown-item @if ($data->perPage() == 50) active @endif"
+                                    href="{{ request()->fullUrlWithQuery(['per_page' => 50]) }}">50</a></li>
+                            <li><a class="dropdown-item @if ($data->perPage() == 100) active @endif"
+                                    href="{{ request()->fullUrlWithQuery(['per_page' => 100]) }}">100</a></li>
+                        </ul>
+                    </div>
+                    <button type="button" id="downloadFullExcel" class="btn btn-success">
+                        <i class="fas fa-file-csv"></i> Export ke CSV
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (request()->has('filter_type') ||
+                        request()->has('tanggal_awal') ||
+                        request()->has('tanggal_akhir') ||
+                        request()->has('tahun'))
+                    <div class="row mb-4 g-3">
+                        <div class="col-md-4">
+                            <div class="alert alert-primary py-2 m-0 h-100 d-flex align-items-center">
+                                <i class="fas fa-book me-2"></i> Total Keseluruhan:
+                                <span
+                                    class="fw-bold ms-auto">{{ number_format($totalKeseluruhanKunjungan, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="alert alert-info py-2 m-0 h-100 d-flex align-items-center">
+                                <i class="fas fa-list-ol me-2"></i> Total Entri Data:
+                                <span class="fw-bold ms-auto">{{ number_format($data->total(), 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="alert alert-secondary py-2 m-0 h-100 d-flex align-items-center">
+                                <i class="fas fa-filter me-2"></i>Periode:
+                                <span class="fw-bold ms-auto">
+                                    @if (($filterType ?? 'daily') == 'daily')
+                                        @if ($tanggalAwal && $tanggalAkhir)
+                                            {{ \Carbon\Carbon::parse($tanggalAwal)->translatedFormat('d F Y') }} s/d
+                                            {{ \Carbon\Carbon::parse($tanggalAkhir)->translatedFormat('d F Y') }}
+                                        @else
+                                            Tidak Ada
+                                        @endif
+                                    @elseif (($filterType ?? '') == 'yearly')
+                                        @if ($selectedYear)
+                                            Tahun {{ $selectedYear }}
+                                        @else
+                                            Semua Tahun
+                                        @endif
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+                <div class="table-responsive" id="tabelLaporan">
+                    <table class="table table-bordered table-striped" id="myTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>
+                                    @if (($filterType ?? 'daily') == 'yearly')
+                                        Bulan
                                     @else
-                                        data-tanggal="{{ $row->tanggal_kunjungan }}" @endif
-                                    data-kode-identifikasi="{{ $row->kode_identifikasi }}">
-                                    <i class="fas fa-eye"></i> Lihat Detail
-                                </button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center">Tidak ada data kunjungan ditemukan untuk filter ini.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                        Tanggal Kunjungan
+                                    @endif
+                                </th>
+                                <th>Kode Identifikasi</th>
+                                <th>Tipe User / Nama Prodi</th>
+                                <th>Jumlah Kunjungan</th>
+                                <th>Detail Pengunjung</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($data as $index => $row)
+                                <tr>
+                                    <td>{{ $loop->iteration + ($data->currentPage() - 1) * $data->perPage() }}</td>
+                                    <td>
+                                        @if (($filterType ?? 'daily') == 'yearly')
+                                            {{ \Carbon\Carbon::createFromFormat('Y-m', $row->bulan)->locale('id')->isoFormat('MMMM YYYY') }}
+                                        @else
+                                            {{ \Carbon\Carbon::parse($row->tanggal_kunjungan)->format('d F Y') }}
+                                        @endif
+                                    </td>
+                                    <td>{{ $row->kode_prodi }}</td>
+                                    <td>{{ $row->nama_prodi }}</td>
+                                    <td>{{ $row->jumlah_kunjungan }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-primary btn-sm view-detail-btn"
+                                            data-filter-type="{{ $filterType }}"
+                                            @if (($filterType ?? 'daily') == 'yearly') data-bulan-tahun="{{ $row->bulan }}"
+                                            @else
+                                            data-tanggal="{{ $row->tanggal_kunjungan }}" @endif
+                                            data-kode-identifikasi="{{ $row->kode_identifikasi }}">
+                                            <i class="fas fa-eye"></i> Lihat Detail
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center">Tidak ada data kunjungan ditemukan untuk filter
+                                        ini.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                {{ $data->links() }}
+            </div>
         </div>
+        {{-- AKHIR BAGIAN TABEL --}}
 
-        {{-- Pagination dan Total Kunjungan --}}
-        <div class="mt-3">
-            {{ $data->links() }}
-            <p class="mt-3">Total Kunjungan: {{ $totalKeseluruhanKunjungan }}</p>
-        </div>
     </div>
 
     {{-- Modal untuk Detail Pengunjung --}}
@@ -154,13 +224,20 @@
         </div>
     </div>
 
-
     @push('scripts')
         <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+        {{-- TAMBAHKAN LIBRARY CHART.JS --}}
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
 
         <script>
+            // Ambil data dari controller
+            const chartData = @json($chartData);
+            const filterType = "{{ $filterType ?? 'daily' }}";
+
             document.addEventListener("DOMContentLoaded", function() {
-                // Skrip untuk Logika Filter Dinamis (Kode ini tidak berubah)
+                // Skrip untuk Logika Filter Dinamis
                 const filterTypeSelect = document.getElementById('filter_type');
                 const dailyFilterStart = document.getElementById('dailyFilterStart');
                 const dailyFilterEnd = document.getElementById('dailyFilterEnd');
@@ -180,131 +257,6 @@
 
                 filterTypeSelect.addEventListener('change', toggleFilters);
                 toggleFilters();
-
-                // Skrip untuk Export ke CSV (Kode yang diperbarui)
-                // const downloadFullExcelButton = document.getElementById("downloadFullExcel");
-                // if (downloadFullExcelButton) {
-                //     downloadFullExcelButton.addEventListener("click", async function() {
-                //         // Mengambil parameter filter dari URL saat ini
-                //         const urlParams = new URLSearchParams(window.location.search);
-                //         const filterType = urlParams.get('filter_type') || 'daily';
-                //         const prodiFilter = urlParams.get('prodi') || '';
-
-                //         let url =
-                //             `{{ route('kunjungan.get_prodi_export_data') }}?filter_type=${filterType}`;
-
-                //         if (filterType === 'daily') {
-                //             const tanggalAwal = urlParams.get('tanggal_awal');
-                //             const tanggalAkhir = urlParams.get('tanggal_akhir');
-                //             if (!tanggalAwal || !tanggalAkhir) {
-                //                 alert("Mohon pilih tanggal awal dan tanggal akhir terlebih dahulu.");
-                //                 return;
-                //             }
-                //             url += `&tanggal_awal=${tanggalAwal}&tanggal_akhir=${tanggalAkhir}`;
-                //         } else if (filterType === 'yearly') {
-                //             const tahun = urlParams.get('tahun');
-                //             if (!tahun) {
-                //                 alert("Mohon pilih tahun terlebih dahulu.");
-                //                 return;
-                //             }
-                //             url += `&tahun=${tahun}`;
-                //         }
-
-                //         if (prodiFilter) {
-                //             url += `&prodi=${prodiFilter}`;
-                //         }
-
-                //         try {
-                //             const response = await fetch(url);
-                //             const result = await response.json();
-
-                //             if (response.ok) {
-                //                 if (result.data.length === 0) {
-                //                     alert("Tidak ada data untuk diekspor dalam rentang filter ini.");
-                //                     return;
-                //                 }
-
-                //                 let csv = [];
-                //                 const delimiter = ';';
-                //                 const headers = ['No', 'Tanggal Kunjungan', 'Kode Identifikasi',
-                //                     'Tipe User / Nama Prodi', 'Jumlah Kunjungan'
-                //                 ];
-                //                 csv.push(headers.join(delimiter));
-
-                //                 result.data.forEach((row, index) => {
-                //                     let formattedTanggal;
-                //                     if (filterType === 'yearly') {
-                //                         formattedTanggal = row
-                //                             .bulan; // Gunakan bulan jika filter yearly
-                //                     } else {
-                //                         formattedTanggal = new Date(row.tanggal_kunjungan)
-                //                             .toLocaleDateString('id-ID', {
-                //                                 year: 'numeric',
-                //                                 month: '2-digit',
-                //                                 day: '2-digit'
-                //                             });
-                //                     }
-
-                //                     const rowData = [
-                //                         (index + 1),
-                //                         formattedTanggal,
-                //                         `"${row.kode_identifikasi.replace(/"/g, '""')}"`,
-                //                         `"${row.nama_prodi.replace(/"/g, '""')}"`,
-                //                         row.jumlah_kunjungan
-                //                     ];
-                //                     csv.push(rowData.join(delimiter));
-                //                 });
-
-                //                 const csvString = csv.join('\n');
-                //                 const BOM = "\uFEFF"; // Byte Order Mark untuk encoding UTF-8
-                //                 const blob = new Blob([BOM + csvString], {
-                //                     type: 'text/csv;charset=utf-8;'
-                //                 });
-
-                //                 const link = document.createElement("a");
-
-                //                 let fileName =
-                //                     (() => {
-                //                         if (filterType === 'daily') {
-                //                             const tanggalAwal = urlParams.get('tanggal_awal');
-                //                             const tanggalAkhir = urlParams.get('tanggal_akhir');
-                //                             let range = `${tanggalAwal}_sampai_${tanggalAkhir}`;
-                //                             if (prodiFilter) {
-                //                                 return `laporan_kunjungan_${prodiFilter}_${filterType}_${range}.csv`;
-                //                             } else {
-                //                                 return `laporan_kunjungan_${filterType}_${range}.csv`;
-                //                             }
-                //                         } else {
-                //                             // yearly
-                //                             const tahun = urlParams.get('tahun');
-                //                             if (prodiFilter) {
-                //                                 return `laporan_kunjungan_${prodiFilter}_${filterType}_${tahun}.csv`;
-                //                             } else {
-                //                                 return `laporan_kunjungan_${filterType}_${tahun}.csv`;
-                //                             }
-                //                         }
-                //                     })();
-
-
-                //                 if (navigator.msSaveBlob) {
-                //                     navigator.msSaveBlob(blob, fileName);
-                //                 } else {
-                //                     link.href = URL.createObjectURL(blob);
-                //                     link.download = fileName;
-                //                     document.body.appendChild(link);
-                //                     link.click();
-                //                     document.body.removeChild(link);
-                //                     URL.revokeObjectURL(link.href);
-                //                 }
-                //             } else {
-                //                 alert(result.error || "Terjadi kesalahan saat mengambil data export.");
-                //             }
-                //         } catch (error) {
-                //             console.error('Error fetching export data:', error);
-                //             alert("Terjadi kesalahan teknis saat mencoba mengekspor data.");
-                //         }
-                //     });
-                // }
 
                 const downloadFullExcelButton = document.getElementById("downloadFullExcel");
                 if (downloadFullExcelButton) {
@@ -363,22 +315,19 @@
                                     'Tipe User / Nama Prodi', 'Jumlah Kunjungan'
                                 ];
 
-                                // Tambahkan judul sebagai baris pertama
                                 csv.push(`"${judul}"`);
                                 csv.push(headers.join(delimiter));
 
-                                let no = 1; // Inisialisasi nomor urut
+                                let no = 1;
                                 result.data.forEach((row) => {
                                     let formattedTanggal;
                                     if (filterType === 'yearly') {
-                                        // Gunakan format yang konsisten untuk tahunan
                                         formattedTanggal = new Date(row.bulan + '-01')
                                             .toLocaleDateString('id-ID', {
                                                 month: 'long',
                                                 year: 'numeric'
                                             });
                                     } else {
-                                        // Gunakan format yang konsisten untuk harian
                                         formattedTanggal = new Date(row.tanggal_kunjungan)
                                             .toLocaleDateString('id-ID', {
                                                 day: 'numeric',
@@ -388,7 +337,7 @@
                                     }
 
                                     const rowData = [
-                                        no++, // Tambahkan nomor urut dan inkremen
+                                        no++,
                                         `"${formattedTanggal.replace(/"/g, '""')}"`,
                                         `"${row.kode_identifikasi.replace(/"/g, '""')}"`,
                                         `"${row.nama_prodi.replace(/"/g, '""')}"`,
@@ -444,20 +393,19 @@
                     });
                 }
 
-                // Skrip untuk Pop-up Modal Detail Pengunjung (Kode ini tidak berubah)
+                // Skrip untuk Pop-up Modal Detail Pengunjung
                 const detailModal = new bootstrap.Modal(document.getElementById('detailPengunjungModal'));
                 const daftarNamaPengunjungUl = document.getElementById('daftarNamaPengunjung');
                 const modalPeriodeSpan = document.getElementById('modalPeriode');
                 const modalKodeTipeSpan = document.getElementById('modalKodeTipe');
                 const loadingMessage = document.getElementById('loadingMessage');
-                const noDataMessage = document.getElementById('noDataMessage'); // Ambil elemen baru ini
+                const noDataMessage = document.getElementById('noDataMessage');
 
                 document.querySelectorAll('.view-detail-btn').forEach(button => {
                     button.addEventListener('click', async function() {
                         const filterType = this.dataset.filterType;
                         const kodeIdentifikasi = this.dataset.kodeIdentifikasi;
 
-                        // Reset modal
                         daftarNamaPengunjungUl.innerHTML = '';
                         loadingMessage.style.display = 'block';
                         noDataMessage.style.display = 'none';
@@ -494,7 +442,7 @@
                             const data = await response.json();
 
                             loadingMessage.style.display = 'none';
-                            daftarNamaPengunjungUl.innerHTML = ''; // Kosongkan lagi sebelum diisi
+                            daftarNamaPengunjungUl.innerHTML = '';
 
                             if (data.length > 0) {
                                 data.forEach(pengunjung => {
@@ -521,6 +469,74 @@
                         }
                     });
                 });
+
+                // *** BAGIAN BARU UNTUK MEMBUAT CHART ***
+                const ctx = document.getElementById('kunjunganProdiChart').getContext('2d');
+                const labels = chartData.map(item => item.label);
+                const dataValues = chartData.map(item => item.total_kunjungan);
+
+                let chartUnit = (filterType === 'daily') ? 'day' : 'month';
+                let tooltipFormat = (filterType === 'daily') ? 'DD MMMM YYYY' : 'MMMM YYYY';
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Jumlah Kunjungan',
+                            data: dataValues,
+                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: chartUnit,
+                                    tooltipFormat: tooltipFormat,
+                                    displayFormats: {
+                                        day: 'DD MMM',
+                                        month: 'MMM YYYY'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: (filterType === 'daily') ? 'Tanggal' : 'Bulan'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Jumlah Kunjungan'
+                                },
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    title: function(context) {
+                                        const date = moment(context[0].label);
+                                        if (filterType === 'daily') {
+                                            return date.format('dddd, DD MMMM YYYY');
+                                        } else {
+                                            return date.format('MMMM YYYY');
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                // *** AKHIR BAGIAN BARU ***
             });
         </script>
     @endpush
