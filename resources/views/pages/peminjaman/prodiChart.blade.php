@@ -144,8 +144,8 @@
                                 <th>Periode</th>
                                 <th>Jumlah Buku Terpinjam</th>
                                 {{-- <th>Jumlah Buku Dikembalikan</th> --}}
-                                <th>Jumlah Peminjam</th>
-                                <th>Aksi</th>
+                                <th>Jumlah Orang Transaksi</th>
+                                <th>Detail Sirkulasi</th>
                             </tr>
                         </thead>
                         <tbody>

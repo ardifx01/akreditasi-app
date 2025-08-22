@@ -19,7 +19,7 @@
         .logo {
             display: block;
             margin: 0 auto 10px;
-            width: 50px;
+            width: 100px;
         }
 
         .header h1 {
@@ -43,7 +43,7 @@
         }
 
         .content {
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .member-info {
@@ -109,14 +109,17 @@
 
 <body>
     <div class="header">
-        <img src="{{ asset('img/logo0.png') }}" alt="Logo UMS" class="logo">
+        @if ($logoBase64)
+            <img src="{{ $logoBase64 }}" alt="Logo UMS" class="logo">
+        @else
+            <span>Logo UMS</span>
+        @endif
         <h1>UPT PERPUSTAKAAN DAN LAYANAN DIGITAL</h1>
         <h2>UNIVERSITAS MUHAMMADIYAH SURAKARTA</h2>
         <p>Jl. A.Yani Tromol Pos I Pabelan Surakarta 57102 Telp.0271-717417</p>
         <p>web : library.ums.ac.id email : perpus@ums.ac.id / humas.libums@gmail.com</p>
         <div class="line"></div>
     </div>
-
     <div class="content">
         <div class="header" style="margin-bottom: 5px;">
             <h3>LAPORAN KEHADIRAN ANGGOTA</h3>
@@ -136,6 +139,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th>No.</th>
                         <th>Bulan Tahun</th>
                         <th>Jumlah Kunjungan</th>
                     </tr>
@@ -143,13 +147,13 @@
                 <tbody>
                     @foreach ($dataKunjungan as $row)
                         <tr>
+                            <td>{{ $loop->iteration }}</td>
                             <td>{{ \Carbon\Carbon::createFromFormat('Ym', $row->tahun_bulan)->format('M Y') }}</td>
                             <td>{{ $row->jumlah_kunjungan }}</td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
-            <p class="total">Total Keseluruhan Kunjungan: {{ $dataKunjungan->sum('jumlah_kunjungan') }}</p>
         </div>
     </div>
 

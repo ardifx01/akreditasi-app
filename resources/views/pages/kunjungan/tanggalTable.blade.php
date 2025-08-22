@@ -3,7 +3,12 @@
 @section('title', 'Statistik Kunjungan Keseluruhan')
 @section('content')
     <div class="container-fluid">
-        <h4>Statistik Kunjungan Keseluruhan</h4>
+        <div class="card bg-white shadow-sm mb-4">
+            <div class="card-body">
+                <h4 class="mb-0">Statistik Kunjungan Keseluruhan</h4>
+                <small class="text-muted">Ringkasan data kunjungan berdasarkan periode</small>
+            </div>
+        </div>
         <hr>
         <div class="card mb-4">
             <div class="card-body">
@@ -61,131 +66,138 @@
             </div>
         @endif
 
-        {{-- Chart Section --}}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Grafik Kunjungan</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="kunjunganChart" style="max-height: 400px; height: 400px;"></canvas>
-            </div>
-        </div>
-
-        {{-- Table Section --}}
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <h5 class="mb-0 me-3">Statistik Data Kunjungan</h5>
+        {{-- Tampilkan bagian ini HANYA JIKA filter sudah disubmit --}}
+        @if ($hasFilter)
+            {{-- Chart Section --}}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Grafik Kunjungan</h5>
                 </div>
-                <div class="d-flex justify-content-end gap-2">
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="entriesDropdown"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            Tampilkan {{ $data->perPage() }} entri
+                <div class="card-body">
+                    <canvas id="kunjunganChart" style="max-height: 400px; height: 400px;"></canvas>
+                </div>
+            </div>
+
+            {{-- Table Section --}}
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <h5 class="mb-0 me-3">Statistik Data Kunjungan</h5>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="entriesDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Tampilkan {{ $data->perPage() }} entri
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="entriesDropdown">
+                                <li><a class="dropdown-item @if ($perPage == 10) active @endif"
+                                        href="{{ request()->fullUrlWithQuery(['per_page' => 10]) }}">10</a></li>
+                                <li><a class="dropdown-item @if ($perPage == 100) active @endif"
+                                        href="{{ request()->fullUrlWithQuery(['per_page' => 100]) }}">100</a></li>
+                                <li><a class="dropdown-item @if ($perPage == 1000) active @endif"
+                                        href="{{ request()->fullUrlWithQuery(['per_page' => 1000]) }}">1000</a></li>
+                            </ul>
+                        </div>
+                        <button type="button" id="downloadFullCsv" class="btn btn-success">
+                            <i class="fas fa-file-csv me-2"></i> Export ke CSV
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="entriesDropdown">
-                            <li><a class="dropdown-item @if ($perPage == 10) active @endif"
-                                    href="{{ request()->fullUrlWithQuery(['per_page' => 10]) }}">10</a></li>
-                            <li><a class="dropdown-item @if ($perPage == 100) active @endif"
-                                    href="{{ request()->fullUrlWithQuery(['per_page' => 100]) }}">100</a></li>
-                            <li><a class="dropdown-item @if ($perPage == 1000) active @endif"
-                                    href="{{ request()->fullUrlWithQuery(['per_page' => 1000]) }}">1000</a></li>
-                        </ul>
                     </div>
-                    <button type="button" id="downloadFullCsv" class="btn btn-success">
-                        <i class="fas fa-file-csv me-2"></i> Export ke CSV
-                    </button>
                 </div>
-
-            </div>
-            <div class="card-body">
-                @if (request()->has('filter_type') ||
-                        request()->has('tanggal_awal') ||
-                        request()->has('tanggal_akhir') ||
-                        request()->has('tahun'))
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="alert alert-primary py-2 m-0">
-                                <i class="fas fa-book me-2"></i> Total Keseluruhan:
-                                <span class="fw-bold">{{ number_format($totalKeseluruhanKunjungan, 0, ',', '.') }}</span>
+                <div class="card-body">
+                    @if (request()->has('filter_type') ||
+                            request()->has('tanggal_awal') ||
+                            request()->has('tanggal_akhir') ||
+                            request()->has('tahun'))
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="alert alert-primary py-2 m-0">
+                                    <i class="fas fa-book me-2"></i> Total Keseluruhan:
+                                    <span
+                                        class="fw-bold">{{ number_format($totalKeseluruhanKunjungan, 0, ',', '.') }}</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="alert alert-info py-2 m-0">
-                                <i class="fas fa-list-ol me-2"></i> Total Entri Data:
-                                <span class="fw-bold">{{ number_format($data->total(), 0, ',', '.') }}</span>
+                            <div class="col-md-3">
+                                <div class="alert alert-info py-2 m-0">
+                                    <i class="fas fa-list-ol me-2"></i> Total Entri Data:
+                                    <span class="fw-bold">{{ number_format($data->total(), 0, ',', '.') }}</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-5">
-                            <div class="alert alert-secondary py-2 m-0">
-                                <i class="fas fa-filter me-2"></i>Periode:
-                                <span class="fw-bold">
-                                    @if (($filterType ?? 'daily') == 'daily')
-                                        @if ($tanggalAwal && $tanggalAkhir)
-                                            {{ \Carbon\Carbon::parse($tanggalAwal)->translatedFormat('d F Y') }} s/d
-                                            {{ \Carbon\Carbon::parse($tanggalAkhir)->translatedFormat('d F Y') }}
-                                        @else
-                                            Tidak Ada
-                                        @endif
-                                    @elseif (($filterType ?? '') == 'yearly')
-                                        @if ($selectedYear)
-                                            Tahun {{ $selectedYear }}
-                                        @else
-                                            Semua Tahun
-                                        @endif
-                                    @endif
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-                <div class="table-responsive" id="tabelLaporan">
-                    <table class="table table-bordered table-striped" id="myTable">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Tanggal Kunjungan</th>
-                                <th>Total Kunjungan</th>
-                                <th>Detail Pengunjung</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($data as $index => $row)
-                                <tr>
-                                    <td>{{ $data->firstItem() + $index }}</td>
-                                    <td>
+                            <div class="col-md-5">
+                                <div class="alert alert-secondary py-2 m-0">
+                                    <i class="fas fa-filter me-2"></i>Periode:
+                                    <span class="fw-bold">
                                         @if (($filterType ?? 'daily') == 'daily')
-                                            {{ \Carbon\Carbon::parse($row->tanggal_kunjungan)->translatedFormat('d F Y') }}
-                                        @else
-                                            {{ \Carbon\Carbon::parse($row->tanggal_kunjungan)->translatedFormat('F Y') }}
+                                            @if ($tanggalAwal && $tanggalAkhir)
+                                                {{ \Carbon\Carbon::parse($tanggalAwal)->translatedFormat('d F Y') }} s/d
+                                                {{ \Carbon\Carbon::parse($tanggalAkhir)->translatedFormat('d F Y') }}
+                                            @else
+                                                Tidak Ada
+                                            @endif
+                                        @elseif (($filterType ?? '') == 'yearly')
+                                            @if ($selectedYear)
+                                                Tahun {{ $selectedYear }}
+                                            @else
+                                                Semua Tahun
+                                            @endif
                                         @endif
-                                    </td>
-                                    <td>{{ number_format($row->jumlah_kunjungan_harian, 0, ',', '.') }}</td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm view-detail-btn" data-bs-toggle="modal"
-                                            data-bs-target="#detailPengunjungModal"
-                                            data-tanggal="{{ $row->tanggal_kunjungan }}"
-                                            data-filter-type="{{ $filterType ?? 'daily' }}"
-                                            data-total="{{ $row->jumlah_kunjungan_harian }}"> {{-- Hapus number_format() --}}
-                                            <i class="fas fa-eye"></i> Lihat Detail
-                                        </button>
-                                    </td>
-                                </tr>
-                            @empty
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="table-responsive" id="tabelLaporan">
+                        <table class="table table-bordered table-striped" id="myTable">
+                            <thead>
                                 <tr>
-                                    <td colspan="4" class="text-center">Tidak ada data kunjungan ditemukan untuk filter
-                                        ini.</td>
+                                    <th>No</th>
+                                    <th>Tanggal Kunjungan</th>
+                                    <th>Total Kunjungan</th>
+                                    <th>Detail Pengunjung</th>
                                 </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mt-3">
-                    {{ $data->appends(request()->query())->links() }}
+                            </thead>
+                            <tbody>
+                                @forelse ($data as $index => $row)
+                                    <tr>
+                                        <td>{{ $data->firstItem() + $index }}</td>
+                                        <td>
+                                            @if (($filterType ?? 'daily') == 'daily')
+                                                {{ \Carbon\Carbon::parse($row->tanggal_kunjungan)->translatedFormat('d F Y') }}
+                                            @else
+                                                {{ \Carbon\Carbon::parse($row->tanggal_kunjungan)->translatedFormat('F Y') }}
+                                            @endif
+                                        </td>
+                                        <td>{{ number_format($row->jumlah_kunjungan_harian, 0, ',', '.') }}</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm view-detail-btn" data-bs-toggle="modal"
+                                                data-bs-target="#detailPengunjungModal"
+                                                data-tanggal="{{ $row->tanggal_kunjungan }}"
+                                                data-filter-type="{{ $filterType ?? 'daily' }}"
+                                                data-total="{{ $row->jumlah_kunjungan_harian }}">
+                                                <i class="fas fa-eye"></i> Lihat Detail
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="text-center">Tidak ada data kunjungan ditemukan untuk
+                                            filter ini.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        {{ $data->appends(request()->query())->links() }}
+                    </div>
                 </div>
             </div>
-        </div>
+        @else
+            <div class="alert alert-info text-center">
+                <i class="fas fa-filter me-2"></i> Silakan gunakan filter di atas untuk menampilkan data.
+            </div>
+        @endif
     </div>
 
     {{-- Modal untuk Detail Pengunjung --}}
@@ -199,7 +211,7 @@
                 </div>
                 <div class="modal-body">
                     <p><strong>Tanggal:</strong> <span id="modalTanggal"></span></p>
-                    <p><strong>Total Pengunjung:</strong> <span id="modalTotalPengunjungDetail"></span></p>
+                    <p><strong>Total Kunjungan:</strong> <span id="modalTotalPengunjungDetail"></span></p>
                     <hr>
                     <h6>Daftar Nama Pengunjung:</h6>
                     <div class="table-responsive mb-3">
@@ -240,7 +252,9 @@
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
     <script>
-        const chartData = @json($chartData);
+        // Gunakan variabel hasFilter dari PHP untuk JavaScript
+        const hasFilter = @json($hasFilter);
+        let chartData = @json($chartData);
         const filterType = "{{ $filterType ?? 'daily' }}";
         let currentFilterType = '';
 
@@ -395,6 +409,75 @@
                 });
             }
 
+            if (hasFilter) {
+                // --- Skrip untuk Chart.js ---
+                const ctx = document.getElementById('kunjunganChart').getContext('2d');
+                const labels = chartData.map(item => item.tanggal_kunjungan);
+                const dataValues = chartData.map(item => item.jumlah_kunjungan_harian);
+                let chartUnit = (filterType === 'daily') ? 'day' : 'month';
+                let tooltipFormat = (filterType === 'daily') ? 'DD MMMM YYYY' : 'MMMM YYYY';
+                let displayFormat = (filterType === 'daily') ? 'DD MMM' : 'MMM YYYY';
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Jumlah Kunjungan',
+                            data: dataValues,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: chartUnit,
+                                    tooltipFormat: tooltipFormat,
+                                    displayFormats: {
+                                        day: 'DD MMM',
+                                        month: 'MMM YYYY'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: (filterType === 'daily') ? 'Tanggal' : 'Bulan'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Jumlah Kunjungan'
+                                },
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    title: function(context) {
+                                        const date = moment(context[0].label);
+                                        if (filterType === 'daily') {
+                                            return date.format('dddd, DD MMMM YYYY');
+                                        } else {
+                                            return date.format('MMMM YYYY');
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
 
             // --- Skrip untuk Pop-up Modal Detail Pengunjung ---
             const detailModalEl = document.getElementById('detailPengunjungModal');
@@ -484,10 +567,10 @@
                 paginationVisitorsUl.innerHTML = '';
 
                 paginationVisitorsUl.innerHTML += `
-                    <li class="page-item ${current_page === 1 ? 'disabled' : ''}">
-                        <a class="page-link" href="#" data-page="${current_page - 1}">Previous</a>
-                    </li>
-                `;
+        <li class="page-item ${current_page === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${current_page - 1}">Previous</a>
+        </li>
+    `;
 
                 let startPage = Math.max(1, current_page - 2);
                 let endPage = Math.min(last_page, current_page + 2);
@@ -503,10 +586,10 @@
 
                 for (let i = startPage; i <= endPage; i++) {
                     paginationVisitorsUl.innerHTML += `
-                        <li class="page-item ${i === current_page ? 'active' : ''}">
-                            <a class="page-link" href="#" data-page="${i}">${i}</a>
-                        </li>
-                    `;
+            <li class="page-item ${i === current_page ? 'active' : ''}">
+                <a class="page-link" href="#" data-page="${i}">${i}</a>
+            </li>
+        `;
                 }
 
                 if (endPage < last_page) {
@@ -519,17 +602,18 @@
                 }
 
                 paginationVisitorsUl.innerHTML += `
-                    <li class="page-item ${current_page === last_page ? 'disabled' : ''}">
-                        <a class="page-link" href="#" data-page="${current_page + 1}">Next</a>
-                    </li>
-                `;
+        <li class="page-item ${current_page === last_page ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${current_page + 1}">Next</a>
+        </li>
+    `;
 
                 paginationVisitorsUl.querySelectorAll('.page-link').forEach(link => {
                     link.addEventListener('click', function(e) {
                         e.preventDefault();
                         const page = parseInt(this.getAttribute('data-page'));
                         if (page && page !== current_page && page >= 1 && page <= last_page) {
-                            loadDetailPengunjung(currentDetailTanggal, page);
+                            // Perbaikan di sini, pastikan currentFilterType juga terkirim
+                            loadDetailPengunjung(currentDetailTanggal, currentFilterType, page);
                         }
                     });
                 });
@@ -588,76 +672,6 @@
                 } catch (error) {
                     console.error('Error fetching export data:', error);
                     alert("Terjadi kesalahan teknis saat mencoba mengekspor data detail.");
-                }
-            });
-
-
-            // --- Skrip untuk Chart.js ---
-            const ctx = document.getElementById('kunjunganChart').getContext('2d');
-
-            const labels = chartData.map(item => item.tanggal_kunjungan);
-            const dataValues = chartData.map(item => item.jumlah_kunjungan_harian);
-
-            let chartUnit = (filterType === 'daily') ? 'day' : 'month';
-            let tooltipFormat = (filterType === 'daily') ? 'DD MMMM YYYY' : 'MMMM YYYY';
-            let displayFormat = (filterType === 'daily') ? 'DD MMM' : 'MMM YYYY';
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Jumlah Kunjungan',
-                        data: dataValues,
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: chartUnit,
-                                tooltipFormat: tooltipFormat,
-                                displayFormats: {
-                                    day: 'DD MMM',
-                                    month: 'MMM YYYY'
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: (filterType === 'daily') ? 'Tanggal' : 'Bulan'
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Jumlah Kunjungan'
-                            },
-                            ticks: {
-                                precision: 0
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                title: function(context) {
-                                    const date = moment(context[0].label);
-                                    if (filterType === 'daily') {
-                                        return date.format('dddd, DD MMMM YYYY');
-                                    } else {
-                                        return date.format('MMMM YYYY');
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             });
         });

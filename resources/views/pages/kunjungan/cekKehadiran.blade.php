@@ -8,21 +8,36 @@
     <form method="GET" action="{{ route('kunjungan.cekKehadiran') }}" class="row g-3 mb-4 align-items-end">
         <div class="col-md-3">
             <label for="cardnumber" class="form-label">Nomor Kartu Anggota (Cardnumber)</label>
-            <input type="text" name="cardnumber" id="cardnumber" class="form-control" />
+            <input type="text" name="cardnumber" id="cardnumber" class="form-control"
+                value="{{ request('cardnumber') }}" />
+        </div>
+        <div class="col-md-2">
+            <label for="tahun" class="form-label">Tahun</label>
+            <select name="tahun" id="tahun" class="form-control">
+                <option value="">Semua Tahun</option>
+                @php
+                    $currentYear = date('Y');
+                    for ($year = $currentYear; $year >= 2020; $year--) {
+                        echo "<option value='{$year}' " .
+                            (request('tahun') == $year ? 'selected' : '') .
+                            ">{$year}</option>";
+                    }
+                @endphp
+            </select>
         </div>
         <div class="col-md-1">
             <button type="submit" class="btn btn-primary w-100">Lihat</button>
         </div>
-        @if ($fullBorrowerDetails && $dataKunjungan->isNotEmpty())
-            <div class="col-md-2">
-                <a href="{{ route('kunjungan.export-pdf', ['cardnumber' => $fullBorrowerDetails->cardnumber]) }}"
-                    class="btn btn-danger w-100">Export ke PDF</a>
-            </div>
-            <div class="col-md-3">
-                <button type="button" id="downloadExportDataButton" class="btn btn-success w-100">Export ke
-                    CSV</button>
-            </div>
-        @endif
+        {{-- Tombol Export PDF dipindahkan ke luar blok if --}}
+        <div class="col-md-2">
+            <a href="{{ route('kunjungan.export-pdf', ['cardnumber' => $fullBorrowerDetails->cardnumber ?? '']) }}"
+                class="btn btn-danger w-100 {{ !$fullBorrowerDetails ? 'disabled' : '' }}">Export ke PDF</a>
+        </div>
+        {{-- Tombol Export CSV juga dipindahkan ke luar blok if --}}
+        <div class="col-md-3">
+            <button type="button" id="downloadExportDataButton"
+                class="btn btn-success w-100 {{ !$fullBorrowerDetails ? 'disabled' : '' }}">Export ke CSV</button>
+        </div>
     </form>
 
     @if ($pesan)
@@ -57,6 +72,7 @@
                     <table class="table table-bordered table-hover table-striped" id="kunjunganTable">
                         <thead>
                             <tr>
+                                <th>No.</th>
                                 <th>Bulan Tahun</th>
                                 <th>Jumlah Kunjungan</th>
                             </tr>
@@ -64,6 +80,8 @@
                         <tbody>
                             @foreach ($dataKunjungan as $row)
                                 <tr>
+                                    <td>{{ ($dataKunjungan->currentPage() - 1) * $dataKunjungan->perPage() + $loop->iteration }}
+                                    </td>
                                     <td>{{ \Carbon\Carbon::createFromFormat('Ym', $row->tahun_bulan)->format('M Y') }}
                                     </td>
                                     <td>{{ $row->jumlah_kunjungan }}</td>
