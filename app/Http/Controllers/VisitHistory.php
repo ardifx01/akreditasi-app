@@ -8,6 +8,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Support\Facades\File;
 
 class VisitHistory extends Controller
@@ -95,122 +97,27 @@ class VisitHistory extends Controller
         $this->prodiMapping['DOSEN_TENDIK'] = 'Dosen / Tenaga Kependidikan';
     }
 
-    // public function kunjunganProdiTable(Request $request)
-    // {
-    //     $listProdi = M_eprodi::pluck('nama', 'kode')->toArray();
-    //     $listProdi = ['DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan'] + $listProdi;
-
-    //     $filterType = $request->input('filter_type', 'daily');
-    //     $kodeProdiFilter = $request->input('prodi');
-    //     $perPage = $request->input('per_page', 10);
-
-    //     // Cek apakah ada parameter filter yang disubmit
-    //     $hasFilter = $request->has('filter_type') || $request->has('prodi') || $request->has('tanggal_awal') || $request->has('tahun');
-
-    //     // Inisialisasi variabel dengan nilai default (kosong)
-    //     $data = collect([]);
-    //     $chartData = collect([]);
-    //     $totalKeseluruhanKunjungan = 0;
-    //     $tanggalAwal = null;
-    //     $tanggalAkhir = null;
-    //     $tahun = null;
-    //     $displayPeriod = '';
-
-    //     if ($hasFilter) {
-    //         // Logika pengambilan data hanya dieksekusi jika ada filter
-    //         if ($filterType === 'yearly') {
-    //             $tahun = $request->input('tahun', Carbon::now()->year);
-    //             $tanggalAwal = Carbon::createFromDate($tahun, 1, 1)->format('Y-m-d');
-    //             $tanggalAkhir = Carbon::createFromDate($tahun, 12, 31)->format('Y-m-d');
-    //             $displayPeriod = "Tahun " . $tahun;
-    //         } else { // 'daily'
-    //             $tanggalAwal = $request->input('tanggal_awal', Carbon::now()->startOfMonth()->toDateString());
-    //             $tanggalAkhir = $request->input('tanggal_akhir', Carbon::now()->toDateString());
-    //             $displayPeriod = "Periode " . Carbon::parse($tanggalAwal)->locale('id')->isoFormat('D MMMM Y') . " s.d. " . Carbon::parse($tanggalAkhir)->locale('id')->isoFormat('D MMMM Y');
-    //         }
-
-    //         // Kueri untuk total keseluruhan
-    //         $totalKeseluruhanQuery = M_vishistory::query()
-    //             ->whereBetween('visittime', [$tanggalAwal . ' 00:00:00', $tanggalAkhir . ' 23:59:59']);
-    //         if (!empty($kodeProdiFilter)) {
-    //             if (strtoupper($kodeProdiFilter) === 'DOSEN_TENDIK') {
-    //                 $totalKeseluruhanQuery->whereRaw('LENGTH(cardnumber) <= 6');
-    //             } else {
-    //                 $totalKeseluruhanQuery->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
-    //             }
-    //         }
-    //         $totalKeseluruhanKunjungan = $totalKeseluruhanQuery->count();
-
-    //         // Kueri utama untuk tabel
-    //         $baseQuery = M_vishistory::selectRaw('
-    //             ' . ($filterType === 'yearly' ? 'DATE_FORMAT(visittime, "%Y-%m")' : 'DATE(visittime)') . ' as tanggal_kunjungan,
-    //             CASE
-    //                 WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK"
-    //                 ELSE SUBSTR(cardnumber, 1, 4)
-    //             END as kode_identifikasi,
-    //             COUNT(id) as jumlah_kunjungan_harian
-    //         ')
-    //             ->whereBetween('visittime', [$tanggalAwal . ' 00:00:00', $tanggalAkhir . ' 23:59:59']);
-    //         if (!empty($kodeProdiFilter)) {
-    //             if (strtoupper($kodeProdiFilter) === 'DOSEN_TENDIK') {
-    //                 $baseQuery->whereRaw('LENGTH(cardnumber) <= 6');
-    //             } else {
-    //                 $baseQuery->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
-    //             }
-    //         }
-    //         $baseQuery->groupBy('tanggal_kunjungan', 'kode_identifikasi')
-    //             ->orderBy('tanggal_kunjungan', 'asc')
-    //             ->orderBy('kode_identifikasi', 'asc');
-    //         $data = $baseQuery->paginate($perPage);
-
-    //         $prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray() + ['DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan'];
-    //         $data->getCollection()->transform(function ($item) use ($prodiMapping) {
-    //             $item->nama_prodi = $prodiMapping[strtoupper($item->kode_identifikasi)] ?? 'Prodi Tidak Dikenal';
-    //             $item->kode_prodi = $item->kode_identifikasi;
-    //             return $item;
-    //         });
-    //         $data->appends($request->all());
-
-    //         // Kueri untuk data chart
-    //         $chartDataQuery = M_vishistory::selectRaw('
-    //             ' . ($filterType === 'yearly' ? 'DATE_FORMAT(visittime, "%Y-%m")' : 'DATE(visittime)') . ' as label,
-    //             COUNT(id) as total_kunjungan
-    //         ')
-    //             ->whereBetween('visittime', [$tanggalAwal . ' 00:00:00', $tanggalAkhir . ' 23:59:59']);
-    //         if (!empty($kodeProdiFilter)) {
-    //             if (strtoupper($kodeProdiFilter) === 'DOSEN_TENDIK') {
-    //                 $chartDataQuery->whereRaw('LENGTH(cardnumber) <= 6');
-    //             } else {
-    //                 $chartDataQuery->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
-    //             }
-    //         }
-    //         if ($filterType === 'yearly') {
-    //             $chartDataQuery->groupBy(DB::raw('DATE_FORMAT(visittime, "%Y-%m")'))
-    //                 ->orderBy('label', 'asc');
-    //         } else {
-    //             $chartDataQuery->groupBy(DB::raw('DATE(visittime)'))
-    //                 ->orderBy('label', 'asc');
-    //         }
-    //         $chartData = $chartDataQuery->get();
-    //     }
-
-    //     // Mengirimkan variabel $hasFilter ke view
-    //     return view('pages.kunjungan.prodiTable', compact('data', 'listProdi', 'tanggalAwal', 'tanggalAkhir', 'filterType', 'tahun', 'perPage', 'displayPeriod', 'chartData', 'totalKeseluruhanKunjungan', 'hasFilter'));
-    // }
 
     public function kunjunganProdiTable(Request $request)
     {
+        // Mendapatkan daftar prodi dari database dan menambahkan tipe pengguna kustom
         $listProdi = M_eprodi::pluck('nama', 'kode')->toArray();
-        $listProdi = ['DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan'] + $listProdi;
+        $listProdi = [
+            'DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan',
+            'XA' => 'Alumni',
+            'XC' => 'Dosen Tidak Tetap',
+            'KSP' => 'Sekali Kunjung',
+            'LB' => 'Anggota Luar Biasa',
+            'KSPMBKM' => 'Magang MBKM',
+            'KSPBIPA' => 'Bahasa Indonesia dan Penutur Asing (BIPA)'
+        ] + $listProdi;
 
         $filterType = $request->input('filter_type', 'daily');
         $kodeProdiFilter = $request->input('prodi');
         $perPage = $request->input('per_page', 10);
 
-        // Cek apakah ada parameter filter yang disubmit
         $hasFilter = $request->has('filter_type') || $request->has('prodi') || $request->has('tanggal_awal') || $request->has('tahun_awal');
 
-        // Inisialisasi variabel dengan nilai default (kosong)
         $data = collect([]);
         $chartData = collect([]);
         $totalKeseluruhanKunjungan = 0;
@@ -221,11 +128,9 @@ class VisitHistory extends Controller
         $displayPeriod = '';
 
         if ($hasFilter) {
-            // Logika pengambilan data hanya dieksekusi jika ada filter
             if ($filterType === 'yearly') {
                 $tahunAwal = $request->input('tahun_awal', Carbon::now()->year);
                 $tahunAkhir = $request->input('tahun_akhir', Carbon::now()->year);
-                // Pastikan tahun awal tidak lebih besar dari tahun akhir
                 if ($tahunAwal > $tahunAkhir) {
                     $tahunAwal = $tahunAkhir;
                 }
@@ -241,38 +146,87 @@ class VisitHistory extends Controller
             // Kueri untuk total keseluruhan
             $totalKeseluruhanQuery = M_vishistory::query()
                 ->whereBetween('visittime', [$tanggalAwal . ' 00:00:00', $tanggalAkhir . ' 23:59:59']);
+
             if (!empty($kodeProdiFilter) && strtolower($kodeProdiFilter) !== 'semua') {
-                if (strtoupper($kodeProdiFilter) === 'DOSEN_TENDIK') {
-                    $totalKeseluruhanQuery->whereRaw('LENGTH(cardnumber) <= 6');
-                } else {
-                    $totalKeseluruhanQuery->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
+                switch (strtoupper($kodeProdiFilter)) {
+                    case 'DOSEN_TENDIK':
+                        $totalKeseluruhanQuery->whereRaw('LENGTH(cardnumber) <= 6');
+                        break;
+                    case 'XA':
+                    case 'XC':
+                    case 'LB':
+                        $totalKeseluruhanQuery->whereRaw('SUBSTR(cardnumber, 1, 2) = ?', [$kodeProdiFilter]);
+                        break;
+                    case 'KSP':
+                        $totalKeseluruhanQuery->whereRaw('SUBSTR(cardnumber, 1, 3) = ?', [$kodeProdiFilter]);
+                        break;
+                    case 'KSPMBKM':
+                    case 'KSPBIPA':
+                        $totalKeseluruhanQuery->whereRaw('SUBSTR(cardnumber, 1, 7) = ?', [$kodeProdiFilter]);
+                        break;
+                    default:
+                        $totalKeseluruhanQuery->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
+                        break;
                 }
             }
             $totalKeseluruhanKunjungan = $totalKeseluruhanQuery->count();
 
-            // Kueri utama untuk tabel
+            // Kueri utama untuk tabel dan chart
             $baseQuery = M_vishistory::selectRaw('
-            ' . ($filterType === 'yearly' ? 'DATE_FORMAT(visittime, "%Y-%m")' : 'DATE(visittime)') . ' as tanggal_kunjungan,
-            CASE
-                WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK"
-                ELSE SUBSTR(cardnumber, 1, 4)
-            END as kode_identifikasi,
-            COUNT(id) as jumlah_kunjungan_harian
-        ')
+                ' . ($filterType === 'yearly' ? 'DATE_FORMAT(visittime, "%Y-%m")' : 'DATE(visittime)') . ' as tanggal_kunjungan,
+                CASE
+                    WHEN SUBSTR(cardnumber, 1, 7) = "KSPMBKM" THEN "KSPMBKM"
+                    WHEN SUBSTR(cardnumber, 1, 7) = "KSPBIPA" THEN "KSPBIPA"
+                    WHEN SUBSTR(cardnumber, 1, 2) = "XA" THEN "XA"
+                    WHEN SUBSTR(cardnumber, 1, 2) = "XC" THEN "XC"
+                    WHEN SUBSTR(cardnumber, 1, 3) = "KSP" THEN "KSP"
+                    WHEN SUBSTR(cardnumber, 1, 2) = "LB" THEN "LB"
+                    WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK"
+                    ELSE SUBSTR(cardnumber, 1, 4)
+                END as kode_identifikasi,
+                COUNT(id) as jumlah_kunjungan_harian
+            ')
                 ->whereBetween('visittime', [$tanggalAwal . ' 00:00:00', $tanggalAkhir . ' 23:59:59']);
+
             if (!empty($kodeProdiFilter) && strtolower($kodeProdiFilter) !== 'semua') {
-                if (strtoupper($kodeProdiFilter) === 'DOSEN_TENDIK') {
-                    $baseQuery->whereRaw('LENGTH(cardnumber) <= 6');
-                } else {
-                    $baseQuery->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
+                switch (strtoupper($kodeProdiFilter)) {
+                    case 'DOSEN_TENDIK':
+                        $baseQuery->whereRaw('LENGTH(cardnumber) <= 6');
+                        break;
+                    case 'XA':
+                    case 'XC':
+                    case 'LB':
+                        $baseQuery->whereRaw('SUBSTR(cardnumber, 1, 2) = ?', [$kodeProdiFilter]);
+                        break;
+                    case 'KSP':
+                        $baseQuery->whereRaw('SUBSTR(cardnumber, 1, 3) = ?', [$kodeProdiFilter]);
+                        break;
+                    case 'KSPMBKM':
+                    case 'KSPBIPA':
+                        $baseQuery->whereRaw('SUBSTR(cardnumber, 1, 7) = ?', [$kodeProdiFilter]);
+                        break;
+                    default:
+                        $baseQuery->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
+                        break;
                 }
             }
+
             $baseQuery->groupBy('tanggal_kunjungan', 'kode_identifikasi')
                 ->orderBy('tanggal_kunjungan', 'asc')
                 ->orderBy('kode_identifikasi', 'asc');
+
             $data = $baseQuery->paginate($perPage);
 
-            $prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray() + ['DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan'];
+            $prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray() + [
+                'DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan',
+                'XA' => 'Alumni',
+                'XC' => 'Dosen Tidak Tetap',
+                'KSP' => 'Sekali Kunjung',
+                'LB' => 'Anggota Luar Biasa',
+                'KSPMBKM' => 'Magang MBKM',
+                'KSPBIPA' => 'Bahasa Indonesia bagi Penutur Asing (BIPA)'
+            ];
+
             $data->getCollection()->transform(function ($item) use ($prodiMapping) {
                 $item->nama_prodi = $prodiMapping[strtoupper($item->kode_identifikasi)] ?? 'Prodi Tidak Dikenal';
                 $item->kode_prodi = $item->kode_identifikasi;
@@ -280,32 +234,19 @@ class VisitHistory extends Controller
             });
             $data->appends($request->all());
 
-            // Kueri untuk data chart
-            $chartDataQuery = M_vishistory::selectRaw('
-            ' . ($filterType === 'yearly' ? 'DATE_FORMAT(visittime, "%Y-%m")' : 'DATE(visittime)') . ' as label,
-            COUNT(id) as total_kunjungan
-        ')
-                ->whereBetween('visittime', [$tanggalAwal . ' 00:00:00', $tanggalAkhir . ' 23:59:59']);
-            if (!empty($kodeProdiFilter) && strtolower($kodeProdiFilter) !== 'semua') {
-                if (strtoupper($kodeProdiFilter) === 'DOSEN_TENDIK') {
-                    $chartDataQuery->whereRaw('LENGTH(cardnumber) <= 6');
-                } else {
-                    $chartDataQuery->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
-                }
-            }
-            if ($filterType === 'yearly') {
-                $chartDataQuery->groupBy(DB::raw('DATE_FORMAT(visittime, "%Y-%m")'))
-                    ->orderBy('label', 'asc');
-            } else {
-                $chartDataQuery->groupBy(DB::raw('DATE(visittime)'))
-                    ->orderBy('label', 'asc');
-            }
-            $chartData = $chartDataQuery->get();
+            // Kueri untuk data chart (disatukan dengan kueri sebelumnya)
+            $chartData = (clone $baseQuery)->selectRaw('
+                ' . ($filterType === 'yearly' ? 'DATE_FORMAT(visittime, "%Y-%m")' : 'DATE(visittime)') . ' as label,
+                COUNT(id) as total_kunjungan
+            ')
+                ->groupBy('label')
+                ->orderBy('label', 'asc')
+                ->get();
         }
 
-        // Mengirimkan variabel $hasFilter ke view
         return view('pages.kunjungan.prodiTable', compact('data', 'listProdi', 'tanggalAwal', 'tanggalAkhir', 'filterType', 'tahunAwal', 'tahunAkhir', 'perPage', 'displayPeriod', 'chartData', 'totalKeseluruhanKunjungan', 'hasFilter'));
     }
+
 
     public function getDetailPengunjung(Request $request)
     {
@@ -334,27 +275,39 @@ class VisitHistory extends Controller
             $query->whereBetween('visitorhistory.visittime', [$startOfDay, $endOfDay]);
         }
 
-        if (strtoupper($kodeIdentifikasi) === 'DOSEN_TENDIK') {
-            $query->whereRaw('LENGTH(visitorhistory.cardnumber) <= 6');
-        } else {
-            $query->whereRaw('SUBSTR(visitorhistory.cardnumber, 1, 4) = ?', [$kodeIdentifikasi]);
+        switch (strtoupper($kodeIdentifikasi)) {
+            case 'DOSEN_TENDIK':
+                $query->whereRaw('LENGTH(visitorhistory.cardnumber) <= 6');
+                break;
+            case 'XA':
+            case 'XC':
+            case 'LB':
+                $query->whereRaw('SUBSTR(visitorhistory.cardnumber, 1, 2) = ?', [$kodeIdentifikasi]);
+                break;
+            case 'KSP':
+                $query->whereRaw('SUBSTR(visitorhistory.cardnumber, 1, 3) = ?', [$kodeIdentifikasi]);
+                break;
+            case 'KSPMBKM':
+            case 'KSPBIPA':
+                $query->whereRaw('SUBSTR(visitorhistory.cardnumber, 1, 7) = ?', [$kodeIdentifikasi]);
+                break;
+            default:
+                $query->whereRaw('SUBSTR(visitorhistory.cardnumber, 1, 4) = ?', [$kodeIdentifikasi]);
+                break;
         }
 
         $query->groupBy('visitorhistory.cardnumber', 'borrowers.surname')
             ->orderBy('visit_count', 'desc');
 
         if ($isExport) {
-            // Jika permintaan adalah untuk ekspor, ambil semua data
             $detailPengunjung = $query->get();
         } else {
-            // Jika bukan, gunakan paginasi seperti biasa
             $perPage = $request->input('per_page', 10);
             $detailPengunjung = $query->paginate($perPage);
         }
 
         return response()->json($detailPengunjung);
     }
-
 
     public function getProdiExportData(Request $request)
     {
@@ -382,21 +335,40 @@ class VisitHistory extends Controller
 
         // Bangun kueri tanpa paginasi
         $baseQuery = M_vishistory::selectRaw('
-        ' . ($filterType === 'yearly' ? 'DATE_FORMAT(visittime, "%Y-%m")' : 'DATE(visittime)') . ' as tanggal_kunjungan,
-        CASE
-            WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK"
-            ELSE SUBSTR(cardnumber, 1, 4)
-        END as kode_identifikasi,
-        COUNT(id) as jumlah_kunjungan_harian
-    ')
+            ' . ($filterType === 'yearly' ? 'DATE_FORMAT(visittime, "%Y-%m")' : 'DATE(visittime)') . ' as tanggal_kunjungan,
+            CASE
+                WHEN SUBSTR(cardnumber, 1, 7) = "KSPMBKM" THEN "KSPMBKM"
+                WHEN SUBSTR(cardnumber, 1, 7) = "KSPBIPA" THEN "KSPBIPA"
+                WHEN SUBSTR(cardnumber, 1, 2) = "XA" THEN "XA"
+                WHEN SUBSTR(cardnumber, 1, 2) = "XC" THEN "XC"
+                WHEN SUBSTR(cardnumber, 1, 3) = "KSP" THEN "KSP"
+                WHEN SUBSTR(cardnumber, 1, 2) = "LB" THEN "LB"
+                WHEN LENGTH(cardnumber) <= 6 THEN "DOSEN_TENDIK"
+                ELSE SUBSTR(cardnumber, 1, 4)
+            END as kode_identifikasi,
+            COUNT(id) as jumlah_kunjungan_harian
+        ')
             ->whereBetween('visittime', [$tanggalAwal . ' 00:00:00', $tanggalAkhir . ' 23:59:59']);
 
         // Tambahkan kondisi filter prodi jika tidak 'semua'
         if ($kodeProdiFilter && strtolower($kodeProdiFilter) !== 'semua') {
-            if (strtoupper($kodeProdiFilter) === 'DOSEN_TENDIK') {
-                $baseQuery->whereRaw('LENGTH(cardnumber) <= 6');
-            } else {
-                $baseQuery->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
+            switch (strtoupper($kodeProdiFilter)) {
+                case 'DOSEN_TENDIK':
+                    $baseQuery->whereRaw('LENGTH(cardnumber) <= 6');
+                    break;
+                case 'XA':
+                case 'XC':
+                case 'LB':
+                case 'KSP':
+                    $baseQuery->whereRaw('SUBSTR(cardnumber, 1, 2) = ?', [$kodeProdiFilter]);
+                    break;
+                case 'KSPMBKM':
+                case 'KSPBIPA':
+                    $baseQuery->whereRaw('SUBSTR(cardnumber, 1, 7) = ?', [$kodeProdiFilter]);
+                    break;
+                default:
+                    $baseQuery->whereRaw('SUBSTR(cardnumber, 1, 4) = ?', [$kodeProdiFilter]);
+                    break;
             }
         }
 
@@ -406,8 +378,16 @@ class VisitHistory extends Controller
             ->get();
 
         // Map data dengan nama prodi
-        $prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray() + ['DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan'];
-        $namaProdiFilter = $prodiMapping[strtoupper($kodeProdiFilter)] ?? 'Seluruh Prodi';
+        $prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray() + [
+            'DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan',
+            'XA' => 'Alumni',
+            'XC' => 'Dosen Tidak Tetap',
+            'KSP' => 'Sekali Kunjung (Non-MBKM/BIPA)',
+            'LB' => 'Anggota Luar Biasa',
+            'KSPMBKM' => 'Magang MBKM',
+            'KSPBIPA' => 'Bahasa Indonesia bagi Penutur Asing (BIPA)'
+        ];
+        $namaProdiFilter = $prodiMapping[strtoupper($kodeProdiFilter)] ?? 'Seluruh Program Studi';
         $data->transform(function ($item) use ($prodiMapping) {
             $item->nama_prodi = $prodiMapping[strtoupper($item->kode_identifikasi)] ?? 'Prodi Tidak Dikenal';
             $item->kode_prodi = $item->kode_identifikasi;
@@ -424,14 +404,11 @@ class VisitHistory extends Controller
             $file = fopen('php://output', 'w');
             fputs($file, $bom = chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // Tambahkan baris judul seperti contoh
-            fputcsv($file, ["Statistik Kunjungan per Program Studi: " . $namaProdiFilter], ';');
-            // fputcsv($file, ["Periode;Jumlah Kunjungan"], ';');
-
-            // Tambahkan baris kosong
+            fputcsv($file, ["Statistik Kunjungan : " . $namaProdiFilter], ';');
+            fputcsv($file, ["Periode: " . $periodeDisplay], ';');
             fputcsv($file, [''], ';');
 
-            $headers = ['Tanggal / Bulan', 'Kode Prodi', 'Nama Prodi', 'Jumlah Kunjungan'];
+            $headers = ['Tanggal / Bulan', 'Kode Identifikasi', 'Nama Prodi', 'Jumlah Kunjungan'];
             fputcsv($file, $headers, ';');
 
             foreach ($data as $row) {
@@ -453,12 +430,12 @@ class VisitHistory extends Controller
 
     public function kunjunganTanggalTable(Request $request)
     {
-        // Variabel untuk menyimpan status apakah filter sudah disubmit
-        $hasFilter = $request->has('filter_type') || $request->has('tanggal_awal') || $request->has('tanggal_akhir') || $request->has('tahun');
+        $hasFilter = $request->has('filter_type') || $request->has('tanggal_awal') || $request->has('tanggal_akhir') || $request->has('tahun_awal') || $request->has('tahun_akhir');
         $filterType = $request->input('filter_type', 'daily');
         $tanggalAwal = null;
         $tanggalAkhir = null;
-        $selectedYear = null;
+        $tahunAwal = null;
+        $tahunAkhir = null;
         $perPage = $request->input('per_page', 10);
         $data = collect();
         $chartData = collect();
@@ -469,16 +446,20 @@ class VisitHistory extends Controller
         }
 
         if ($hasFilter) {
-            // Logika pengambilan data hanya dijalankan jika filter sudah disubmit
             $baseQuery = M_vishistory::query();
 
             if ($filterType === 'yearly') {
-                $selectedYear = $request->input('tahun', Carbon::now()->year);
-                if (!is_numeric($selectedYear)) {
-                    $selectedYear = Carbon::now()->year;
+                $tahunAwal = (int) $request->input('tahun_awal', Carbon::now()->year);
+                $tahunAkhir = (int) $request->input('tahun_akhir', Carbon::now()->year);
+
+                // Pastikan tahun awal tidak lebih besar dari tahun akhir
+                if ($tahunAwal > $tahunAkhir) {
+                    return redirect()->back()->withInput($request->all())->with('error', 'Tahun awal tidak boleh lebih besar dari tahun akhir.');
                 }
-                $tanggalAwal = Carbon::createFromDate($selectedYear, 1, 1)->startOfYear()->format('Y-m-d');
-                $tanggalAkhir = Carbon::createFromDate($selectedYear, 12, 31)->endOfYear()->format('Y-m-d');
+
+                $tanggalAwal = Carbon::createFromDate($tahunAwal, 1, 1)->format('Y-m-d');
+                $tanggalAkhir = Carbon::createFromDate($tahunAkhir, 12, 31)->format('Y-m-d');
+
                 $baseQuery->select(
                     DB::raw('DATE_FORMAT(visittime, "%Y-%m-01") as tanggal_kunjungan'),
                     DB::raw('COUNT(id) as jumlah_kunjungan_harian')
@@ -507,14 +488,13 @@ class VisitHistory extends Controller
             $data->appends($request->all());
         }
 
-        // Teruskan variabel hasFilter ke view
-        return view('pages.kunjungan.tanggalTable', compact('data', 'totalKeseluruhanKunjungan', 'filterType', 'tanggalAwal', 'tanggalAkhir', 'selectedYear', 'chartData', 'perPage', 'hasFilter'));
+        return view('pages.kunjungan.tanggalTable', compact('data', 'totalKeseluruhanKunjungan', 'filterType', 'tanggalAwal', 'tanggalAkhir', 'tahunAwal', 'tahunAkhir', 'chartData', 'perPage', 'hasFilter'));
     }
 
     public function getDetailPengunjungHarian(Request $request)
     {
         $tanggalKunjungan = $request->input('tanggal');
-        $bulanTahun = $request->input('bulan'); // Ambil parameter 'bulan' dari request
+        $bulanTahun = $request->input('bulan');
         $kodeIdentifikasi = $request->input('kode_identifikasi');
         $page = $request->input('page', 1);
 
@@ -533,10 +513,7 @@ class VisitHistory extends Controller
             return response()->json(['error' => 'Parameter tanggal/bulan tidak ditemukan.'], 400);
         }
 
-        // Menggunakan Eloquent untuk Query
         $totalVisitors = M_vishistory::whereBetween('visittime', [$startDate, $endDate])->count();
-
-        // Pastikan ada relationship 'borrower' di model M_vishistory
         $visitors = M_vishistory::select(
             'visitorhistory.cardnumber',
             'borrowers.surname',
@@ -551,7 +528,6 @@ class VisitHistory extends Controller
         $formattedVisitors = $visitors->map(function ($visitor) {
             return [
                 'cardnumber' => $visitor->cardnumber,
-                // Ambil langsung dari hasil query, bukan relasi
                 'nama' => $visitor->surname ?? 'Nama tidak ditemukan',
                 'visit_count' => $visitor->visit_count,
             ];
@@ -610,26 +586,26 @@ class VisitHistory extends Controller
         return response()->json(['data' => $formattedVisitors]);
     }
 
-
     public function getKunjunganHarianExportData(Request $request)
     {
         $filterType = $request->input('filter_type', 'daily');
         $tanggalAwal = null;
         $tanggalAkhir = null;
-        $selectedYear = null;
         $exportData = collect(); // Inisialisasi koleksi kosong
 
         if ($filterType === 'yearly') {
-            $selectedYear = $request->input('tahun');
+            // --- PERBAIKAN DI SINI ---
+            // Ambil input dari form 'tahun_awal' dan 'tahun_akhir'
+            $tahunAwal = (int) $request->input('tahun_awal', Carbon::now()->year);
+            $tahunAkhir = (int) $request->input('tahun_akhir', Carbon::now()->year);
 
-            if (!$selectedYear || !is_numeric($selectedYear)) {
-                $selectedYear = Carbon::now()->year;
+            if ($tahunAwal > $tahunAkhir) {
+                return response()->json(['error' => 'Tahun awal tidak boleh lebih besar dari tahun akhir.'], 400);
             }
 
-            $tanggalAwal = Carbon::createFromDate($selectedYear, 1, 1)->startOfYear()->format('Y-m-d');
-            $tanggalAkhir = Carbon::createFromDate($selectedYear, 12, 31)->endOfYear()->format('Y-m-d');
+            $tanggalAwal = Carbon::createFromDate($tahunAwal, 1, 1)->format('Y-m-d');
+            $tanggalAkhir = Carbon::createFromDate($tahunAkhir, 12, 31)->format('Y-m-d');
 
-            // --- PERBAIKAN PADA QUERY INI ---
             $dataFromDb = M_vishistory::select(
                 DB::raw('DATE_FORMAT(visittime, "%Y-%m-01") as tanggal_kunjungan'),
                 DB::raw('COUNT(id) as jumlah_kunjungan_harian')
@@ -640,10 +616,7 @@ class VisitHistory extends Controller
                 ->orderBy(DB::raw('DATE_FORMAT(visittime, "%Y-%m-01")'), 'asc')
                 ->get();
 
-            // --- KODE BARU UNTUK MEMASTIKAN KONSISTENSI FORMAT ---
-            // Kita akan memformat ulang setiap item menggunakan Carbon sebelum dikirim
             $exportData = $dataFromDb->map(function ($item) {
-                // Pastikan format tanggal selalu YYYY-MM-DD
                 $item->tanggal_kunjungan = Carbon::parse($item->tanggal_kunjungan)->format('Y-m-d');
                 return $item;
             });
@@ -666,7 +639,7 @@ class VisitHistory extends Controller
                 ->get();
         }
 
-        if (Carbon::parse($tanggalAwal)->greaterThan(Carbon::parse($tanggalAkhir))) {
+        if ($tanggalAwal && $tanggalAkhir && Carbon::parse($tanggalAwal)->greaterThan(Carbon::parse($tanggalAkhir))) {
             return response()->json(['error' => 'Tanggal Awal tidak boleh lebih besar dari Tanggal Akhir.'], 400);
         }
 
@@ -769,23 +742,62 @@ class VisitHistory extends Controller
 
     public function exportPdf(Request $request)
     {
+        // Mengambil input request dengan cara yang lebih aman
         $cardnumber = $request->input('cardnumber');
         $tahun = $request->input('tahun');
 
-        // Cek jika data tidak ditemukan setelah filter
-        if (!$fullBorrowerDetails || $dataKunjungan->isEmpty()) {
-            return redirect()->back()->with('error', 'Data tidak ditemukan untuk Nomor Kartu Anggota atau filter tahun yang dipilih.');
+        // 1. Menggunakan model Eloquent jika memungkinkan, bukan DB::raw.
+        // Ini lebih rapi dan aman dari SQL Injection
+        $fullBorrowerDetails = DB::connection('mysql2')->table('borrowers')
+            ->select('cardnumber', 'firstname', 'surname', 'email', 'phone')
+            ->where('cardnumber', $cardnumber)
+            ->first();
+
+        // 2. Menggunakan Eloquent untuk data kunjungan juga
+        $dataKunjungan = M_vishistory::on('mysql2')
+            ->select(DB::raw('EXTRACT(YEAR_MONTH FROM visittime) as tahun_bulan'), DB::raw('COUNT(id) as jumlah_kunjungan'))
+            ->where('cardnumber', $cardnumber)
+            ->when($tahun, function ($query, $tahun) {
+                return $query->whereYear('visittime', $tahun);
+            })
+            ->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'))
+            ->orderBy('tahun_bulan', 'asc')
+            ->get();
+
+        // 3. Tambahkan validasi input dasar
+        if (empty($cardnumber)) {
+            return redirect()->back()->with('error', 'Nomor Kartu Anggota wajib diisi.');
         }
 
-        $options = new \Dompdf\Options();
-        $options->set('isRemoteEnabled', true);
+        if (!$fullBorrowerDetails) {
+            return redirect()->back()->with('error', 'Data anggota tidak ditemukan.');
+        }
 
-        // Kirim data dan opsi ke view Blade khusus PDF
-        $pdf = PDF::loadView('pages.kunjungan.laporan_kehadiran_pdf', compact('fullBorrowerDetails', 'dataKunjungan'))
-            ->setOptions($options);
+        // 4. Perbaikan pada inisialisasi Dompdf
+        $options = new Options();
+        $options->setIsRemoteEnabled(true);
+        // Jika perlu, kamu juga bisa mengatur opsi lain di sini,
+        // misalnya untuk font, dll.
 
-        // Unduh PDF
-        $fileName = 'laporan_kehadiran_' . $fullBorrowerDetails->cardnumber . '.pdf';
-        return $pdf->download($fileName);
+        // Inisialisasi Dompdf dengan Options
+        $dompdf = new Dompdf($options);
+
+        // Load view dan data
+        $html = view('pages.kunjungan.laporan_kehadiran_pdf', compact('fullBorrowerDetails', 'dataKunjungan'))->render();
+
+        // Muat HTML ke Dompdf
+        $dompdf->loadHtml($html);
+
+        // Atur ukuran dan orientasi kertas
+        $dompdf->setPaper('A4', 'portrait');
+
+        // Render HTML menjadi PDF
+        $dompdf->render();
+
+        // Nama file yang lebih dinamis
+        $fileName = 'laporan_kehadiran_' . str_replace(' ', '_', $fullBorrowerDetails->cardnumber) . '.pdf';
+
+        // 5. Mengirimkan PDF sebagai unduhan
+        return $dompdf->stream($fileName, ["Attachment" => true]);
     }
 }

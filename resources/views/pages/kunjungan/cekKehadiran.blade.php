@@ -28,17 +28,22 @@
         <div class="col-md-1">
             <button type="submit" class="btn btn-primary w-100">Lihat</button>
         </div>
-        {{-- Tombol Export PDF dipindahkan ke luar blok if --}}
+        {{-- Tombol Export PDF dan CSV menggunakan JavaScript untuk mencegah error "undefined variable" --}}
         <div class="col-md-2">
-            <a href="{{ route('kunjungan.export-pdf', ['cardnumber' => $fullBorrowerDetails->cardnumber ?? '']) }}"
-                class="btn btn-danger w-100 {{ !$fullBorrowerDetails ? 'disabled' : '' }}">Export ke PDF</a>
+            <button type="button" id="downloadPdfButton"
+                class="btn btn-danger w-100 {{ !request('cardnumber') ? 'disabled' : '' }}">Export ke PDF</button>
         </div>
-        {{-- Tombol Export CSV juga dipindahkan ke luar blok if --}}
         <div class="col-md-3">
             <button type="button" id="downloadExportDataButton"
-                class="btn btn-success w-100 {{ !$fullBorrowerDetails ? 'disabled' : '' }}">Export ke CSV</button>
+                class="btn btn-success w-100 {{ !request('cardnumber') ? 'disabled' : '' }}">Export ke CSV</button>
         </div>
     </form>
+
+    @if (session('error'))
+        <div class="alert alert-danger" role="alert">
+            {{ session('error') }}
+        </div>
+    @endif
 
     @if ($pesan)
         <div class="alert alert-info text-center" role="alert">
@@ -46,7 +51,7 @@
         </div>
     @endif
 
-    @if ($fullBorrowerDetails && $dataKunjungan->isNotEmpty())
+    @if (isset($fullBorrowerDetails) && $fullBorrowerDetails && $dataKunjungan->isNotEmpty())
         <div class="card mb-4">
             <div class="card-body">
                 {{-- <button id="saveChart" class="btn btn-sm btn-success">Save Pdf</button> --}}
@@ -104,7 +109,92 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        @if ($fullBorrowerDetails && $dataKunjungan->isNotEmpty())
+        // Logika untuk tombol Export ke PDF
+        const downloadPdfButton = document.getElementById("downloadPdfButton");
+        if (downloadPdfButton) {
+            downloadPdfButton.addEventListener("click", function() {
+                const cardnumber = document.getElementById('cardnumber').value;
+                const tahun = document.getElementById('tahun').value;
+                if (cardnumber) {
+                    window.location.href =
+                        `{{ route('kunjungan.export-pdf') }}?cardnumber=${cardnumber}&tahun=${tahun}`;
+                } else {
+                    alert("Mohon masukkan Nomor Kartu Anggota terlebih dahulu.");
+                }
+            });
+        }
+
+        // Logika untuk tombol Export ke CSV
+        const downloadExportDataButton = document.getElementById("downloadExportDataButton");
+        if (downloadExportDataButton) {
+            downloadExportDataButton.addEventListener("click", async function() {
+                const cardnumber = document.getElementById('cardnumber').value;
+
+                if (!cardnumber) {
+                    alert("Mohon masukkan Nomor Kartu Anggota terlebih dahulu.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch(
+                        `{{ route('kunjungan.get_export_data') }}?cardnumber=${cardnumber}`
+                    );
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        if (result.data.length === 0) {
+                            alert("Tidak ada data untuk diekspor.");
+                            return;
+                        }
+
+                        let csv = [];
+                        const delimiter = ';';
+                        const BOM = "\uFEFF"; // Untuk compatibility di Excel
+
+                        // Tambahkan header
+                        const headers = ['Bulan Tahun', 'Jumlah Kunjungan'];
+                        csv.push(headers.join(delimiter));
+
+
+                        result.data.forEach(row => {
+                            const rowData = [
+                                `"${row.bulan_tahun.replace(/"/g, '""')}"`,
+                                row.jumlah_kunjungan
+                            ];
+                            csv.push(rowData.join(delimiter));
+                        });
+
+                        const csvString = csv.join('\n');
+                        const blob = new Blob([BOM + csvString], {
+                            type: 'text/csv;charset=utf-8;'
+                        });
+
+                        const link = document.createElement("a");
+                        const fileName =
+                            `laporan_kehadiran_${result.cardnumber}_${(result.borrower_name || 'unknown').replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.csv`;
+
+                        if (navigator.msSaveBlob) {
+                            navigator.msSaveBlob(blob, fileName);
+                        } else {
+                            link.href = URL.createObjectURL(blob);
+                            link.download = fileName;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(link.href);
+                        }
+                    } else {
+                        alert(result.error || "Terjadi kesalahan saat mengambil data export.");
+                    }
+                } catch (error) {
+                    console.error('Error fetching export data:', error);
+                    alert("Terjadi kesalahan teknis saat mencoba mengekspor data.");
+                }
+            });
+        }
+
+        // Logika Chart.js
+        @if (isset($fullBorrowerDetails) && $fullBorrowerDetails && $dataKunjungan->isNotEmpty())
             const chartCanvas = document.getElementById('chartKunjungan');
             const chart = chartCanvas.getContext('2d');
 
@@ -130,95 +220,6 @@
                     }
                 }
             });
-
-            document.getElementById("saveChart").addEventListener("click", function() {
-                const newCanvas = document.createElement("canvas");
-                newCanvas.width = chartCanvas.width;
-                newCanvas.height = chartCanvas.height;
-
-                const context = newCanvas.getContext("2d");
-                context.fillStyle = "#ffffff";
-                context.fillRect(0, 0, newCanvas.width, newCanvas.height);
-                context.drawImage(chartCanvas, 0, 0);
-                const imageURL = newCanvas.toDataURL("image/png");
-
-                const downloadLink = document.createElement("a");
-                downloadLink.href = imageURL;
-                downloadLink.download =
-                    "chart_kunjungan_anggota_{{ Str::slug($fullBorrowerDetails->cardnumber ?? 'unknown') }}.png";
-                downloadLink.click();
-            });
-
-            const downloadExportDataButton = document.getElementById("downloadExportDataButton");
-            if (downloadExportDataButton) {
-                downloadExportDataButton.addEventListener("click", async function() {
-                    const cardnumber = document.getElementById('cardnumber').value;
-
-                    if (!cardnumber) {
-                        alert("Mohon masukkan Nomor Kartu Anggota terlebih dahulu.");
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch(
-                            `{{ route('kunjungan.get_export_data') }}?cardnumber=${cardnumber}`
-                        );
-                        const result = await response.json();
-
-                        if (response.ok) {
-                            if (result.data.length === 0) {
-                                alert("Tidak ada data untuk diekspor.");
-                                return;
-                            }
-
-                            let csv = [];
-                            const delimiter = ';';
-
-                            const headers = ['Bulan Tahun',
-                                'Jumlah Kunjungan'
-                            ];
-                            csv.push(headers.join(delimiter));
-
-
-                            result.data.forEach(row => {
-                                const rowData = [
-                                    `"${row.bulan_tahun.replace(/"/g, '""')}"`,
-                                    row.jumlah_kunjungan
-                                ];
-                                csv.push(rowData.join(delimiter));
-                            });
-
-                            const csvString = csv.join('\n');
-                            const BOM =
-                                "\uFEFF";
-                            const blob = new Blob([BOM + csvString], {
-                                type: 'text/csv;charset=utf-8;'
-                            });
-
-                            const link = document.createElement("a");
-                            const fileName =
-                                `laporan_kehadiran_${result.cardnumber}_${(result.borrower_name || 'unknown').replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.csv`;
-
-                            if (navigator.msSaveBlob) {
-                                navigator.msSaveBlob(blob, fileName);
-                            } else {
-                                link.href = URL.createObjectURL(blob);
-                                link.download = fileName;
-                                document.body.appendChild(
-                                    link);
-                                link.click();
-                                document.body.removeChild(link);
-                                URL.revokeObjectURL(link.href);
-                            }
-                        } else {
-                            alert(result.error || "Terjadi kesalahan saat mengambil data export.");
-                        }
-                    } catch (error) {
-                        console.error('Error fetching export data:', error);
-                        alert("Terjadi kesalahan teknis saat mencoba mengekspor data.");
-                    }
-                });
-            }
         @endif
     });
 </script>

@@ -16,10 +16,13 @@
             margin-bottom: 20px;
         }
 
+        /* Perbaikan CSS: Tambahkan 'max-width' */
         .logo {
             display: block;
             margin: 0 auto 10px;
             width: 100px;
+            max-width: 100%;
+            /* Tambahan agar gambar tidak melebihi lebar kontainernya */
         }
 
         .header h1 {
@@ -61,7 +64,6 @@
         .member-info p strong {
             display: inline-block;
             width: 150px;
-            /* Lebar yang seragam untuk label */
         }
 
         table {
@@ -109,11 +111,8 @@
 
 <body>
     <div class="header">
-        @if ($logoBase64)
-            <img src="{{ $logoBase64 }}" alt="Logo UMS" class="logo">
-        @else
-            <span>Logo UMS</span>
-        @endif
+        <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('img/logo.png'))) }}"
+            alt="Logo UMS" class="logo">
         <h1>UPT PERPUSTAKAAN DAN LAYANAN DIGITAL</h1>
         <h2>UNIVERSITAS MUHAMMADIYAH SURAKARTA</h2>
         <p>Jl. A.Yani Tromol Pos I Pabelan Surakarta 57102 Telp.0271-717417</p>
@@ -123,11 +122,14 @@
     <div class="content">
         <div class="header" style="margin-bottom: 5px;">
             <h3>LAPORAN KEHADIRAN ANGGOTA</h3>
-            <p>Periode:
-                {{ \Carbon\Carbon::createFromFormat('Ym', $dataKunjungan->first()->tahun_bulan)->format('M Y') }} -
-                {{ \Carbon\Carbon::createFromFormat('Ym', $dataKunjungan->last()->tahun_bulan)->format('M Y') }}</p>
+            @if ($dataKunjungan->isNotEmpty())
+                <p>Periode:
+                    {{ \Carbon\Carbon::createFromFormat('Ym', $dataKunjungan->first()->tahun_bulan)->format('M Y') }} -
+                    {{ \Carbon\Carbon::createFromFormat('Ym', $dataKunjungan->last()->tahun_bulan)->format('M Y') }}</p>
+            @else
+                <p>Periode: Data tidak ditemukan</p>
+            @endif
         </div>
-
         <div class="member-info">
             <p><strong>Nomor Kartu Anggota</strong>: {{ $fullBorrowerDetails->cardnumber }}</p>
             <p><strong>Nama</strong>: {{ $fullBorrowerDetails->firstname }} {{ $fullBorrowerDetails->surname }}</p>

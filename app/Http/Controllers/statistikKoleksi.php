@@ -47,7 +47,7 @@ class StatistikKoleksi extends Controller
                 bi.publishercode AS Penerbit,
                 bi.publicationyear AS TahunTerbit,
                 items.enumchron AS Nomor,
-                CONCAT('https://search.lib.ums.ac.id/cgi-bin/koha/opac-detail.pl?biblionumber=', b.biblionumber) AS Link,
+                CONCAT('https://search-lib.ums.ac.id/cgi-bin/koha/opac-detail.pl?biblionumber=', b.biblionumber) AS Link,
                 COUNT(DISTINCT items.itemnumber) AS Issue,
                 SUM(items.copynumber) AS Eksemplar,
                 items.homebranch as Lokasi")
@@ -157,7 +157,8 @@ class StatistikKoleksi extends Controller
             SUM(items.copynumber) AS Eksemplar,
             MAX(bi.publicationyear) as tahun_terbit,
             COUNT(DISTINCT items.itemnumber) AS Issue,
-            CONCAT('https://search.lib.ums.ac.id/cgi-bin/koha/opac-detail.pl?biblionumber=', b.biblionumber) AS Link,
+            CONCAT('https://search-lib.ums.ac.id/cgi-bin/koha/opac-detail.pl?biblionumber=', b.biblionumber) AS Link,
+            EXTRACTVALUE(bm.metadata,'//datafield[@tag=\"856\"]/subfield[@code=\"u\"]') as online_resources,
             i1.description as Jenis,
             items.homebranch as Lokasi,
             MAX(items.biblionumber) as biblionumber
@@ -181,7 +182,7 @@ class StatistikKoleksi extends Controller
             $query->orderBy('tahun_terbit', 'desc');
             $query->orderBy('Judul_a', 'asc');
 
-            $query->groupBy('Judul_a', 'Judul_b', 'Nomor', 'Kelas', 'Jenis', 'Link', 'Lokasi');
+            $query->groupBy('Judul_a', 'Judul_b', 'Nomor', 'Kelas', 'Jenis', 'Link', 'Lokasi', 'online_resources');
 
             $processedData = $query->get()->map(function ($row) {
                 $fullJudul = $row->Judul_a;
@@ -452,6 +453,7 @@ class StatistikKoleksi extends Controller
      * @param Request $request
      * @return \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
      */
+    // ... kode lainnya ...
     public function periodikal(Request $request)
     {
         $listprodi = M_eprodi::all();
@@ -466,6 +468,10 @@ class StatistikKoleksi extends Controller
         $data = collect();
         $namaProdi = '';
         $dataExists = false;
+
+        // Tambahkan inisialisasi variabel di sini
+        $totalJudul = 0;
+        $totalEksemplar = 0;
 
         if ($prodi && $prodi !== 'initial') {
             $prodiMapping = $listprodi->pluck('nama', 'kode')->toArray();
@@ -535,7 +541,7 @@ class StatistikKoleksi extends Controller
             }
 
             $totals = $totalQuery->first();
-            // ⭐ Pastikan variabel ini didefinisikan dengan nilai dari query
+            // Variabel ini sekarang akan menimpa nilai awal yang 0
             $totalJudul = $totals->total_judul ?? 0;
             $totalEksemplar = $totals->total_eksemplar ?? 0;
 

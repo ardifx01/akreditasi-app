@@ -37,16 +37,29 @@
                             value="{{ $tanggalAkhir ?? \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d') }}">
                     </div>
 
-                    <div class="col-md-2" id="yearlyFilterYear"
+                    {{-- Dua dropdown untuk rentang tahun --}}
+                    <div class="col-md-2" id="yearlyFilterStart"
                         style="{{ ($filterType ?? '') == 'yearly' ? '' : 'display: none;' }}">
-                        <label for="tahun" class="form-label">Tahun</label>
-                        <select name="tahun" id="tahun" class="form-select">
-                            <option value="">-- Pilih Tahun --</option>
+                        <label for="tahun_awal" class="form-label">Tahun Awal:</label>
+                        <select name="tahun_awal" id="tahun_awal" class="form-select">
                             @php
                                 $currentYear = \Carbon\Carbon::now()->year;
                                 for ($year = $currentYear; $year >= 2020; $year--) {
-                                    $selected =
-                                        (string) $year === (string) ($selectedYear ?? $currentYear) ? 'selected' : '';
+                                    $selected = ($tahunAwal ?? $currentYear) == $year ? 'selected' : '';
+                                    echo "<option value='{$year}' {$selected}>{$year}</option>";
+                                }
+                            @endphp
+                        </select>
+                    </div>
+
+                    <div class="col-md-2" id="yearlyFilterEnd"
+                        style="{{ ($filterType ?? '') == 'yearly' ? '' : 'display: none;' }}">
+                        <label for="tahun_akhir" class="form-label">Tahun Akhir:</label>
+                        <select name="tahun_akhir" id="tahun_akhir" class="form-select">
+                            @php
+                                $currentYear = \Carbon\Carbon::now()->year;
+                                for ($year = $currentYear; $year >= 2020; $year--) {
+                                    $selected = ($tahunAkhir ?? $currentYear) == $year ? 'selected' : '';
                                     echo "<option value='{$year}' {$selected}>{$year}</option>";
                                 }
                             @endphp
@@ -66,7 +79,6 @@
             </div>
         @endif
 
-        {{-- Tampilkan bagian ini HANYA JIKA filter sudah disubmit --}}
         @if ($hasFilter)
             {{-- Chart Section --}}
             <div class="card mb-4">
@@ -105,47 +117,37 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    @if (request()->has('filter_type') ||
-                            request()->has('tanggal_awal') ||
-                            request()->has('tanggal_akhir') ||
-                            request()->has('tahun'))
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <div class="alert alert-primary py-2 m-0">
-                                    <i class="fas fa-book me-2"></i> Total Keseluruhan:
-                                    <span
-                                        class="fw-bold">{{ number_format($totalKeseluruhanKunjungan, 0, ',', '.') }}</span>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="alert alert-info py-2 m-0">
-                                    <i class="fas fa-list-ol me-2"></i> Total Entri Data:
-                                    <span class="fw-bold">{{ number_format($data->total(), 0, ',', '.') }}</span>
-                                </div>
-                            </div>
-                            <div class="col-md-5">
-                                <div class="alert alert-secondary py-2 m-0">
-                                    <i class="fas fa-filter me-2"></i>Periode:
-                                    <span class="fw-bold">
-                                        @if (($filterType ?? 'daily') == 'daily')
-                                            @if ($tanggalAwal && $tanggalAkhir)
-                                                {{ \Carbon\Carbon::parse($tanggalAwal)->translatedFormat('d F Y') }} s/d
-                                                {{ \Carbon\Carbon::parse($tanggalAkhir)->translatedFormat('d F Y') }}
-                                            @else
-                                                Tidak Ada
-                                            @endif
-                                        @elseif (($filterType ?? '') == 'yearly')
-                                            @if ($selectedYear)
-                                                Tahun {{ $selectedYear }}
-                                            @else
-                                                Semua Tahun
-                                            @endif
-                                        @endif
-                                    </span>
-                                </div>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="alert alert-primary py-2 m-0">
+                                <i class="fas fa-book me-2"></i> Total Keseluruhan:
+                                <span class="fw-bold">{{ number_format($totalKeseluruhanKunjungan, 0, ',', '.') }}</span>
                             </div>
                         </div>
-                    @endif
+                        <div class="col-md-3">
+                            <div class="alert alert-info py-2 m-0">
+                                <i class="fas fa-list-ol me-2"></i> Total Entri Data:
+                                <span class="fw-bold">{{ number_format($data->total(), 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="alert alert-secondary py-2 m-0">
+                                <i class="fas fa-filter me-2"></i>Periode:
+                                <span class="fw-bold">
+                                    @if (($filterType ?? 'daily') == 'daily')
+                                        @if ($tanggalAwal && $tanggalAkhir)
+                                            {{ \Carbon\Carbon::parse($tanggalAwal)->translatedFormat('d F Y') }} s/d
+                                            {{ \Carbon\Carbon::parse($tanggalAkhir)->translatedFormat('d F Y') }}
+                                        @else
+                                            Tidak Ada
+                                        @endif
+                                    @elseif (($filterType ?? '') == 'yearly')
+                                        Tahun {{ $tahunAwal }} s/d {{ $tahunAkhir }}
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="table-responsive" id="tabelLaporan">
                         <table class="table table-bordered table-striped" id="myTable">
@@ -263,10 +265,12 @@
             const filterTypeSelect = document.getElementById('filter_type');
             const dailyFilterStart = document.getElementById('dailyFilterStart');
             const dailyFilterEnd = document.getElementById('dailyFilterEnd');
-            const yearlyFilterYear = document.getElementById('yearlyFilterYear');
+            const yearlyFilterStart = document.getElementById('yearlyFilterStart');
+            const yearlyFilterEnd = document.getElementById('yearlyFilterEnd');
             const tanggalAwalInput = document.getElementById('tanggal_awal');
             const tanggalAkhirInput = document.getElementById('tanggal_akhir');
-            const tahunSelect = document.getElementById('tahun');
+            const tahunAwalSelect = document.getElementById('tahun_awal');
+            const tahunAkhirSelect = document.getElementById('tahun_akhir');
             const filterForm = document.getElementById('filterForm');
             const downloadFullCsvButton = document.getElementById('downloadFullCsv');
 
@@ -275,52 +279,25 @@
                 if (selectedValue === 'daily') {
                     dailyFilterStart.style.display = 'block';
                     dailyFilterEnd.style.display = 'block';
-                    yearlyFilterYear.style.display = 'none';
+                    yearlyFilterStart.style.display = 'none';
+                    yearlyFilterEnd.style.display = 'none';
 
-                    tahunSelect.value = '';
-                    tahunSelect.disabled = true;
                     tanggalAwalInput.disabled = false;
                     tanggalAkhirInput.disabled = false;
                 } else { // 'yearly'
                     dailyFilterStart.style.display = 'none';
                     dailyFilterEnd.style.display = 'none';
-                    yearlyFilterYear.style.display = 'block';
+                    yearlyFilterStart.style.display = 'block';
+                    yearlyFilterEnd.style.display = 'block';
 
-                    tanggalAwalInput.value = '';
-                    tanggalAkhirInput.value = '';
                     tanggalAwalInput.disabled = true;
                     tanggalAkhirInput.disabled = true;
-                    tahunSelect.disabled = false;
-                }
-            }
-
-            function updateTanggalInputs() {
-                const selectedYear = tahunSelect.value;
-                if (selectedYear) {
-                    tanggalAwalInput.value = `${selectedYear}-01-01`;
-                    tanggalAkhirInput.value = `${selectedYear}-12-31`;
-                } else {
-                    tanggalAwalInput.value = '';
-                    tanggalAkhirInput.value = '';
                 }
             }
 
             toggleFilterInputs();
 
             filterTypeSelect.addEventListener('change', function() {
-                toggleFilterInputs();
-                if (this.value === 'daily') {
-                    tanggalAwalInput.value =
-                        '{{ \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d') }}';
-                    tanggalAkhirInput.value = '{{ \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d') }}';
-                } else {
-                    tahunSelect.value = '{{ \Carbon\Carbon::now()->year }}';
-                    updateTanggalInputs();
-                }
-            });
-            tahunSelect.addEventListener('change', updateTanggalInputs);
-
-            filterForm.addEventListener('submit', function() {
                 toggleFilterInputs();
             });
 
@@ -339,12 +316,13 @@
                         }
                         fileName += `_harian_${tanggalAwal}_${tanggalAkhir}`;
                     } else { // yearly
-                        const tahun = tahunSelect.value;
-                        if (!tahun) {
-                            alert("Mohon pilih tahun terlebih dahulu.");
+                        const tahunAwal = tahunAwalSelect.value;
+                        const tahunAkhir = tahunAkhirSelect.value;
+                        if (!tahunAwal || !tahunAkhir) {
+                            alert("Mohon pilih tahun awal dan tahun akhir terlebih dahulu.");
                             return;
                         }
-                        fileName += `_tahunan_${tahun}`;
+                        fileName += `_tahunan_${tahunAwal}_${tahunAkhir}`;
                     }
 
                     try {
@@ -498,8 +476,7 @@
                 loadDetailPengunjung(tanggalKunjungan, currentFilterType);
             });
 
-            async function loadDetailPengunjung(tanggal, filterType, page =
-                1) { // <-- Tambahkan parameter 'filterType'
+            async function loadDetailPengunjung(tanggal, filterType, page = 1) {
                 currentDetailTanggal = tanggal;
                 tbodyDetailPengunjung.innerHTML = loadingMessage;
                 paginationVisitorsUl.innerHTML = '';
@@ -612,7 +589,6 @@
                         e.preventDefault();
                         const page = parseInt(this.getAttribute('data-page'));
                         if (page && page !== current_page && page >= 1 && page <= last_page) {
-                            // Perbaikan di sini, pastikan currentFilterType juga terkirim
                             loadDetailPengunjung(currentDetailTanggal, currentFilterType, page);
                         }
                     });

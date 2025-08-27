@@ -541,8 +541,6 @@
                     modalPeriodeSpan.textContent = `(${periodeText})`;
                     modalKodeTipeSpan.textContent = listProdi[currentKodeIdentifikasi] ||
                         currentKodeIdentifikasi;
-
-                    // Panggil fungsi utama untuk memuat data di halaman 1
                     loadDetailData(1);
                 });
             });
@@ -553,9 +551,43 @@
             if (downloadFullCsvBtn) {
                 downloadFullCsvBtn.addEventListener('click', async function() {
                     const params = new URLSearchParams(window.location.search);
-                    const query =
-                        `filter_type=${params.get('filter_type') || 'daily'}&prodi=${params.get('prodi') || 'semua'}&tanggal_awal=${params.get('tanggal_awal') || ''}&tanggal_akhir=${params.get('tanggal_akhir') || ''}&tahun_awal=${params.get('tahun_awal') || ''}&tahun_akhir=${params.get('tahun_akhir') || ''}&export=true`;
-                    const exportUrl = `{{ route('kunjungan.get_prodi_export_data') }}?${query}`;
+                    const filterType = params.get('filter_type') || 'daily';
+                    const prodiSelect = document.getElementById('prodi');
+                    const prodiCode = prodiSelect ? prodiSelect.value : 'semua';
+                    let prodiName = 'Semua_Prodi';
+
+                    if (prodiCode !== 'semua') {
+                        const selectedOption = prodiSelect.options[prodiSelect.selectedIndex];
+                        prodiName = selectedOption.textContent.trim()
+                            .replace(/\s-\s|[\(\)]/g, '')
+                            .replace(/\s+/g,
+                                '_');
+                    }
+
+                    let fileName = `kunjungan_${prodiName}`;
+
+                    // Tentukan nama file berdasarkan filter
+                    if (filterType === 'yearly') {
+                        const tahunAwal = params.get('tahun_awal');
+                        const tahunAkhir = params.get('tahun_akhir');
+                        if (tahunAwal && tahunAkhir) {
+                            fileName += `_tahun_${tahunAwal}`;
+                            if (tahunAwal !== tahunAkhir) {
+                                fileName += `_${tahunAkhir}`;
+                            }
+                        }
+                    } else { // daily
+                        const tanggalAwal = params.get('tanggal_awal');
+                        const tanggalAkhir = params.get('tanggal_akhir');
+                        if (tanggalAwal && tanggalAkhir) {
+                            fileName += `_${tanggalAwal}_s.d._${tanggalAkhir}`;
+                        } else {
+                            fileName += `_${new Date().toISOString().slice(0, 10)}`;
+                        }
+                    }
+
+                    const exportUrl =
+                        `{{ route('kunjungan.get_prodi_export_data') }}?${params.toString()}`;
 
                     try {
                         const response = await fetch(exportUrl);
@@ -566,7 +598,7 @@
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `kunjungan_prodi_${new Date().toISOString().slice(0, 10)}.csv`;
+                        a.download = `${fileName}.csv`;
                         document.body.appendChild(a);
                         a.click();
                         a.remove();
