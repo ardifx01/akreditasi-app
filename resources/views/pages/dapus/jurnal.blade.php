@@ -48,7 +48,7 @@
                 <div class="row">
                     <div class="col-md-4">
                         <div class="alert alert-info py-2">
-                            <i class="fas fa-book me-2"></i> Total Judul Buku:
+                            <i class="fas fa-book me-2"></i> Total Judul:
                             <span class="fw-bold">{{ number_format($totalJudul, 0, ',', '.') }}</span>
                         </div>
                     </div>

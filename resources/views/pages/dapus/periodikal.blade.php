@@ -88,7 +88,7 @@
                             <table class="table table-bordered table-hover table-striped" id="myTablePeriodikal">
                                 <thead>
                                     <tr>
-                                        <th>No</th> {{-- Tambahkan kolom No --}}
+                                        <th>No</th>
                                         {{-- <th>Jenis</th> --}}
                                         <th>Judul</th>
                                         <th>Penerbit</th>
@@ -96,6 +96,7 @@
                                         {{-- <th>Kelas</th> --}}
                                         {{-- <th>Issue</th> --}}
                                         <th>Eksemplar</th>
+                                        {{-- <th>Tahun Terbit</th> --}}
                                         <th>Lokasi</th>
                                     </tr>
                                 </thead>
@@ -110,6 +111,7 @@
                                             {{-- <td>{{ $row->Kelas }}</td> --}}
                                             {{-- <td>{{ $row->Issue }}</td> --}}
                                             <td>{{ $row->Eksemplar }}</td>
+                                            {{-- <td>{{ $row->Tahun_Terbit }}</td> --}}
                                             <td>{{ $row->Lokasi }}</td>
                                         </tr>
                                     @endforeach

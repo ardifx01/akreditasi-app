@@ -116,8 +116,10 @@
                 const cardnumber = document.getElementById('cardnumber').value;
                 const tahun = document.getElementById('tahun').value;
                 if (cardnumber) {
-                    window.location.href =
-                        `{{ route('kunjungan.export-pdf') }}?cardnumber=${cardnumber}&tahun=${tahun}`;
+                    window.open(
+                        `{{ route('kunjungan.export-pdf') }}?cardnumber=${cardnumber}&tahun=${tahun}`,
+                        '_blank'
+                    );
                 } else {
                     alert("Mohon masukkan Nomor Kartu Anggota terlebih dahulu.");
                 }

@@ -484,20 +484,24 @@ class StatistikKoleksi extends Controller
                 't.description AS Jenis',
                 'bi.publishercode AS Penerbit',
                 'bi.place AS Tempat_Terbit',
+                'bi.publicationyear AS Tahun_Terbit',
                 'bi.cn_class as Kelas',
-                'b.title AS Judul',
                 'i.enumchron AS Nomor',
                 'i.homebranch as Lokasi'
             )
+                ->selectRaw("EXTRACTVALUE(bm.metadata,'//datafield[@tag=\"245\"]/subfield[@code=\"a\"]') as Judul_a")
+                ->selectRaw("EXTRACTVALUE(bm.metadata,'//datafield[@tag=\"245\"]/subfield[@code=\"b\"]') as Judul_b")
                 ->selectRaw('COUNT(i.itemnumber) AS Issue')
                 ->selectRaw('SUM(i.copynumber) AS Eksemplar')
                 ->from('items as i')
                 ->join('biblioitems as bi', 'i.biblionumber', '=', 'bi.biblionumber')
                 ->join('biblio as b', 'i.biblionumber', '=', 'b.biblionumber')
+                ->join('biblio_metadata as bm', 'b.biblionumber', '=', 'bm.biblionumber')
                 ->join('itemtypes as t', 'i.itype', '=', 't.itemtype')
                 ->where('i.itemlost', 0)
                 ->where('i.withdrawn', 0)
-                ->whereIn('i.itype', $periodicalTypes);
+                ->whereIn('i.itype', $periodicalTypes)
+                ->groupBy('i.biblionumber');
 
             if ($prodi !== 'all') {
                 $cnClasses = CnClassHelper::getCnClassByProdi($prodi);
@@ -508,15 +512,23 @@ class StatistikKoleksi extends Controller
                 $query->whereRaw('bi.publicationyear >= YEAR(CURDATE()) - ?', [$tahunTerakhir]);
             }
 
-            $query->groupBy('Jenis_kode', 'Jenis', 'Judul', 'Nomor', 'Kelas', 'Lokasi', 'Penerbit', 'Tempat_Terbit');
+            $query->groupBy('Jenis_kode', 'Jenis', 'Judul_a', 'Judul_b', 'Nomor', 'Kelas', 'Lokasi', 'Penerbit', 'Tempat_Terbit', 'Tahun_Terbit');
 
             $processedData = $query->get()->map(function ($row) {
-                $row->Judul = html_entity_decode($row->Judul, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $fullJudul = $row->Judul_a;
+                if (!empty($row->Judul_b)) {
+                    $fullJudul .= ' ' . $row->Judul_b;
+                }
+                $row->Judul = html_entity_decode($fullJudul, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                 $penerbit = $row->Penerbit;
                 if (!empty($row->Tempat_Terbit)) {
                     $penerbit .= ' : ' . $row->Tempat_Terbit;
                 }
                 $row->Penerbit_Lengkap = html_entity_decode($penerbit, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                $Tahun_Terbit = $row->Tahun_Terbit;
+                if (empty($Tahun_Terbit) || $Tahun_Terbit == '0000') {
+                    $row->Tahun_Terbit = 'n.d.';
+                }
 
                 return $row;
             });

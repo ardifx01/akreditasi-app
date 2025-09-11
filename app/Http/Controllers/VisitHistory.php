@@ -7,10 +7,9 @@ use App\Models\M_vishistory;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Dompdf\Dompdf;
 use Dompdf\Options;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class VisitHistory extends Controller
 {
@@ -740,64 +739,85 @@ class VisitHistory extends Controller
         ]);
     }
 
+
     public function exportPdf(Request $request)
     {
-        // Mengambil input request dengan cara yang lebih aman
-        $cardnumber = $request->input('cardnumber');
-        $tahun = $request->input('tahun');
+        $cardnumber = trim((string) $request->input('cardnumber', ''));
+        $tahun      = $request->input('tahun');
 
-        // 1. Menggunakan model Eloquent jika memungkinkan, bukan DB::raw.
-        // Ini lebih rapi dan aman dari SQL Injection
+        // ==== Ambil data (contoh sesuai kode Anda) ====
         $fullBorrowerDetails = DB::connection('mysql2')->table('borrowers')
             ->select('cardnumber', 'firstname', 'surname', 'email', 'phone')
             ->where('cardnumber', $cardnumber)
             ->first();
 
-        // 2. Menggunakan Eloquent untuk data kunjungan juga
         $dataKunjungan = M_vishistory::on('mysql2')
             ->select(DB::raw('EXTRACT(YEAR_MONTH FROM visittime) as tahun_bulan'), DB::raw('COUNT(id) as jumlah_kunjungan'))
             ->where('cardnumber', $cardnumber)
-            ->when($tahun, function ($query, $tahun) {
-                return $query->whereYear('visittime', $tahun);
-            })
+            ->when($tahun, fn($q, $t) => $q->whereYear('visittime', $t))
             ->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'))
             ->orderBy('tahun_bulan', 'asc')
             ->get();
 
-        // 3. Tambahkan validasi input dasar
-        if (empty($cardnumber)) {
-            return redirect()->back()->with('error', 'Nomor Kartu Anggota wajib diisi.');
+        // ==== Validasi ====
+        if ($cardnumber === '') {
+            return back()->with('error', 'Nomor Kartu Anggota wajib diisi.');
         }
-
         if (!$fullBorrowerDetails) {
-            return redirect()->back()->with('error', 'Data anggota tidak ditemukan.');
+            return back()->with('error', 'Data anggota tidak ditemukan.');
         }
 
-        // 4. Perbaikan pada inisialisasi Dompdf
+        // ==== Dompdf Options (penting!) ====
         $options = new Options();
-        $options->setIsRemoteEnabled(true);
-        // Jika perlu, kamu juga bisa mengatur opsi lain di sini,
-        // misalnya untuk font, dll.
+        $options->setIsRemoteEnabled(true);          // kalau nanti ada http(s) asset
+        $options->setChroot(public_path());          // aman akses lokal di /public
 
-        // Inisialisasi Dompdf dengan Options
+        // Temp & cache WAJIB writable, hindari error "Path must not be empty"
+        $tempDir    = storage_path('app/dompdf_tmp');
+        $fontCache  = storage_path('app/dompdf_font_cache');
+        if (!is_dir($tempDir))   @mkdir($tempDir, 0775, true);
+        if (!is_dir($fontCache)) @mkdir($fontCache, 0775, true);
+        $options->setTempDir($tempDir);
+        $options->setFontCache($fontCache);
+
         $dompdf = new Dompdf($options);
 
-        // Load view dan data
-        $html = view('pages.kunjungan.laporan_kehadiran_pdf', compact('fullBorrowerDetails', 'dataKunjungan'))->render();
+        // ==== Render Blade (pakai versi base64 yang sudah saya kirim sebelumnya) ====
+        $html = view('pages.kunjungan.laporan_kehadiran_pdf', [
+            'fullBorrowerDetails' => $fullBorrowerDetails,
+            'dataKunjungan'       => $dataKunjungan,
+            // Tidak perlu kirim path logo—Blade akan ambil dari public/img/logo0.png
+        ])->render();
 
-        // Muat HTML ke Dompdf
         $dompdf->loadHtml($html);
-
-        // Atur ukuran dan orientasi kertas
         $dompdf->setPaper('A4', 'portrait');
-
-        // Render HTML menjadi PDF
         $dompdf->render();
 
-        // Nama file yang lebih dinamis
-        $fileName = 'laporan_kehadiran_' . str_replace(' ', '_', $fullBorrowerDetails->cardnumber) . '.pdf';
+        // ==== Nama file: sanitize + fallback ====
+        $cardSafe = preg_replace('/[^\w\-\.]+/', '_', (string) ($fullBorrowerDetails->cardnumber ?? 'anggota'));
+        $cardSafe = $cardSafe !== '' ? $cardSafe : 'anggota';
+        $fileName = "laporan_kehadiran_{$cardSafe}.pdf";
 
-        // 5. Mengirimkan PDF sebagai unduhan
-        return $dompdf->stream($fileName, ["Attachment" => true]);
+        // ==== Bersihkan output buffer sebelum kirim header ====
+        if (ob_get_length()) {
+            @ob_end_clean();
+        }
+
+        // ==== KIRIM PDF tanpa Dompdf->stream() ====
+        $pdfContent = $dompdf->output(); // string PDF siap kirim
+
+        // return response()->streamDownload(
+        //     function () use ($pdfContent) {
+        //         echo $pdfContent;
+        //     },
+        //     $fileName,
+        //     [
+        //         'Content-Type'  => 'application/pdf',
+        //         'Cache-Control' => 'private, must-revalidate, max-age=0',
+        //     ]
+        // );
+
+        return response($pdfContent)
+            ->header('Content-Type', 'application/pdf');
     }
 }

@@ -621,8 +621,6 @@
                     } else {
                         tanggalParam = `tanggal=${currentDetailTanggal}`;
                     }
-
-                    // URL baru dengan parameter `export=true`
                     const url =
                         `{{ route('kunjungan.get_detail_pengunjung') }}?${tanggalParam}&kode_identifikasi=${currentKodeIdentifikasi}&export=true`;
 
@@ -631,7 +629,6 @@
                         const result = await response.json();
 
                         if (response.ok) {
-                            // Periksa apakah hasil adalah array, bukan objek paginasi
                             if (result.length === 0) {
                                 alert(
                                     "Tidak ada data detail pengunjung untuk diekspor pada periode ini."
