@@ -2,114 +2,45 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\M_eprodi;
 use App\Models\M_vishistory;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Dompdf\Dompdf;
 use Dompdf\Options;
-use Illuminate\Support\Str;
 
 class VisitHistory extends Controller
 {
-    //  Data Mapping prodi
-    private $prodiMapping = [
-        'H000' => 'Ushuluddin',
-        'G600' => 'FAI/ AKTA-IV (FAI)',
-        'L200' => 'Teknik Informatika',
-        'D100' => 'Teknik Sipil',
-        'D400' => 'Teknik Elektro',
-        'A210'    => 'Pend. Akuntansi',
-        'A220'    => 'Pend. Pancasila dan Kewarganegaraan',
-        'A310'    => 'Pend. Bahasa Indonesia',
-        'A320'    => 'Pend. Bhs. Inggris',
-        'A410'    => 'Pend. Matematika',
-        'A420'    => 'Pend. Biologi',
-        'A510'    => 'Pend. Guru SD',
-        'A520'    => 'Pend. Guru Pend. Anak Usia Dini',
-        'A610'    => 'Pendidikan Geografi',
-        'A710'    => 'Pendidikan Teknik Informatika',
-        'A810'    => 'Pendidikan Olahraga',
-        'A900'    => 'Pendidikan Profesi Guru',
-        'B100'    => 'Manajemen',
-        'B10A'    => 'International Program Management',
-        'B200'    => 'S1 Akuntansi',
-        'B300'    => 'S1 Ekonomi Pembangunan',
-        'C100'    => 'Hukum',
-        'D100'    => 'Teknik Sipil',
-        'D10A'    => 'Civil Engineering',
-        'D200'    => 'Teknik Mesin',
-        'D20A'    => 'Mechanical Engineering',
-        'D300'    => 'Arsitektur',
-        'D400'    => 'Teknik Elektro',
-        'D500'    => 'Teknik Kimia',
-        'D600'    => 'Teknik Industri',
-        'E100'    => 'Geografi',
-        'F100'    => 'Psikologi',
-        'G000'    => 'S1 Pendidikan Agama Islam',
-        'G100'    => 'S1 Ilmu Alquran dan Tafsir',
-        'G108'    => 'S2 Ilmu Alquran dan Tafsir',
-        'H100'    => 'Pondok Sobron',
-        'I000'    => 'S1 Hukum Ekonomi Syariah',
-        'J100'    => 'Fisioterapi (D3)',
-        'J120'    => 'Fisioterapi S1',
-        'J130'    => 'Profesi Fisioterapi',
-        'J210'    => 'Ilmu Keperawatan (S1)',
-        'J230'    => 'Keperawatan Profesi (NERS)',
-        'J310'    => 'Ilmu Gizi (S1)',
-        'J410'    => 'Kesehatan Masyarakat (S1)',
-        'J500'    => 'Pendidikan Dokter',
-        'J510'    => 'Profesi Dokter',
-        'J520'    => 'Pendidikan Dokter Gigi',
-        'J530'    => 'Profesi Dokter Gigi',
-        'K100'    => 'Farmasi',
-        'K110'    => 'Profesi Apoteker',
-        'L100'    => 'Ilmu Komunikasi',
-        'L200'    => 'Informatika (Informatics)',
-        'O000'    => 'Magister Studi Islam',
-        'O100'    => 'S2 Pendidikan Agama Islam',
-        'O200'    => 'S2 Hukum Ekonomi Syariah',
-        'O300'    => 'S3 Pendidikan Agama Islam',
-        'P100'    => 'S2 Manajemen',
-        'Q100'    => 'Magister Administrasi Pendidikan',
-        'Q200'    => 'Magister Pendidikan Dasar',
-        'R100'    => 'Magister Ilmu Hukum',
-        'R200'    => 'Ilmu Hukum',
-        'S100'    => 'Magister Teknik Sipil',
-        'S200'    => 'Magister Pengkajian Bahasa',
-        'S300'    => 'Magister Psikologi',
-        'T100'    => 'Magister Profesi Psikologi',
-        'U100'    => 'Magister Teknik Mesin',
-        'U200'    => 'Magister Teknik Kimia',
-        'V100'    => 'Magister Farmasi',
-        'W100'    => 'S2 Akuntansi',
-        'B109'    => 'S3 Manajemen',
-        'KI00'    => 'Profesi Apoteker Industri',
-        'KR00'    => 'Profesi Apoteker Rumah Sakit',
-    ];
-
-    public function __construct()
-    {
-        $this->prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray();
-        $this->prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray();
-        $this->prodiMapping['DOSEN_TENDIK'] = 'Dosen / Tenaga Kependidikan';
-    }
-
-
     public function kunjunganProdiTable(Request $request)
     {
-        // Mendapatkan daftar prodi dari database dan menambahkan tipe pengguna kustom
-        $listProdi = M_eprodi::pluck('nama', 'kode')->toArray();
-        $listProdi = [
+        $listProdiFromDb = DB::connection('mysql2')->table('authorised_values')
+            ->select('authorised_value', 'lib')
+            ->where('category', 'PRODI')
+            ->whereRaw('CHAR_LENGTH(lib) >= 13')
+            ->orderBy('lib', 'asc')
+            ->get()
+            ->map(function ($prodi) {
+                // Membersihkan nama prodi dari prefix 'FAI/ '
+                $cleanedLib = $prodi->lib;
+                if (str_starts_with($cleanedLib, 'FAI/ ')) {
+                    $cleanedLib = substr($cleanedLib, 5);
+                }
+                $prodi->lib = trim($cleanedLib);
+                return $prodi;
+            })
+            ->pluck('lib', 'authorised_value');
+        $staticValues = [
             'DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan',
             'XA' => 'Alumni',
-            'XC' => 'Dosen Tidak Tetap',
+            // 'XC' => 'Dosen Tidak Tetap',
+            // 'TC' => 'Dosen Tetap',
             'KSP' => 'Sekali Kunjung',
             'LB' => 'Anggota Luar Biasa',
             'KSPMBKM' => 'Magang MBKM',
-            'KSPBIPA' => 'Bahasa Indonesia dan Penutur Asing (BIPA)'
-        ] + $listProdi;
+            'KSPBIPA' => 'Bahasa Indonesia dan Penutur Asing'
+        ];
+
+        $listProdi = $staticValues + $listProdiFromDb->all();
 
         $filterType = $request->input('filter_type', 'daily');
         $kodeProdiFilter = $request->input('prodi');
@@ -216,15 +147,45 @@ class VisitHistory extends Controller
 
             $data = $baseQuery->paginate($perPage);
 
-            $prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray() + [
+            $listProdiFromDb = DB::connection('mysql2')->table('authorised_values')
+                ->select('authorised_value', 'lib')
+                ->where('category', 'PRODI')
+                ->whereRaw('CHAR_LENGTH(lib) >= 13')
+                ->orderBy('lib', 'asc')
+                ->get()
+                ->map(function ($prodi) {
+                    // Membersihkan nama prodi dari prefix 'FAI/ '
+                    $cleanedLib = $prodi->lib;
+                    if (str_starts_with($cleanedLib, 'FAI/ ')) {
+                        $cleanedLib = substr($cleanedLib, 5);
+                    }
+                    $prodi->lib = trim($cleanedLib);
+                    return $prodi;
+                })
+                ->pluck('lib', 'authorised_value'); // Kunci utamanya di sini!
+
+            // 2. Siapkan data statis dalam bentuk array
+            $staticValues = [
                 'DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan',
                 'XA' => 'Alumni',
                 'XC' => 'Dosen Tidak Tetap',
                 'KSP' => 'Sekali Kunjung',
                 'LB' => 'Anggota Luar Biasa',
                 'KSPMBKM' => 'Magang MBKM',
-                'KSPBIPA' => 'Bahasa Indonesia bagi Penutur Asing (BIPA)'
+                'KSPBIPA' => 'Bahasa Indonesia dan Penutur Asing (BIPA)'
             ];
+
+            // 3. Ubah Collection menjadi array, LALU gabungkan dengan operator +
+            $prodiMapping = $staticValues + $listProdiFromDb->all();
+            // $prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray() + [
+            //     'DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan',
+            //     'XA' => 'Alumni',
+            //     'XC' => 'Dosen Tidak Tetap',
+            //     'KSP' => 'Sekali Kunjung',
+            //     'LB' => 'Anggota Luar Biasa',
+            //     'KSPMBKM' => 'Magang MBKM',
+            //     'KSPBIPA' => 'Bahasa Indonesia bagi Penutur Asing (BIPA)'
+            // ];
 
             $data->getCollection()->transform(function ($item) use ($prodiMapping) {
                 $item->nama_prodi = $prodiMapping[strtoupper($item->kode_identifikasi)] ?? 'Prodi Tidak Dikenal';
@@ -377,15 +338,47 @@ class VisitHistory extends Controller
             ->get();
 
         // Map data dengan nama prodi
-        $prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray() + [
+        // $prodiMapping = M_eprodi::pluck('nama', 'kode')->toArray() + [
+        //     'DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan',
+        //     'XA' => 'Alumni',
+        //     'XC' => 'Dosen Tidak Tetap',
+        //     'KSP' => 'Sekali Kunjung (Non-MBKM/BIPA)',
+        //     'LB' => 'Anggota Luar Biasa',
+        //     'KSPMBKM' => 'Magang MBKM',
+        //     'KSPBIPA' => 'Bahasa Indonesia bagi Penutur Asing (BIPA)'
+        // ];
+
+        $listProdiFromDb = DB::connection('mysql2')->table('authorised_values')
+            ->select('authorised_value', 'lib')
+            ->where('category', 'PRODI')
+            ->whereRaw('CHAR_LENGTH(lib) >= 13')
+            ->orderBy('lib', 'asc')
+            ->get()
+            ->map(function ($prodi) {
+                // Membersihkan nama prodi dari prefix 'FAI/ '
+                $cleanedLib = $prodi->lib;
+                if (str_starts_with($cleanedLib, 'FAI/ ')) {
+                    $cleanedLib = substr($cleanedLib, 5);
+                }
+                $prodi->lib = trim($cleanedLib);
+                return $prodi;
+            })
+            ->pluck('lib', 'authorised_value'); // Kunci utamanya di sini!
+
+        // 2. Siapkan data statis dalam bentuk array
+        $staticValues = [
             'DOSEN_TENDIK' => 'Dosen / Tenaga Kependidikan',
             'XA' => 'Alumni',
             'XC' => 'Dosen Tidak Tetap',
-            'KSP' => 'Sekali Kunjung (Non-MBKM/BIPA)',
+            'KSP' => 'Sekali Kunjung',
             'LB' => 'Anggota Luar Biasa',
             'KSPMBKM' => 'Magang MBKM',
-            'KSPBIPA' => 'Bahasa Indonesia bagi Penutur Asing (BIPA)'
+            'KSPBIPA' => 'Bahasa Indonesia dan Penutur Asing (BIPA)'
         ];
+
+        // 3. Ubah Collection menjadi array, LALU gabungkan dengan operator +
+        $prodiMapping = $staticValues + $listProdiFromDb->all();
+
         $namaProdiFilter = $prodiMapping[strtoupper($kodeProdiFilter)] ?? 'Seluruh Program Studi';
         $data->transform(function ($item) use ($prodiMapping) {
             $item->nama_prodi = $prodiMapping[strtoupper($item->kode_identifikasi)] ?? 'Prodi Tidak Dikenal';
@@ -700,22 +693,28 @@ class VisitHistory extends Controller
     public function getKehadiranExportData(Request $request)
     {
         $cardnumber = $request->input('cardnumber');
+        $tahun = $request->input('tahun');
 
         if (!$cardnumber) {
             return response()->json(['error' => 'Nomor Kartu Anggota (Cardnumber) diperlukan.'], 400);
         }
-        $borrowerInfo = M_vishistory::where('cardnumber', $cardnumber)->first();
 
+        $borrowerInfo = M_vishistory::where('cardnumber', $cardnumber)->first();
         if (!$borrowerInfo) {
             return response()->json(['error' => 'Nomor Kartu Anggota (Cardnumber) tidak ditemukan dalam histori kunjungan.'], 404);
         }
 
-        $dataKunjungan = M_vishistory::on('mysql2')
+        $query = M_vishistory::on('mysql2')
             ->selectRaw('
-                EXTRACT(YEAR_MONTH FROM visittime) as tahun_bulan,
-                COUNT(id) as jumlah_kunjungan
-            ')
+            EXTRACT(YEAR_MONTH FROM visittime) as tahun_bulan,
+            COUNT(id) as jumlah_kunjungan
+        ')
             ->where('cardnumber', $cardnumber)
+            ->when($tahun, function ($query, $tahun) {
+                return $query->whereYear('visittime', $tahun);
+            });
+
+        $dataKunjungan = $query
             ->groupBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'))
             ->orderBy(DB::raw('EXTRACT(YEAR_MONTH FROM visittime)'), 'asc')
             ->get();
@@ -727,7 +726,7 @@ class VisitHistory extends Controller
 
         $exportData = $dataKunjungan->map(function ($row) {
             return [
-                'bulan_tahun' => Carbon::createFromFormat('Ym', $row->tahun_bulan)->format('M Y'),
+                'bulan_tahun' => \Carbon\Carbon::createFromFormat('Ym', $row->tahun_bulan)->format('M Y'),
                 'jumlah_kunjungan' => $row->jumlah_kunjungan,
             ];
         });

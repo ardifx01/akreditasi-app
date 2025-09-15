@@ -205,7 +205,7 @@
                     <li class="nav-item">
                         <a class="nav-link rounded py-2 px-3 {{ request()->routeIs('peminjaman.berlangsung') ? 'active' : '' }}"
                             href="{{ route('peminjaman.berlangsung') }}">
-                            <i class="fas fa-handshake me-2"></i>Peminjaman Berlangsung
+                            <i class="fas fa-handshake me-2"></i>Sedang Berlangsung
                         </a>
                     </li>
                 </ul>

@@ -5,221 +5,184 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PeminjamanController extends Controller
 {
-    public function getBerlangsungExportData(Request $request)
-    {
-        $selectedProdiCode = $request->input('prodi', '');
-        $listProdi = DB::connection('mysql2')->table('authorised_values')
-            ->select('authorised_value', 'lib')
-            ->where('category', 'PRODI')
-            ->whereRaw('CHAR_LENGTH(lib) >= 13')
-            ->orderBy('lib', 'asc')
-            ->get();
-
-        $namaProdiFilter = 'Semua Program Studi';
-        $query = DB::connection('mysql2')->table('issues as i')
-            ->select(
-                'i.issuedate AS BukuDipinjamSaat',
-                'b.title AS JudulBuku',
-                'it.barcode AS BarcodeBuku',
-                'av.authorised_value AS KodeProdi',
-                DB::raw("CONCAT(
-                    COALESCE(br.cardnumber, ''),
-                    CASE WHEN br.cardnumber IS NOT NULL THEN ' - ' ELSE '' END,
-                    TRIM(CONCAT(COALESCE(br.firstname, ''), ' ', COALESCE(br.surname, '')))
-                ) AS Peminjam"),
-                'i.date_due AS BatasWaktuPengembalian'
-            )
-            ->join('items as it', 'i.itemnumber', '=', 'it.itemnumber')
-            ->join('biblio as b', 'it.biblionumber', '=', 'b.biblionumber')
-            ->join('borrowers as br', 'i.borrowernumber', '=', 'br.borrowernumber')
-            ->leftJoin('borrower_attributes as ba', 'br.borrowernumber', '=', 'ba.borrowernumber')
-            ->leftJoin('authorised_values as av', function ($join) {
-                $join->on('av.category', '=', 'ba.code')
-                    ->on('ba.attribute', '=', 'av.authorised_value');
-            })
-            ->whereRaw('i.date_due >= CURDATE()')
-            ->orderBy('BukuDipinjamSaat', 'asc')
-            ->orderBy('BatasWaktuPengembalian', 'asc');
-
-        if ($selectedProdiCode) {
-            $query->whereRaw('LEFT(br.cardnumber, 4) = ?', [$selectedProdiCode]);
-            $foundProdi = $listProdi->firstWhere('authorised_value', $selectedProdiCode);
-            if ($foundProdi) {
-                $namaProdiFilter = $foundProdi->lib;
-            }
-        }
-
-        $data = $query->get();
-
-        $exportData = $data->map(function ($row) {
-            return [
-                'BukuDipinjamSaat' => Carbon::parse($row->BukuDipinjamSaat)->format('d M Y H:i:s'),
-                'JudulBuku' => $row->JudulBuku,
-                'BarcodeBuku' => $row->BarcodeBuku,
-                'KodeProdi' => $row->KodeProdi,
-                'Peminjam' => $row->Peminjam,
-                'BatasWaktuPengembalian' => Carbon::parse($row->BatasWaktuPengembalian)->format('d M Y'),
-            ];
-        });
-
-        return response()->json([
-            'data' => $exportData,
-            'namaProdiFilter' => $namaProdiFilter,
-        ]);
-    }
 
     public function pertanggal(Request $request)
     {
-        $filterType = $request->input('filter_type');
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        $selectedYear = $request->input('selected_year');
+        // Mengambil input dari request dengan nilai default
+        $filterType = $request->input('filter_type', 'daily');
+        $startDate = $request->input('start_date', Carbon::now()->subDays(30)->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $selectedYear = $request->input('selected_year', Carbon::now()->year);
 
-        $statistics = collect();
-        $fullStatistics = collect();
-        $chartLabels = collect();
-        $chartDataBooks = collect();
-        $chartDataBorrowers = collect();
+        // Inisialisasi variabel total
+        $totalBooks = 0;
+        $totalReturns = 0;
+        $totalBorrowers = 0;
 
-        if ($request->has('start_date') || $request->has('end_date') || $request->has('selected_year')) {
+        $statistics = new LengthAwarePaginator([], 0, 10);
+        $fullStatisticsForChart = collect();
+
+        if ($request->filled('start_date') || $request->filled('end_date') || $request->filled('selected_year')) {
             try {
+                // Tentukan rentang tanggal/tahun terlebih dahulu
+                $dateRange = [];
                 if ($filterType == 'daily') {
-                    // Logika untuk filter harian
-                    if (empty($startDate) || !Carbon::parse($startDate)->isValid()) {
-                        $startDate = Carbon::now()->subDays(30)->format('Y-m-d');
+                    $start = Carbon::parse($startDate)->startOfDay();
+                    $end = Carbon::parse($endDate)->endOfDay();
+                    if ($start->greaterThan($end)) {
+                        [$start, $end] = [$end, $start];
                     }
-                    if (empty($endDate) || !Carbon::parse($endDate)->isValid()) {
-                        $endDate = Carbon::now()->format('Y-m-d');
-                    }
-                    if (Carbon::parse($startDate)->greaterThan(Carbon::parse($endDate))) {
-                        $temp = $startDate;
-                        $startDate = $endDate;
-                        $endDate = $temp;
-                    }
+                    $dateRange = [$start, $end];
+                } else { // monthly
+                    $yearStart = Carbon::create($selectedYear)->startOfYear();
+                    $yearEnd = Carbon::create($selectedYear)->endOfYear();
+                    $dateRange = [$yearStart, $yearEnd];
+                }
+                $summaryData = DB::connection('mysql2')->table('statistics as s')
+                    ->select(
+                        DB::raw('COUNT(CASE WHEN s.type IN ("issue", "renew") THEN 1 END) as total_books'),
+                        DB::raw('COUNT(CASE WHEN s.type = "return" THEN 1 END) as total_returns'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN s.type IN ("issue", "renew") THEN s.borrowernumber END) as total_borrowers')
+                    )
+                    ->whereBetween('s.datetime', $dateRange)
+                    ->first();
 
-                    // Query data
-                    $fullStatistics = DB::connection('mysql2')->table('statistics as s')
-                        ->select(
-                            DB::raw('DATE(s.datetime) as tanggal'),
-                            DB::raw('COUNT(s.itemnumber) as jumlah_peminjaman_buku'),
-                            DB::raw('COUNT(DISTINCT s.borrowernumber) as jumlah_peminjam_unik')
-                        )
-                        ->whereIn('s.type', ['issue', 'renew'])
-                        ->whereBetween(DB::raw('DATE(s.datetime)'), [$startDate, $endDate])
-                        ->groupBy(DB::raw('DATE(s.datetime)'))
-                        ->orderBy(DB::raw('DATE(s.datetime)'), 'asc') // Urutkan ASC untuk chart
-                        ->get();
-
-                    // Query untuk tabel dengan pagination
-                    $statistics = DB::connection('mysql2')->table('statistics as s')
-                        ->select(
-                            DB::raw('DATE(s.datetime) as tanggal'),
-                            DB::raw('COUNT(s.itemnumber) as jumlah_peminjaman_buku'),
-                            DB::raw('COUNT(DISTINCT s.borrowernumber) as jumlah_peminjam_unik')
-                        )
-                        ->whereIn('s.type', ['issue', 'renew'])
-                        ->whereBetween(DB::raw('DATE(s.datetime)'), [$startDate, $endDate])
-                        ->groupBy(DB::raw('DATE(s.datetime)'))
-                        ->orderBy(DB::raw('DATE(s.datetime)'), 'asc')
-                        ->paginate(10);
-
-                    $allDetailedStatistics = DB::connection('mysql2')->table('statistics as s')
-                        ->select(
-                            DB::raw('DATE(s.datetime) as tanggal'),
-                            's.itemnumber',
-                            'i.barcode',
-                            'b.surname as nama_peminjam',
-                            'bb.title as judul_buku',
-                            'b.cardnumber'
-                        )
-                        ->join('borrowers as b', 's.borrowernumber', '=', 'b.borrowernumber')
-                        ->join('items as i', 's.itemnumber', '=', 'i.itemnumber')
-                        ->join('biblio as bb', 'i.biblionumber', '=', 'bb.biblionumber')
-                        ->whereIn('s.type', ['issue', 'renew'])
-                        ->whereBetween(DB::raw('DATE(s.datetime)'), [$startDate, $endDate])
-                        ->orderBy(DB::raw('DATE(s.datetime)'), 'asc')
-                        ->orderBy('b.surname', 'ASC')
-                        ->get();
-
-                    // Tambahkan data detail ke dalam data ringkasan yang dipaginasi
-                    $statistics->getCollection()->each(function ($stat) use ($allDetailedStatistics) {
-                        $stat->details = $allDetailedStatistics->where('tanggal', $stat->tanggal)->values();
-                    });
-
-                    $chartLabels = $fullStatistics->pluck('tanggal')->map(function ($date) {
-                        return Carbon::parse($date)->format('d M Y');
-                    });
-                } elseif ($filterType == 'monthly') {
-                    // Logika untuk filter bulanan
-                    if (empty($selectedYear) || !is_numeric($selectedYear) || $selectedYear < 1900 || $selectedYear > Carbon::now()->year + 1) {
-                        $selectedYear = Carbon::now()->year;
-                    }
-
-                    // Query data bulanan
-                    $fullStatistics = DB::connection('mysql2')->table('statistics as s')
-                        ->select(
-                            DB::raw('DATE_FORMAT(s.datetime, "%Y-%m") as periode'),
-                            DB::raw('COUNT(s.itemnumber) as jumlah_peminjaman_buku'),
-                            DB::raw('COUNT(DISTINCT s.borrowernumber) as jumlah_peminjam_unik')
-                        )
-                        ->whereIn('s.type', ['issue', 'renew'])
-                        ->whereYear('s.datetime', $selectedYear)
-                        ->groupBy(DB::raw('DATE_FORMAT(s.datetime, "%Y-%m")'))
-                        ->orderBy(DB::raw('DATE_FORMAT(s.datetime, "%Y-%m")'), 'ASC')
-                        ->get();
-
-                    // Karena data bulanan tidak banyak, kita tidak perlu paginasi.
-                    $statistics = $fullStatistics;
-
-                    $allDetailedStatistics = DB::connection('mysql2')->table('statistics as s')
-                        ->select(
-                            DB::raw('DATE_FORMAT(s.datetime, "%Y-%m") as periode'),
-                            's.itemnumber',
-                            'i.barcode',
-                            'b.surname as nama_peminjam',
-                            'bb.title as judul_buku',
-                            'b.cardnumber'
-                        )
-                        ->join('borrowers as b', 's.borrowernumber', '=', 'b.borrowernumber')
-                        ->join('items as i', 's.itemnumber', '=', 'i.itemnumber')
-                        ->join('biblio as bb', 'i.biblionumber', '=', 'bb.biblionumber')
-                        ->whereIn('s.type', ['issue', 'renew'])
-                        ->whereYear('s.datetime', $selectedYear)
-                        ->get();
-
-                    $statistics->each(function ($stat) use ($allDetailedStatistics) {
-                        $stat->details = $allDetailedStatistics->where('periode', $stat->periode)->values();
-                    });
-
-                    $chartLabels = $fullStatistics->pluck('periode')->map(function ($periode) {
-                        return Carbon::createFromFormat('Y-m', $periode)->format('M Y');
-                    });
+                if ($summaryData) {
+                    $totalBooks = $summaryData->total_books;
+                    $totalReturns = $summaryData->total_returns;
+                    $totalBorrowers = $summaryData->total_borrowers;
                 }
 
-                // Ambil data untuk chart dari fullStatistics (setelah ditarik dari database)
-                $chartDataBooks = $fullStatistics->pluck('jumlah_peminjaman_buku');
-                $chartDataBorrowers = $fullStatistics->pluck('jumlah_peminjam_unik');
+                // --- Query utama untuk tabel & chart (tetap sama) ---
+                $mainQuery = DB::connection('mysql2')->table('statistics as s')
+                    ->whereIn('s.type', ['issue', 'renew'])
+                    ->whereBetween('s.datetime', $dateRange);
+
+                if ($filterType == 'daily') {
+                    $mainQuery->select(
+                        DB::raw('DATE(s.datetime) as periode'),
+                        DB::raw('COUNT(s.itemnumber) as jumlah_peminjaman_buku'),
+                        DB::raw('COUNT(DISTINCT s.borrowernumber) as jumlah_peminjam_unik')
+                    )
+                        ->groupBy('periode')
+                        ->orderBy('periode', 'asc');
+                } else { // monthly
+                    $mainQuery->select(
+                        DB::raw('DATE_FORMAT(s.datetime, "%Y-%m") as periode'),
+                        DB::raw('COUNT(s.itemnumber) as jumlah_peminjaman_buku'),
+                        DB::raw('COUNT(DISTINCT s.borrowernumber) as jumlah_peminjam_unik')
+                    )
+                        ->groupBy('periode')
+                        ->orderBy('periode', 'asc');
+                }
+
+                $fullStatisticsForChart = $mainQuery->get();
+                $statistics = (clone $mainQuery)->paginate(10)->withQueryString();
             } catch (\Exception $e) {
-                return redirect()->back()->with('error', 'Terjadi kesalahan saat mengambil data statistik peminjaman: ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Terjadi kesalahan saat mengambil data: ' . $e->getMessage());
             }
         }
 
-        // Kirimkan semua variabel ke view, baik ada isinya maupun kosong
         return view('pages.peminjaman.peminjamanRentangTanggal', compact(
             'statistics',
-            'fullStatistics',
+            'fullStatisticsForChart',
             'startDate',
             'endDate',
             'selectedYear',
             'filterType',
-            'chartLabels',
-            'chartDataBooks',
-            'chartDataBorrowers',
-            'request' // Penting: kirim objek request ke view agar bisa digunakan di Blade
+            'totalBooks',
+            'totalReturns',
+            'totalBorrowers'
         ));
+    }
+
+    public function getDetailPeminjaman(Request $request)
+    {
+        $periode = $request->input('periode');
+        $filterType = $request->input('filter_type');
+
+        // 1. Dapatkan halaman saat ini dari request, default-nya halaman 1
+        $currentPage = $request->input('page', 1);
+        $perPage = 10;
+
+        if (!$periode) {
+            return response()->json(['error' => 'Parameter periode tidak ditemukan.'], 400);
+        }
+
+        // Query dasar untuk mendapatkan transaksi dalam rentang waktu yang dipilih
+        $baseQuery = DB::connection('mysql2')->table('statistics as s')
+            ->join('borrowers as b', 's.borrowernumber', '=', 'b.borrowernumber')
+            ->whereIn('s.type', ['issue', 'renew', 'return']);
+
+        if ($filterType == 'daily') {
+            $startOfDay = Carbon::parse($periode)->startOfDay();
+            $endOfDay = Carbon::parse($periode)->endOfDay();
+            $baseQuery->whereBetween('s.datetime', [$startOfDay, $endOfDay]);
+        } else { // 'monthly'
+            $startOfMonth = Carbon::parse($periode)->startOfMonth();
+            $endOfMonth = Carbon::parse($periode)->endOfMonth();
+            $baseQuery->whereBetween('s.datetime', [$startOfMonth, $endOfMonth]);
+        }
+
+        // 2. Hitung total PEMINJAM UNIK secara eksplisit dan akurat
+        $totalUniqueBorrowers = (clone $baseQuery)->distinct()->count('b.borrowernumber');
+
+        // 3. Ambil data PEMINJAM UNIK HANYA untuk halaman saat ini
+        $borrowersOnPage = (clone $baseQuery)
+            ->select('b.borrowernumber', 'b.cardnumber as nim', DB::raw("CONCAT_WS(' ', b.firstname, b.surname) as nama_peminjam"))
+            ->distinct()
+            ->orderBy('b.cardnumber')
+            ->forPage($currentPage, $perPage)
+            ->get();
+
+        $borrowerNumbersOnPage = $borrowersOnPage->pluck('borrowernumber');
+
+        $structuredData = collect(); // Siapkan koleksi kosong
+
+        if ($borrowerNumbersOnPage->isNotEmpty()) {
+            // 4. Ambil SEMUA transaksi HANYA untuk peminjam yang ada di halaman ini
+            $allTransactions = (clone $baseQuery)
+                ->select('bb.title as judul_buku', 's.borrowernumber', 's.datetime as waktu_transaksi', 's.type as tipe_transaksi')
+                ->join('items as i', 's.itemnumber', '=', 'i.itemnumber')
+                ->join('biblio as bb', 'i.biblionumber', '=', 'bb.biblionumber')
+                ->whereIn('s.borrowernumber', $borrowerNumbersOnPage)
+                ->orderBy('s.datetime', 'asc')
+                ->get();
+
+            // 5. Kelompokkan transaksi berdasarkan borrowernumber
+            $groupedTransactions = $allTransactions->groupBy('borrowernumber');
+
+            // 6. Gabungkan data peminjam dengan detail transaksinya
+            $structuredData = $borrowersOnPage->map(function ($borrower) use ($groupedTransactions) {
+                $transactions = $groupedTransactions->get($borrower->borrowernumber, collect());
+                $borrower->detail_buku = $transactions->map(function ($transaction) {
+                    return [
+                        'judul_buku' => $transaction->judul_buku,
+                        'waktu_transaksi' => $transaction->waktu_transaksi,
+                        'tipe_transaksi' => $transaction->tipe_transaksi,
+                    ];
+                });
+                return $borrower;
+            });
+        }
+
+        // 7. Buat instance LengthAwarePaginator secara manual dengan total yang sudah benar
+        $paginatedResult = new \Illuminate\Pagination\LengthAwarePaginator(
+            $structuredData,
+            $totalUniqueBorrowers,
+            $perPage,
+            $currentPage,
+            [
+                'path' => $request->url(), // URL dasar untuk paginasi
+                'query' => $request->query(), // Bawa serta parameter filter
+            ]
+        );
+
+        return $paginatedResult;
     }
 
 
@@ -440,7 +403,7 @@ class PeminjamanController extends Controller
                 $baseQuery->where(DB::raw('DATE_FORMAT(s.datetime, "%Y-%m")'), $periode);
             }
 
-            $borrowerDetails = $baseQuery->orderBy('s.datetime', 'desc')->get();
+            $borrowerDetails = $baseQuery->orderBy('s.datetime', 'asc')->get();
 
             $groupedData = [];
             foreach ($borrowerDetails as $detail) {
@@ -728,5 +691,68 @@ class PeminjamanController extends Controller
             'namaProdiFilter',
             'dataExists'
         ));
+    }
+
+    public function getBerlangsungExportData(Request $request)
+    {
+        $selectedProdiCode = $request->input('prodi', '');
+        $listProdi = DB::connection('mysql2')->table('authorised_values')
+            ->select('authorised_value', 'lib')
+            ->where('category', 'PRODI')
+            ->whereRaw('CHAR_LENGTH(lib) >= 13')
+            ->orderBy('lib', 'asc')
+            ->get();
+
+        $namaProdiFilter = 'Semua Program Studi';
+        $query = DB::connection('mysql2')->table('issues as i')
+            ->select(
+                'i.issuedate AS BukuDipinjamSaat',
+                'b.title AS JudulBuku',
+                'it.barcode AS BarcodeBuku',
+                'av.authorised_value AS KodeProdi',
+                DB::raw("CONCAT(
+                    COALESCE(br.cardnumber, ''),
+                    CASE WHEN br.cardnumber IS NOT NULL THEN ' - ' ELSE '' END,
+                    TRIM(CONCAT(COALESCE(br.firstname, ''), ' ', COALESCE(br.surname, '')))
+                ) AS Peminjam"),
+                'i.date_due AS BatasWaktuPengembalian'
+            )
+            ->join('items as it', 'i.itemnumber', '=', 'it.itemnumber')
+            ->join('biblio as b', 'it.biblionumber', '=', 'b.biblionumber')
+            ->join('borrowers as br', 'i.borrowernumber', '=', 'br.borrowernumber')
+            ->leftJoin('borrower_attributes as ba', 'br.borrowernumber', '=', 'ba.borrowernumber')
+            ->leftJoin('authorised_values as av', function ($join) {
+                $join->on('av.category', '=', 'ba.code')
+                    ->on('ba.attribute', '=', 'av.authorised_value');
+            })
+            ->whereRaw('i.date_due >= CURDATE()')
+            ->orderBy('BukuDipinjamSaat', 'asc')
+            ->orderBy('BatasWaktuPengembalian', 'asc');
+
+        if ($selectedProdiCode) {
+            $query->whereRaw('LEFT(br.cardnumber, 4) = ?', [$selectedProdiCode]);
+            $foundProdi = $listProdi->firstWhere('authorised_value', $selectedProdiCode);
+            if ($foundProdi) {
+                $namaProdiFilter = $foundProdi->lib;
+            }
+        }
+
+        $data = $query->get();
+
+        $exportData = $data->map(function ($row) {
+            return [
+                'BukuDipinjamSaat' => Carbon::parse($row->BukuDipinjamSaat)->format('d M Y H:i:s'),
+                'JudulBuku' => $row->JudulBuku,
+                'BarcodeBuku' => $row->BarcodeBuku,
+                'KodeProdi' => $row->KodeProdi,
+                'Peminjam' => $row->Peminjam,
+                'BatasWaktuPengembalian' => Carbon::parse($row->BatasWaktuPengembalian)->format('d M Y'),
+            ];
+        });
+
+        return response()->json([
+            'data' => $exportData,
+            'namaProdiFilter' => $namaProdiFilter,
+        ]);
     }
 }

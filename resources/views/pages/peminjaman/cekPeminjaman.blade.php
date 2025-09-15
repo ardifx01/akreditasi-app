@@ -60,21 +60,23 @@
                         <table class="table table-bordered table-striped" id="borrowingTable">
                             <thead>
                                 <tr>
+                                    <th>No.</th>
                                     <th>Tanggal & Waktu</th>
                                     <th>Tipe</th>
                                     <th>Barcode Buku</th>
                                     <th>Judul Buku</th>
-                                    <th>Pengarang</th>
+                                    {{-- <th>Pengarang</th> --}}
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($borrowingHistory as $history)
                                     <tr>
+                                        <td>{{ $borrowingHistory->firstItem() + $loop->index }}</td>
                                         <td>{{ \Carbon\Carbon::parse($history->datetime)->format('d M Y H:i:s') }}</td>
                                         <td>{{ ucfirst($history->type) }}</td>
                                         <td>{{ $history->barcode }}</td>
                                         <td>{{ $history->title }}</td>
-                                        <td>{{ $history->author }}</td>
+                                        {{-- <td>{{ $history->author }}</td> --}}
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -105,21 +107,23 @@
                         <table class="table table-bordered table-striped" id="returnTable">
                             <thead>
                                 <tr>
+                                    <th>No.</th>
                                     <th>Tanggal & Waktu</th>
                                     <th>Tipe</th>
                                     <th>Barcode Buku</th>
                                     <th>Judul Buku</th>
-                                    <th>Pengarang</th>
+                                    {{-- <th>Pengarang</th> --}}
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($returnHistory as $history)
                                     <tr>
+                                        <td>{{ $returnHistory->firstItem() + $loop->index }}</td>
                                         <td>{{ \Carbon\Carbon::parse($history->datetime)->format('d M Y H:i:s') }}</td>
                                         <td>{{ ucfirst($history->type) }}</td>
                                         <td>{{ $history->barcode }}</td>
                                         <td>{{ $history->title }}</td>
-                                        <td>{{ $history->author }}</td>
+                                        {{-- <td>{{ $history->author }}</td> --}}
                                     </tr>
                                 @endforeach
                             </tbody>

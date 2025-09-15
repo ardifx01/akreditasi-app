@@ -3,142 +3,113 @@
 @section('content')
 @section('title', 'Statistik Peminjaman')
 <div class="container">
-    <h4>Statistik Peminjaman</h4>
-
-    {{-- Form Filter --}}
-    <form action="{{ route('peminjaman.peminjaman_rentang_tanggal') }}" method="GET"
-        class="row g-3 mb-4 align-items-end">
-        {{-- Filter Type Dropdown --}}
-        <div class="col-md-auto">
-            <label for="filter_type" class="form-label">Tampilkan Data:</label>
-            <select name="filter_type" id="filter_type" class="form-select">
-                <option value="daily" {{ $filterType == 'daily' ? 'selected' : '' }}>Per Hari</option>
-                <option value="monthly" {{ $filterType == 'monthly' ? 'selected' : '' }}>Per Bulan</option>
-            </select>
+    {{-- Bagian Header dan Filter (Tidak ada perubahan) --}}
+    <div class="card bg-white shadow-sm mb-4">
+        <div class="card-body">
+            <h4 class="mb-0">Statistik Peminjaman</h4>
+            <small class="text-muted">Ringkasan data peminjaman berdasarkan periode</small>
         </div>
-
-        {{-- Daily Filter Inputs (akan ditampilkan/disembunyikan oleh JS) --}}
-        <div class="col-md-3" id="dailyFilterStart" style="{{ $filterType == 'daily' ? '' : 'display: none;' }}">
-            <label for="start_date" class="form-label">Tanggal Awal:</label>
-            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ $startDate ?? '' }}">
+    </div>
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0">Filter Data</h6>
         </div>
-        <div class="col-md-3" id="dailyFilterEnd" style="{{ $filterType == 'daily' ? '' : 'display: none;' }}">
-            <label for="end_date" class="form-label">Tanggal Akhir:</label>
-            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ $endDate ?? '' }}">
+        <div class="card-body">
+            <form method="GET" action="{{ route('peminjaman.peminjaman_rentang_tanggal') }}"
+                class="row g-3 align-items-end" id="filterForm">
+                <div class="col-md-auto">
+                    <label for="filter_type" class="form-label">Tampilkan Data:</label>
+                    <select name="filter_type" id="filter_type" class="form-select">
+                        <option value="daily" {{ ($filterType ?? 'daily') == 'daily' ? 'selected' : '' }}>Per Hari
+                        </option>
+                        <option value="monthly" {{ ($filterType ?? '') == 'monthly' ? 'selected' : '' }}>Per Bulan
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-4" id="dailyFilter"
+                    style="{{ ($filterType ?? 'daily') == 'daily' ? '' : 'display: none;' }}">
+                    <label for="start_date" class="form-label">Rentang Tanggal:</label>
+                    <div class="input-group">
+                        <input type="date" name="start_date" id="start_date" class="form-control"
+                            value="{{ $startDate ?? \Carbon\Carbon::now()->subDays(30)->format('Y-m-d') }}">
+                        <span class="input-group-text">s/d</span>
+                        <input type="date" name="end_date" id="end_date" class="form-control"
+                            value="{{ $endDate ?? \Carbon\Carbon::now()->format('Y-m-d') }}">
+                    </div>
+                </div>
+                <div class="col-md-3" id="monthlyFilter"
+                    style="{{ ($filterType ?? '') == 'monthly' ? '' : 'display: none;' }}">
+                    <label for="selected_year" class="form-label">Pilih Tahun:</label>
+                    <select name="selected_year" id="selected_year" class="form-control">
+                        @php
+                            $currentYear = date('Y');
+                            for ($year = $currentYear; $year >= 2000; $year--) {
+                                echo "<option value='{$year}' " .
+                                    (($selectedYear ?? $currentYear) == $year ? 'selected' : '') .
+                                    ">{$year}</option>";
+                            }
+                        @endphp
+                    </select>
+                </div>
+                <div class="col-md-auto">
+                    <button type="submit" class="btn btn-primary">Tampilkan</button>
+                </div>
+            </form>
         </div>
-
-        <div class="col-md-3" id="monthlyFilter" style="{{ $filterType == 'monthly' ? '' : 'display: none;' }}">
-            <label for="selected_year" class="form-label">Pilih Tahun:</label>
-            <select name="selected_year" id="selected_year" class="form-select">
-                @php
-                    $currentYear = \Carbon\Carbon::now()->year;
-                    $startYear = $currentYear - 5;
-                    $endYear = $currentYear;
-                @endphp
-                @for ($year = $startYear; $year <= $endYear; $year++)
-                    <option value="{{ $year }}"
-                        {{ ($selectedYear ?? $currentYear) == $year ? 'selected' : '' }}>
-                        {{ $year }}
-                    </option>
-                @endfor
-            </select>
-        </div>
-
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">Filter</button>
-        </div>
-    </form>
+    </div>
 
     @if (session('error'))
-        <div class="alert alert-danger">
+        <div class="alert alert-danger" role="alert">
             {{ session('error') }}
         </div>
     @endif
 
-    @if ($statistics->isEmpty())
-        <div class="alert alert-info text-center" role="alert">
-            Tidak ada data peminjaman untuk
-            @if ($filterType == 'daily')
-                rentang tanggal {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }}
-                sampai {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}.
-            @else
-                tahun {{ $selectedYear }}.
-            @endif
-        </div>
-    @else
-        <div class="card mt-4">
-            <div class="card-header">
-                Grafik Statistik Peminjaman @if ($filterType == 'daily')
-                    per Hari
-                @else
-                    per Bulan
-                @endif
+    @if (!empty($statistics) && !$statistics->isEmpty())
+        {{-- Bagian Chart --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Grafik Statistik Peminjaman</h5>
             </div>
             <div class="card-body">
                 <canvas id="peminjamanChart"></canvas>
             </div>
         </div>
 
-        <div class="card mt-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                Ringkasan Data Peminjaman
+        {{-- Bagian Tabel --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                Tabel Statistik Peminjaman
                 <button type="button" id="exportCsvBtn" class="btn btn-success btn-sm"><i class="fas fa-file-csv"></i>
                     Export CSV</button>
             </div>
             <div class="card-body">
-                {{-- <div class="table-responsive">
-                    <p class="text-muted">
-                        Total Data: <span class="badge bg-secondary">{{ $statistics->count() }} entri</span>
-                    </p>
-                    <table class="table table-bordered table-striped" id="peminjamanTable">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Periode</th>
-                                <th>Jumlah Buku Terpinjam</th>
-                                <th>Jumlah Peminjam</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($statistics as $index => $stat)
-                                <tr>
-                                    <td>
-                                        @if ($filterType == 'daily')
-                                            {{ $statistics->firstItem() + $index }}
-                                        @else
-                                            {{ $index + 1 }}
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if ($filterType == 'daily')
-                                            {{ \Carbon\Carbon::parse($stat->tanggal)->format('d M Y') }}
-                                        @else
-                                            {{ \Carbon\Carbon::createFromFormat('Y-m', $stat->periode)->format('M Y') }}
-                                        @endif
-                                    </td>
-                                    <td>{{ $stat->jumlah_peminjaman_buku }}</td>
-                                    <td>{{ $stat->jumlah_peminjam_unik }}</td>
-                                    <td>
-                                        <button type="button" class="btn btn-primary btn-sm view-details-btn"
-                                            data-bs-toggle="modal" data-bs-target="#detailsModal"
-                                            data-details='@json($stat->details)'
-                                            data-periode="{{ $filterType == 'daily' ? \Carbon\Carbon::parse($stat->tanggal)->format('d M Y') : \Carbon\Carbon::createFromFormat('Y-m', $stat->periode)->format('M Y') }}">
-                                            <i class="fas fa-eye"></i> Lihat Detail
-                                        </button>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div> --}}
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="alert alert-info py-2">
+                            <i class="fas fa-book me-2"></i> Total Buku Terpinjam:
+                            <span class="fw-bold">{{ number_format($totalBooks) }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-info py-2">
+                            <i class="fas fa-users me-2"></i> Total Peminjam :
+                            <span class="fw-bold">{{ number_format($totalBorrowers) }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-warning py-2">
+                            <i class="fas fa-book-reader me-2"></i> Total Entri:
+                            <span class="fw-bold">{{ $statistics->total() }}</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped" id="kunjunganTable">
+                    <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
                                 <th>No</th>
                                 <th>Periode</th>
-                                <th>Jumlah Buku Terpinjam</th>
+                                <th>Jumlah Peminjaman Buku</th>
                                 <th>Jumlah Peminjam</th>
                                 <th>Aksi</th>
                             </tr>
@@ -146,22 +117,29 @@
                         <tbody>
                             @foreach ($statistics as $index => $stat)
                                 <tr>
-                                    <td>{{ $index + 1 }}</td> {{-- Langsung cetak index, nanti diatur ulang oleh Datatables --}}
+                                    <td>{{ $statistics->firstItem() + $index }}</td>
                                     <td>
-                                        @if ($filterType == 'daily')
-                                            {{ \Carbon\Carbon::parse($stat->tanggal)->format('d M Y') }}
+                                        @if (($filterType ?? 'daily') == 'daily')
+                                            @if ($stat->periode)
+                                                {{ \Carbon\Carbon::parse($stat->periode)->format('d F Y') }}
+                                            @else
+                                                -
+                                            @endif
                                         @else
-                                            {{ \Carbon\Carbon::createFromFormat('Y-m', $stat->periode)->format('M Y') }}
+                                            @if ($stat->periode)
+                                                {{ \Carbon\Carbon::createFromFormat('Y-m', $stat->periode)->format('F Y') }}
+                                            @else
+                                                -
+                                            @endif
                                         @endif
                                     </td>
                                     <td>{{ $stat->jumlah_peminjaman_buku }}</td>
                                     <td>{{ $stat->jumlah_peminjam_unik }}</td>
                                     <td>
-                                        <button type="button" class="btn btn-primary btn-sm view-details-btn"
-                                            data-bs-toggle="modal" data-bs-target="#detailsModal"
-                                            data-details='@json($stat->details)'
-                                            data-periode="{{ $filterType == 'daily' ? \Carbon\Carbon::parse($stat->tanggal)->format('d M Y') : \Carbon\Carbon::createFromFormat('Y-m', $stat->periode)->format('M Y') }}">
-                                            <i class="fas fa-eye"></i> Lihat Detail
+                                        <button type="button" class="btn btn-sm btn-primary text-white view-detail-btn"
+                                            data-bs-toggle="modal" data-bs-target="#detailPeminjamanModal"
+                                            data-periode="{{ $stat->periode }}">
+                                            <i class="fas fa-eye me-1"></i> Lihat Detail
                                         </button>
                                     </td>
                                 </tr>
@@ -169,130 +147,113 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="d-flex justify-content-center">
+                    {{ $statistics->appends(request()->except('page'))->links() }}
+                </div>
             </div>
         </div>
+    @else
+        <div class="alert alert-info text-center mt-4">
+            Silakan gunakan filter di atas untuk menampilkan data statistik peminjaman.
+        </div>
     @endif
-</div>
 
-{{-- MODAL POP-UP UNTUK DETAIL PEMINJAMAN --}}
-<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="detailsModalLabel">Detail Peminjaman</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <h6 id="modal-periode-title"></h6>
-                <ul class="list-group" id="detailsList">
-                    {{-- Konten detail akan dimasukkan di sini oleh JavaScript --}}
-                </ul>
-            </div>
-            <div class="modal-footer d-flex justify-content-between align-items-center">
-                <button type="button" id="prevPageBtn" class="btn btn-secondary">Sebelumnya</button>
-                <span id="pageInfo" class="text-muted"></span>
-                <button type="button" id="nextPageBtn" class="btn btn-secondary">Selanjutnya</button>
-                <button type="button" class="btn btn-primary ms-auto" data-bs-dismiss="modal">Tutup</button>
+    {{-- Modal untuk Detail Peminjaman --}}
+    <div class="modal fade" id="detailPeminjamanModal" tabindex="-1" aria-labelledby="detailPeminjamanModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailPeminjamanModalLabel">Detail Peminjaman <span
+                            id="modal-periode-display" class="badge bg-secondary"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped" id="detailTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">No</th>
+                                    <th style="width: 20%;">Nama Peminjam</th>
+                                    <th style="width: 15%;">NIM</th>
+                                    <th>Detail Buku</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailTbody">
+                                <tr>
+                                    <td colspan="4" class="text-center">Memuat data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="modalPagination"></div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
-<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/locale/id.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        $('#kunjunganTable').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/id.json"
-            },
-            "paging": true,
-            "lengthChange": true,
-            "searching": true,
-            "ordering": true,
-            "info": true,
-            "autoWidth": false,
-            "dom": '<"d-flex justify-content-between mb-3"lp>t<"d-flex justify-content-between mt-3"ip>',
-            "lengthMenu": [
-                [10, 25, 50, 100, -1],
-                [10, 25, 50, 100, "Semua"]
-            ],
-            "pageLength": 10,
-            "columnDefs": [{
-                "orderable": false,
-                "targets": [0, 4]
-            }, ]
+    document.addEventListener("DOMContentLoaded", function() {
+        const filterTypeSelect = document.getElementById('filter_type');
+        const dailyFilterDiv = document.getElementById('dailyFilter');
+        const monthlyFilterDiv = document.getElementById('monthlyFilter');
+
+        filterTypeSelect.addEventListener('change', function() {
+            if (this.value === 'daily') {
+                dailyFilterDiv.style.display = 'block';
+                monthlyFilterDiv.style.display = 'none';
+            } else {
+                dailyFilterDiv.style.display = 'none';
+                monthlyFilterDiv.style.display = 'block';
+            }
         });
 
+        // Di Controller, variabel $fullStatisticsForChart diganti namanya
+        const fullStatistics = @json($fullStatisticsForChart ?? []);
+        const filterType = "{{ $filterType ?? 'daily' }}";
 
-        const filterTypeSelect = document.getElementById('filter_type');
-        const dailyFilterStart = document.getElementById('dailyFilterStart');
-        const dailyFilterEnd = document.getElementById('dailyFilterEnd');
-        const monthlyFilter = document.getElementById('monthlyFilter');
-        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        if (fullStatistics.length > 0) {
+            const chartLabels = fullStatistics.map(item => moment(item.periode).format(filterType === 'daily' ?
+                'D MMM YYYY' : 'MMM YYYY'));
+            const chartDataBooks = fullStatistics.map(item => item.jumlah_peminjaman_buku);
+            const chartDataBorrowers = fullStatistics.map(item => item.jumlah_peminjam_unik);
 
-        function toggleFilterInputs() {
-            const selectedValue = filterTypeSelect.value;
-            if (selectedValue === 'daily') {
-                dailyFilterStart.style.display = 'block';
-                dailyFilterEnd.style.display = 'block';
-                monthlyFilter.style.display = 'none';
-            } else {
-                dailyFilterStart.style.display = 'none';
-                dailyFilterEnd.style.display = 'none';
-                monthlyFilter.style.display = 'block';
-            }
-        }
-        toggleFilterInputs();
-        filterTypeSelect.addEventListener('change', toggleFilterInputs);
-
-        @if (!$statistics->isEmpty())
             const ctx = document.getElementById('peminjamanChart').getContext('2d');
-            const labels = @json($chartLabels);
-            const dataBooks = @json($chartDataBooks);
-            const dataBorrowers = @json($chartDataBorrowers);
-            const chartTitle =
-                "Grafik Statistik Peminjaman @if ($filterType == 'daily') per Hari @else per Bulan @endif";
-            const xAxisTitle =
-                "@if ($filterType == 'daily') Tanggal @else Bulan dan Tahun @endif";
             new Chart(ctx, {
-                type: 'bar',
+                type: 'line',
                 data: {
-                    labels: labels,
+                    labels: chartLabels,
                     datasets: [{
-                            label: 'Jumlah Buku Terpinjam',
-                            data: dataBooks,
-                            borderColor: 'rgba(75, 192, 192)',
-                            backgroundColor: 'rgba(75, 192, 192)',
-                            tension: 0.1,
-                            fill: false
-                        },
-                        {
-                            label: 'Jumlah Peminjam',
-                            data: dataBorrowers,
-                            borderColor: 'rgba(153, 102, 255)',
-                            backgroundColor: 'rgba(153, 102, 255)',
-                            tension: 0.1,
-                            fill: false
-                        }
-                    ]
+                        label: 'Jumlah Peminjaman Buku',
+                        data: chartDataBooks,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        tension: 0.3,
+                        fill: true
+                    }, {
+                        label: 'Jumlah Peminjam',
+                        data: chartDataBorrowers,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.3,
+                        fill: true
+                    }]
                 },
                 options: {
                     responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: chartTitle
-                        }
-                    },
                     scales: {
                         x: {
                             title: {
                                 display: true,
-                                text: xAxisTitle
+                                text: (filterType === 'daily') ? 'Tanggal' : 'Bulan'
                             }
                         },
                         y: {
@@ -300,167 +261,157 @@
                             title: {
                                 display: true,
                                 text: 'Jumlah'
+                            },
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const item = fullStatistics[context[0].dataIndex];
+                                    return moment(item.periode).format(filterType === 'daily' ?
+                                        'dddd, D MMMM YYYY' : 'MMMM YYYY');
+                                }
                             }
                         }
                     }
                 }
             });
-        @endif
-
-        // ===============================================
-        // KODE JAVASCRIPT BARU UNTUK PAGINATION DI MODAL (MODIFIKASI DARI SEBELUMNYA)
-        // ===============================================
-
-        const detailsModal = document.getElementById('detailsModal');
-        const detailsList = document.getElementById('detailsList');
-        const modalPeriodeTitle = document.getElementById('modal-periode-title');
-        const prevPageBtn = document.getElementById('prevPageBtn');
-        const nextPageBtn = document.getElementById('nextPageBtn');
-        const pageInfo = document.getElementById('pageInfo');
-
-        let currentPage = 1;
-        const itemsPerPage = 5; // Jumlah item per halaman
-        let currentDetailsData = [];
-
-        function renderDetails(page) {
-            detailsList.innerHTML = '';
-            const startIndex = (page - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedItems = currentDetailsData.slice(startIndex, endIndex);
-
-            paginatedItems.forEach(detail => {
-                const listItem = document.createElement('li');
-                listItem.className =
-                    'list-group-item d-flex justify-content-between align-items-center';
-                listItem.innerHTML = `
-                    <div>
-                        <strong>Peminjam:</strong> ${detail.nama_peminjam} (${detail.cardnumber}) <br>
-                        <strong>Judul Buku:</strong> ${detail.judul_buku}
-                    </div>
-                    <span class="badge bg-secondary rounded-pill">ID Buku: ${detail.barcode}</span>
-                `;
-                detailsList.appendChild(listItem);
-            });
-
-            const totalPages = Math.ceil(currentDetailsData.length / itemsPerPage);
-            prevPageBtn.disabled = page === 1;
-            nextPageBtn.disabled = page === totalPages || totalPages === 0;
-            pageInfo.textContent = `Halaman ${page} dari ${totalPages}`;
         }
 
-        if (detailsModal) {
-            detailsModal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget;
-                const details = JSON.parse(button.getAttribute('data-details'));
-                const periode = button.getAttribute('data-periode');
+        const detailModalElement = document.getElementById('detailPeminjamanModal');
+        const detailModal = new bootstrap.Modal(detailModalElement);
+        const detailTbody = document.getElementById('detailTbody');
+        const modalPeriodeDisplay = document.getElementById('modal-periode-display');
+        const modalPaginationContainer = document.getElementById('modalPagination');
+        let currentDetailUrl = '';
 
-                currentDetailsData = details;
-                currentPage = 1;
+        document.querySelectorAll('.view-detail-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const periode = this.dataset.periode;
+                const filterType = document.getElementById('filter_type').value;
 
-                modalPeriodeTitle.textContent = 'Detail Peminjaman pada: ' + periode;
+                let periodeText = (filterType === 'daily') ?
+                    moment(periode).format('D MMMM YYYY') :
+                    moment(periode, 'YYYY-MM').format('MMMM YYYY');
+                modalPeriodeDisplay.innerText = periodeText;
 
-                renderDetails(currentPage);
+                // Simpan URL dasar untuk paginasi dan panggil halaman pertama
+                currentDetailUrl =
+                    `{{ route('peminjaman.get_detail') }}?periode=${periode}&filter_type=${filterType}`;
+                fetchDetailData(currentDetailUrl);
+                detailModal.show();
             });
-        }
+        });
 
-        prevPageBtn.addEventListener('click', function() {
-            if (currentPage > 1) {
-                currentPage--;
-                renderDetails(currentPage);
+
+        // Event listener untuk klik pada link paginasi di dalam modal
+        modalPaginationContainer.addEventListener('click', function(event) {
+            if (event.target.tagName === 'A' && event.target.classList.contains('page-link')) {
+                event.preventDefault(); // Mencegah link me-reload halaman
+                const url = event.target.href;
+                if (url) {
+                    fetchDetailData(url);
+                }
             }
         });
 
-        nextPageBtn.addEventListener('click', function() {
-            const totalPages = Math.ceil(currentDetailsData.length / itemsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                renderDetails(currentPage);
+        // Fungsi untuk mengambil dan merender data
+        async function fetchDetailData(url) {
+            detailTbody.innerHTML = `<tr><td colspan="4" class="text-center">Memuat data...</td></tr>`;
+            modalPaginationContainer.innerHTML = ''; // Kosongkan paginasi lama
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                renderModalContent(result); // Panggil fungsi render
+            } catch (error) {
+                console.error('Error fetching detail data:', error);
+                detailTbody.innerHTML =
+                    `<tr><td colspan="4" class="text-center text-danger">Terjadi kesalahan saat memuat data.</td></tr>`;
             }
-        });
+        }
 
-        // ===============================================
-        // KODE JAVASCRIPT BARU UNTUK EKSPOR CSV LENGKAP
-        // ===============================================
-        // if (exportCsvBtn) {
-        //     exportCsvBtn.addEventListener('click', function() {
-        //         // Ambil data lengkap yang dikirim dari controller
-        //         const dataToExport = @json($fullStatistics);
-        //         if (!dataToExport || dataToExport.length === 0) {
-        //             alert("Tidak ada data untuk diekspor.");
-        //             return;
-        //         }
+        // Fungsi untuk merender konten modal
+        function renderModalContent(result) {
+            if (result.data && result.data.length > 0) {
+                let allRowsHtml = '';
+                result.data.forEach((peminjam, index) => {
+                    let detailBukuHtml = '<div class="list-group list-group-flush">';
+                    peminjam.detail_buku.forEach(buku => {
+                        let badgeClass = 'bg-secondary',
+                            badgeText = buku.tipe_transaksi;
+                        if (buku.tipe_transaksi === 'issue') {
+                            badgeClass = 'bg-primary';
+                            badgeText = 'Pinjam Awal';
+                        } else if (buku.tipe_transaksi === 'renew') {
+                            badgeClass = 'bg-success';
+                            badgeText = 'Perpanjangan';
+                        } else if (buku.tipe_transaksi === 'return') {
+                            badgeClass = 'bg-warning text-dark';
+                            badgeText = 'Pengembalian';
+                        }
 
-        //         let csv = [];
-        //         const delimiter = ';';
+                        const formattedTime = moment(buku.waktu_transaksi).format(
+                            'DD MMM YYYY HH:mm');
+                        detailBukuHtml += `
+                            <div class="d-flex justify-content-between align-items-start border-0 px-0 py-1">
+                                <div class="ms-2 me-auto">
+                                    <div class=""><i class="fas fa-book me-2"></i>${buku.judul_buku}<span class="badge bg-light text-dark ms-2">${formattedTime}</span></div>
+                                </div>
+                                <span class="badge ${badgeClass} rounded-pill">${badgeText}</span>
+                            </div>`;
+                    });
+                    detailBukuHtml += '</div>';
 
-        //         // Tentukan header, tambahkan "Nomor"
-        //         let headers = ['No', 'Periode', 'Jumlah Buku Terpinjam', 'Jumlah Peminjam'];
-        //         csv.push(headers.join(delimiter));
+                    allRowsHtml += `
+                        <tr>
+                            <td class="text-center align-middle">${result.from + index}</td>
+                            <td class="align-middle">${peminjam.nama_peminjam}</td>
+                            <td class="align-middle">${peminjam.nim}</td>
+                            <td>${detailBukuHtml}</td>
+                        </tr>`;
+                });
+                detailTbody.innerHTML = allRowsHtml;
 
-        //         // Tambahkan data dengan nomor urut
-        //         dataToExport.forEach((row, index) => {
-        //             let periode = '';
-        //             if (row.periode) {
-        //                 periode = new Date(row.periode).toLocaleDateString('id-ID', {
-        //                     year: 'numeric',
-        //                     month: 'short'
-        //                 });
-        //             } else if (row.tanggal) {
-        //                 periode = new Date(row.tanggal).toLocaleDateString('id-ID', {
-        //                     year: 'numeric',
-        //                     month: 'short',
-        //                     day: 'numeric'
-        //                 });
-        //             }
+                // Render link paginasi
+                let paginationHtml = '<ul class="pagination pagination-sm mb-0">';
+                if (result.links) {
+                    result.links.forEach(link => {
+                        if (link.url && link.label.indexOf('...') === -1) {
+                            paginationHtml += `
+                                <li class="page-item ${link.active ? 'active' : ''} ${!link.url ? 'disabled' : ''}">
+                                    <a class="page-link" href="${link.url}">${link.label.replace(/&laquo;|&raquo;/g, '').trim()}</a>
+                                </li>`;
+                        }
+                    });
+                }
+                paginationHtml += '</ul>';
+                modalPaginationContainer.innerHTML = paginationHtml;
 
-        //             let rowData = [
-        //                 index + 1, // Nomor
-        //                 periode,
-        //                 row.jumlah_peminjaman_buku,
-        //                 row.jumlah_peminjam_unik
-        //             ];
-        //             csv.push(rowData.join(delimiter));
-        //         });
+            } else {
+                detailTbody.innerHTML =
+                    `<tr><td colspan="4" class="text-center">Tidak ada detail transaksi.</td></tr>`;
+            }
+        }
 
-        //         const csvString = csv.join('\n');
-        //         const BOM = "\uFEFF";
-        //         const blob = new Blob([BOM + csvString], {
-        //             type: 'text/csv;charset=utf-8;'
-        //         });
+        // =======================================================
+        // ## KODE BARU UNTUK EKSPOR CSV DARI AJAX (CLIENT-SIDE) ##
+        // =======================================================
 
-        //         const link = document.createElement("a");
-        //         const filterType = filterTypeSelect.value;
-        //         let fileName = 'statistik_peminjaman';
-
-        //         if (filterType === 'daily') {
-        //             const startDate = document.getElementById('start_date').value;
-        //             const endDate = document.getElementById('end_date').value;
-        //             fileName += `_${startDate}_${endDate}`;
-        //         } else {
-        //             const selectedYear = document.getElementById('selected_year').value;
-        //             fileName += `_${selectedYear}`;
-        //         }
-        //         fileName += `_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.csv`;
-
-
-        //         if (navigator.msSaveBlob) {
-        //             navigator.msSaveBlob(blob, fileName);
-        //         } else {
-        //             link.href = URL.createObjectURL(blob);
-        //             link.download = fileName;
-        //             document.body.appendChild(link);
-        //             link.click();
-        //             document.body.removeChild(link);
-        //             URL.revokeObjectURL(link.href);
-        //         }
-        //     });
-        // }
-
+        // FIX #1: Deklarasikan variabel tombolnya terlebih dahulu
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
 
         if (exportCsvBtn) {
             exportCsvBtn.addEventListener('click', function() {
-                // Ambil data lengkap yang dikirim dari controller
-                const dataToExport = @json($fullStatistics);
+                // FIX #2: Gunakan data dari variabel $fullStatisticsForChart, BUKAN $statistics
+                const dataToExport = @json($fullStatisticsForChart ?? []);
+
+                // FIX #3: Cek data dengan benar. Sekarang .length akan berfungsi
                 if (!dataToExport || dataToExport.length === 0) {
                     alert("Tidak ada data untuk diekspor.");
                     return;
@@ -468,7 +419,7 @@
 
                 let csv = [];
                 const delimiter = ';';
-                const filterType = filterTypeSelect.value;
+                // Variabel filterType sudah ada di bagian atas script, kita bisa pakai lagi
                 let title = "Laporan Statistik Peminjaman";
 
                 // Tentukan judul berdasarkan filter
@@ -480,61 +431,54 @@
                     const selectedYear = document.getElementById('selected_year').value;
                     title += ` Bulanan Tahun ${selectedYear}`;
                 }
-                csv.push(title); // Tambahkan judul ke baris pertama
+                csv.push(title);
+                csv.push(''); // Baris kosong
 
-                // Tambahkan baris kosong sebagai pemisah
-                csv.push('');
-
-                // Tentukan header, tambahkan "Nomor"
+                // Header tabel
                 let headers = ['No', 'Periode', 'Jumlah Buku Terpinjam', 'Jumlah Peminjam'];
                 csv.push(headers.join(delimiter));
 
-                // Tambahkan data dengan nomor urut
+                // Tambahkan data baris per baris
                 dataToExport.forEach((row, index) => {
-                    let periode = '';
-                    if (row.periode) {
-                        periode = new Date(row.periode).toLocaleDateString('id-ID', {
-                            year: 'numeric',
-                            month: 'short'
-                        });
-                    } else if (row.tanggal) {
-                        periode = new Date(row.tanggal).toLocaleDateString('id-ID', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                        });
+                    let periode;
+
+                    // FIX #4: Gunakan moment.js (sudah ada) untuk format tanggal yang lebih andal
+                    // dan hapus pengecekan row.tanggal yang sudah tidak relevan
+                    if (filterType === 'daily') {
+                        periode = moment(row.periode).format('DD MMMM YYYY');
+                    } else {
+                        // Tambahkan 'YYYY-MM' agar moment.js tahu format inputnya
+                        periode = moment(row.periode, 'YYYY-MM').format('MMMM YYYY');
                     }
 
                     let rowData = [
-                        index + 1, // Nomor
-                        periode,
+                        index + 1,
+                        `"${periode}"`, // Bungkus dengan kutip untuk keamanan
                         row.jumlah_peminjaman_buku,
                         row.jumlah_peminjam_unik
                     ];
                     csv.push(rowData.join(delimiter));
                 });
 
+                // --- Sisa logika untuk membuat dan men-download file (tetap sama) ---
                 const csvString = csv.join('\n');
-                const BOM = "\uFEFF";
+                const BOM = "\uFEFF"; // Untuk memastikan karakter encoding benar di Excel
                 const blob = new Blob([BOM + csvString], {
                     type: 'text/csv;charset=utf-8;'
                 });
 
                 const link = document.createElement("a");
-
-                // Nama file tetap sama, tidak perlu diubah.
                 let fileName = 'statistik_peminjaman';
 
                 if (filterType === 'daily') {
                     const startDate = document.getElementById('start_date').value;
                     const endDate = document.getElementById('end_date').value;
-                    fileName += `_${startDate}_${endDate}`;
+                    fileName += `_harian_${startDate}_sampai_${endDate}`;
                 } else {
                     const selectedYear = document.getElementById('selected_year').value;
-                    fileName += `_${selectedYear}`;
+                    fileName += `_bulanan_${selectedYear}`;
                 }
-                fileName += `_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.csv`;
-
+                fileName += '.csv';
 
                 if (navigator.msSaveBlob) {
                     navigator.msSaveBlob(blob, fileName);

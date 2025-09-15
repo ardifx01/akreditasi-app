@@ -3,7 +3,7 @@
 @section('title', 'Peminjaman Berlangsung')
 
 @section('content')
-    <div class="container-fluid">
+    <div class="container">
         <h4 class="mb-3">Daftar Peminjaman Berlangsung @if ($selectedProdiCode)
                 - {{ $namaProdiFilter }}
             @endif
@@ -31,7 +31,8 @@
             @if ($selectedProdiCode || $dataExists)
                 <div class="card-header d-flex justify-content-between align-items-center">
                     Data Peminjaman Berlangsung
-                    <button type="button" id="exportCsvBtn" class="btn btn-success btn-sm"><i class="fas fa-file-csv"></i> Export CSV</button>
+                    <button type="buton" id="exportCsvBtn" class="btn btn-success btn-sm"><i class="fas fa-file-csv"></i>
+                        Export CSV</button>
                 </div>
             @endif
             <div class="card-body">
@@ -44,7 +45,7 @@
                                     <th>Buku Dipinjam Saat</th>
                                     <th>Judul Buku</th>
                                     <th>Barcode Buku</th>
-                                    <th>Kode Prodi</th>
+                                    {{-- <th>Kode Prodi</th> --}}
                                     <th>Peminjam</th>
                                     <th>Batas Waktu Pengembalian</th>
                                 </tr>
@@ -56,7 +57,7 @@
                                         <td>{{ \Carbon\Carbon::parse($loan->BukuDipinjamSaat)->format('d F Y H:i:s') }}</td>
                                         <td>{{ $loan->JudulBuku }}</td>
                                         <td>{{ $loan->BarcodeBuku }}</td>
-                                        <td>{{ $loan->KodeProdi }}</td> {{-- Mengakses KodeProdi --}}
+                                        {{-- <td>{{ $loan->KodeProdi }}</td>  --}}
                                         <td>{{ $loan->Peminjam }}</td>
                                         <td>{{ \Carbon\Carbon::parse($loan->BatasWaktuPengembalian)->format('d F Y') }}
                                         </td>
@@ -77,58 +78,62 @@
                         saat ini.
                     </div>
                 @endif
-            @push('scripts')
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const exportBtn = document.getElementById('exportCsvBtn');
-                    if (exportBtn) {
-                        exportBtn.addEventListener('click', async function() {
-                            const prodi = document.getElementById('prodi').value;
-                            let url = `{{ route('peminjaman.get_berlangsung_export_data') }}`;
-                            if (prodi) {
-                                url += `?prodi=${encodeURIComponent(prodi)}`;
-                            }
-                            try {
-                                const response = await fetch(url);
-                                const result = await response.json();
-                                if (response.ok && result.data && result.data.length > 0) {
-                                    const delimiter = ';';
-                                    const headers = ['No.', 'Buku Dipinjam Saat', 'Judul Buku', 'Barcode Buku', 'Kode Prodi', 'Peminjam', 'Batas Waktu Pengembalian'];
-                                    let csv = [headers.join(delimiter)];
-                                    result.data.forEach((row, idx) => {
-                                        csv.push([
-                                            idx + 1,
-                                            row.BukuDipinjamSaat,
-                                            `"${row.JudulBuku.replace(/"/g, '""')}"`,
-                                            row.BarcodeBuku,
-                                            row.KodeProdi,
-                                            `"${row.Peminjam.replace(/"/g, '""')}"`,
-                                            row.BatasWaktuPengembalian
-                                        ].join(delimiter));
-                                    });
-                                    const csvString = csv.join('\n');
-                                    const BOM = "\uFEFF";
-                                    const blob = new Blob([BOM + csvString], { type: 'text/csv;charset=utf-8;' });
-                                    const link = document.createElement('a');
-                                    let fileName = 'peminjaman_berlangsung.csv';
-                                    if (prodi) fileName = `peminjaman_berlangsung_${prodi}.csv`;
-                                    link.href = URL.createObjectURL(blob);
-                                    link.download = fileName;
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                    URL.revokeObjectURL(link.href);
-                                } else {
-                                    alert('Tidak ada data untuk diekspor.');
-                                }
-                            } catch (err) {
-                                alert('Gagal mengekspor data.');
+                @push('scripts')
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const exportBtn = document.getElementById('exportCsvBtn');
+                            if (exportBtn) {
+                                exportBtn.addEventListener('click', async function() {
+                                    const prodi = document.getElementById('prodi').value;
+                                    let url = `{{ route('peminjaman.get_berlangsung_export_data') }}`;
+                                    if (prodi) {
+                                        url += `?prodi=${encodeURIComponent(prodi)}`;
+                                    }
+                                    try {
+                                        const response = await fetch(url);
+                                        const result = await response.json();
+                                        if (response.ok && result.data && result.data.length > 0) {
+                                            const delimiter = ';';
+                                            const headers = ['No.', 'Buku Dipinjam Saat', 'Judul Buku', 'Barcode Buku',
+                                                'Kode Prodi', 'Peminjam', 'Batas Waktu Pengembalian'
+                                            ];
+                                            let csv = [headers.join(delimiter)];
+                                            result.data.forEach((row, idx) => {
+                                                csv.push([
+                                                    idx + 1,
+                                                    row.BukuDipinjamSaat,
+                                                    `"${row.JudulBuku.replace(/"/g, '""')}"`,
+                                                    row.BarcodeBuku,
+                                                    row.KodeProdi,
+                                                    `"${row.Peminjam.replace(/"/g, '""')}"`,
+                                                    row.BatasWaktuPengembalian
+                                                ].join(delimiter));
+                                            });
+                                            const csvString = csv.join('\n');
+                                            const BOM = "\uFEFF";
+                                            const blob = new Blob([BOM + csvString], {
+                                                type: 'text/csv;charset=utf-8;'
+                                            });
+                                            const link = document.createElement('a');
+                                            let fileName = 'peminjaman_berlangsung.csv';
+                                            if (prodi) fileName = `peminjaman_berlangsung_${prodi}.csv`;
+                                            link.href = URL.createObjectURL(blob);
+                                            link.download = fileName;
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                            URL.revokeObjectURL(link.href);
+                                        } else {
+                                            alert('Tidak ada data untuk diekspor.');
+                                        }
+                                    } catch (err) {
+                                        alert('Gagal mengekspor data.');
+                                    }
+                                });
                             }
                         });
-                    }
-                });
-            </script>
-            @endpush
+                    </script>
+                @endpush
             </div>
         </div>
     </div>

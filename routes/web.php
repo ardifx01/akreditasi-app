@@ -66,9 +66,9 @@ Route::get('/peminjaman/berlangsung', [PeminjamanController::class, 'peminjamanB
 
 Route::get('/peminjaman/export-berlangsung-full-data', [PeminjamanController::class, 'getBerlangsungExportData'])->name('peminjaman.get_berlangsung_export_data');
 
+Route::get('/peminjaman/detail', [PeminjamanController::class, 'getDetailPeminjaman'])->name('peminjaman.get_detail');
 
-
-Route::get('/peminjaman/detail-peminjaman', [PeminjamanController::class, 'getDetailPeminjaman'])->name('peminjaman.detail');
+// Route::get('/peminjaman/detail-peminjaman', [PeminjamanController::class, 'getDetailPeminjaman'])->name('peminjaman.detail');
 
 
 

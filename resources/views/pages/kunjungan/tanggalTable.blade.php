@@ -19,7 +19,7 @@
                         <select name="filter_type" id="filter_type" class="form-select">
                             <option value="daily" {{ ($filterType ?? 'daily') == 'daily' ? 'selected' : '' }}>Per Hari
                             </option>
-                            <option value="yearly" {{ ($filterType ?? '') == 'yearly' ? 'selected' : '' }}>Per Tahun
+                            <option value="yearly" {{ ($filterType ?? '') == 'yearly' ? 'selected' : '' }}>Per Bulan
                             </option>
                         </select>
                     </div>
@@ -132,7 +132,7 @@
                         </div>
                         <div class="col-md-5">
                             <div class="alert alert-secondary py-2 m-0">
-                                <i class="fas fa-filter me-2"></i>Periode:
+                                <i class="fas fa-filter me-2"></i>
                                 <span class="fw-bold">
                                     @if (($filterType ?? 'daily') == 'daily')
                                         @if ($tanggalAwal && $tanggalAkhir)

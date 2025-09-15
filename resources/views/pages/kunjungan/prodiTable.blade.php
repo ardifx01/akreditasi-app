@@ -2,7 +2,7 @@
 
 @section('title', 'Statistik Kunjungan Mahasiswa / Staff')
 @section('content')
-    <div class="container-fluid">
+    <div class="container">
         <div class="card bg-white shadow-sm mb-4">
             <div class="card-body">
                 <h4 class="mb-0">Statistik Kunjungan Mahasiswa / Staff</h4>
@@ -22,7 +22,7 @@
                         <select name="filter_type" id="filter_type" class="form-select">
                             <option value="daily" {{ ($filterType ?? 'daily') == 'daily' ? 'selected' : '' }}>Per Hari
                             </option>
-                            <option value="yearly" {{ ($filterType ?? '') == 'yearly' ? 'selected' : '' }}>Per Tahun
+                            <option value="yearly" {{ ($filterType ?? '') == 'yearly' ? 'selected' : '' }}>Per Bulan
                             </option>
                         </select>
                     </div>
@@ -33,9 +33,9 @@
                                 (Semua) -- Seluruh Prodi
                             </option>
                             @foreach ($listProdi as $kode => $nama)
-                                <option value="{{ $kode }}" {{ request('prodi') == $kode ? 'selected' : '' }}>
-                                    ({{ $kode }})
-                                    -- {{ $nama }}
+                                <option class="custom-option" value="{{ $kode }}"
+                                    {{ request('prodi') == $kode ? 'selected' : '' }}>
+                                    {{ $nama }} ({{ $kode }})
                                 </option>
                             @endforeach
                         </select>

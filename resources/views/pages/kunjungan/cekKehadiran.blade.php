@@ -28,7 +28,6 @@
         <div class="col-md-1">
             <button type="submit" class="btn btn-primary w-100">Lihat</button>
         </div>
-        {{-- Tombol Export PDF dan CSV menggunakan JavaScript untuk mencegah error "undefined variable" --}}
         <div class="col-md-2">
             <button type="button" id="downloadPdfButton"
                 class="btn btn-danger w-100 {{ !request('cardnumber') ? 'disabled' : '' }}">Export ke PDF</button>
@@ -126,11 +125,11 @@
             });
         }
 
-        // Logika untuk tombol Export ke CSV
         const downloadExportDataButton = document.getElementById("downloadExportDataButton");
         if (downloadExportDataButton) {
             downloadExportDataButton.addEventListener("click", async function() {
                 const cardnumber = document.getElementById('cardnumber').value;
+                const tahun = document.getElementById('tahun').value; // Ambil nilai tahun dari form
 
                 if (!cardnumber) {
                     alert("Mohon masukkan Nomor Kartu Anggota terlebih dahulu.");
@@ -139,10 +138,9 @@
 
                 try {
                     const response = await fetch(
-                        `{{ route('kunjungan.get_export_data') }}?cardnumber=${cardnumber}`
+                        `{{ route('kunjungan.get_export_data') }}?cardnumber=${cardnumber}&tahun=${tahun}`
                     );
                     const result = await response.json();
-
                     if (response.ok) {
                         if (result.data.length === 0) {
                             alert("Tidak ada data untuk diekspor.");
@@ -151,12 +149,10 @@
 
                         let csv = [];
                         const delimiter = ';';
-                        const BOM = "\uFEFF"; // Untuk compatibility di Excel
+                        const BOM = "\uFEFF";
 
-                        // Tambahkan header
                         const headers = ['Bulan Tahun', 'Jumlah Kunjungan'];
                         csv.push(headers.join(delimiter));
-
 
                         result.data.forEach(row => {
                             const rowData = [
